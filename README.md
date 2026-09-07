@@ -62,9 +62,10 @@ wrong.
 
 ## Adding an account
 
-Copy `custom_components/aeg` into the `custom_components` directory of your
-Home Assistant configuration and restart, then add the AEG integration from the
-interface. It asks how the account signs in, because that cannot be looked up,
+Add this repository to HACS as a custom repository of category Integration and
+install it from there, or copy `custom_components/aeg` into the
+`custom_components` directory of your Home Assistant configuration by hand.
+Either way, restart and then add the AEG integration from the interface. It asks how the account signs in, because that cannot be looked up,
 and takes either a password or a code sent to the address. The country is what
 picks the server the appliances are on, so it has to be the one the account was
 registered in.
@@ -138,3 +139,7 @@ The config flow tests drive the real Home Assistant flow machinery with the
 cloud mocked at the two classes the flow talks to, so they cover which step
 follows which, what lands in the config entry, and which message a failure
 puts on the form.
+
+On every push the Validate workflow runs HACS validation and hassfest, the
+Home Assistant manifest and translation checks. Neither runs locally, so the
+first sign of a manifest problem is that workflow.
