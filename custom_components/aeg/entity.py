@@ -43,6 +43,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .capability import Capability, is_housekeeping, platform_for, value_at
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
+from .icons import icon_for
 from .triggers import Override
 
 # A model code stuck on the front of a field name, as in EWX1493A_easyIron.
@@ -150,6 +151,7 @@ class AegEntity(AegApplianceEntity):
         # The whole path, because two groups can hold the same field and one
         # name for both is no name at all.
         self._attr_name = pretty(capability.path)
+        self._attr_icon = icon_for(capability)
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC

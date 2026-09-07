@@ -40,6 +40,7 @@ from . import AegConfigEntry
 from .capability import BUTTON, Capability
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields, pretty
+from .icons import icon_for_command
 
 
 async def async_setup_entry(
@@ -67,6 +68,7 @@ class AegButton(AegEntity, ButtonEntity):
         self._command = command
         self._attr_unique_id = f"{appliance_id}-{capability.path}-{command}"
         self._attr_name = f"{pretty(capability.path)} {pretty(command)}"
+        self._attr_icon = icon_for_command(command)
 
     @property
     def available(self) -> bool:
