@@ -1,0 +1,810 @@
+[
+ {
+  "applianceData": {
+   "applianceName": "Lave-linge",
+   "created": "2026-09-07T11:28:59.564Z",
+   "modelName": "WM"
+  },
+  "applianceId": "<34 chars hidden>",
+  "connectionState": "connected",
+  "properties": {
+   "desired": {},
+   "metadata": {
+    "alerts": [],
+    "applianceCareAndMaintenance0": {
+     "1": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "2": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "3": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "4": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "5": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     }
+    },
+    "applianceCareAndMaintenance1": {
+     "10": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "6": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "7": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "8": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     },
+     "9": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     }
+    },
+    "applianceCareAndMaintenance2": {
+     "11": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     }
+    },
+    "applianceCareAndMaintenance3": {
+     "16": {
+      "occured": {
+       "timestamp": 1788780638
+      },
+      "threshold": {
+       "timestamp": 1788780638
+      }
+     }
+    },
+    "applianceInfo": {
+     "applianceType": {
+      "timestamp": 1788780681
+     },
+     "capabilityHash": {
+      "timestamp": 1788780020
+     }
+    },
+    "applianceMainBoardSwVersion": {
+     "timestamp": 1788780638
+    },
+    "applianceMode": {
+     "timestamp": 1788780638
+    },
+    "applianceState": {
+     "timestamp": 1788780677
+    },
+    "applianceTotalWorkingTime": {
+     "timestamp": 1788780638
+    },
+    "applianceUiSwVersion": {
+     "timestamp": 1788780638
+    },
+    "autoDosing": {
+     "adLocalFineTuning": {
+      "timestamp": 1788780638
+     },
+     "adTankAConfiguration": {
+      "timestamp": 1788780638
+     },
+     "adTankADetStandardDose": {
+      "timestamp": 1788780638
+     },
+     "adTankBConfiguration": {
+      "timestamp": 1788780638
+     },
+     "adTankBDetStandardDose": {
+      "timestamp": 1788780638
+     },
+     "adTankBSoftStandardDose": {
+      "timestamp": 1788780638
+     }
+    },
+    "connectivityState": {
+     "timestamp": 1788780637
+    },
+    "cpv": {
+     "timestamp": 1788780516
+    },
+    "cycleMemory1": {
+     "EWX1493A_anticreaseNoSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_anticreaseWSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_dryMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_easyIron": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_intensive": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_nightCycle": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_pod": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_preWashPhase": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_rinseHold": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_stain": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_steamMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_tcSensor": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_ultraMix": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wetMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wmEconomy": {
+      "timestamp": 1788780638
+     },
+     "analogSpinSpeed": {
+      "timestamp": 1788780638
+     },
+     "memoryId": {
+      "timestamp": 1788780638
+     },
+     "programUID": {
+      "timestamp": 1788780638
+     },
+     "timeManagerLevel": {
+      "timestamp": 1788780638
+     }
+    },
+    "cycleMemory2": {
+     "EWX1493A_anticreaseNoSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_anticreaseWSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_dryMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_easyIron": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_intensive": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_nightCycle": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_pod": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_preWashPhase": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_rinseHold": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_stain": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_steamMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_tcSensor": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_ultraMix": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wetMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wmEconomy": {
+      "timestamp": 1788780638
+     },
+     "analogSpinSpeed": {
+      "timestamp": 1788780638
+     },
+     "memoryId": {
+      "timestamp": 1788780638
+     },
+     "programUID": {
+      "timestamp": 1788780638
+     },
+     "timeManagerLevel": {
+      "timestamp": 1788780638
+     }
+    },
+    "cycleMemory3": {
+     "EWX1493A_anticreaseNoSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_anticreaseWSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_dryMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_easyIron": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_intensive": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_nightCycle": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_pod": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_preWashPhase": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_rinseHold": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_stain": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_steamMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_tcSensor": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_ultraMix": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wetMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wmEconomy": {
+      "timestamp": 1788780638
+     },
+     "analogSpinSpeed": {
+      "timestamp": 1788780638
+     },
+     "memoryId": {
+      "timestamp": 1788780638
+     },
+     "programUID": {
+      "timestamp": 1788780638
+     },
+     "timeManagerLevel": {
+      "timestamp": 1788780638
+     }
+    },
+    "cyclePhase": {
+     "timestamp": 1788780638
+    },
+    "cycleSubPhase": {
+     "timestamp": 1788780638
+    },
+    "defaultExtraRinse": {
+     "timestamp": 1788780638
+    },
+    "displayLight": {
+     "timestamp": 1788780638
+    },
+    "doorLock": {
+     "timestamp": 1788780638
+    },
+    "doorState": {
+     "timestamp": 1788780638
+    },
+    "dwywWashData": {
+     "dwywDataType": {
+      "timestamp": 1788780675
+     },
+     "programUID": {
+      "timestamp": 1788780675
+     },
+     "roomTemp": {
+      "timestamp": 1788780675
+     },
+     "wmLoadError": {
+      "timestamp": 1788780675
+     },
+     "wmLoadMoisture": {
+      "timestamp": 1788780675
+     },
+     "wmLoadWeight": {
+      "timestamp": 1788780675
+     }
+    },
+    "endOfCycleSound": {
+     "timestamp": 1788780638
+    },
+    "fCMiscellaneousState": {
+     "adTankADetLoaded": {
+      "timestamp": 1788780676
+     },
+     "adTankBDetLoaded": {
+      "timestamp": 1788780676
+     },
+     "adTankBSoftLoaded": {
+      "timestamp": 1788780676
+     },
+     "detergentExtradosage": {
+      "timestamp": 1788780676
+     },
+     "ecoLevel": {
+      "timestamp": 1788780676
+     },
+     "optisenseResult": {
+      "timestamp": 1788780676
+     },
+     "softenerExtradosage": {
+      "timestamp": 1788780676
+     },
+     "tankADetLoadForNominalWeight": {
+      "timestamp": 1788780676
+     },
+     "tankAReserve": {
+      "timestamp": 1788780676
+     },
+     "tankBDetLoadForNominalWeight": {
+      "timestamp": 1788780676
+     },
+     "tankBReserve": {
+      "timestamp": 1788780676
+     },
+     "waterUsage": {
+      "timestamp": 1788780676
+     }
+    },
+    "fcOptisenseLoadWeight": {
+     "timestamp": 1788780676
+    },
+    "language": {
+     "timestamp": 1788780638
+    },
+    "measuredLoadWeight": {
+     "timestamp": 1788780638
+    },
+    "minFinishInTime": {
+     "timestamp": 1788780675
+    },
+    "miscellaneous": {
+     "defaultSoftPlus": {
+      "timestamp": 1788780638
+     }
+    },
+    "networkInterface": {
+     "autoLocalTimeOffset": {
+      "timestamp": 1788787792
+     },
+     "linkQualityIndicator": {
+      "timestamp": 1788780638
+     },
+     "niuSwUpdateCurrentDescription": {
+      "timestamp": 1788780640
+     },
+     "otaState": {
+      "timestamp": 1788780645
+     },
+     "swAncAndRevision": {
+      "timestamp": 1788780638
+     },
+     "swVersion": {
+      "timestamp": 1788780638
+     },
+     "timeZoneDatabaseName": {
+      "timestamp": 1788787792
+     }
+    },
+    "networkInterfaceAlwaysOn": {
+     "timestamp": 1788780648
+    },
+    "remoteControl": {
+     "timestamp": 1788780681
+    },
+    "remoteNotificationPending": {
+     "timestamp": 1788780638
+    },
+    "startTime": {
+     "timestamp": 1788780638
+    },
+    "stopTime": {
+     "timestamp": 1788780638
+    },
+    "timeToEnd": {
+     "timestamp": 1788780677
+    },
+    "totalCycleCounter": {
+     "timestamp": 1788780638
+    },
+    "totalSteamCycleCounter": {
+     "timestamp": 1788780638
+    },
+    "totalWashCyclesCount": {
+     "timestamp": 1788780638
+    },
+    "totalWashingTime": {
+     "timestamp": 1788780638
+    },
+    "uiLockMode": {
+     "timestamp": 1788780638
+    },
+    "userSelections": {
+     "EWX1493A_anticreaseNoSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_anticreaseWSteam": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_dryMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_easyIron": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_intensive": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_nightCycle": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_pod": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_preWashPhase": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_rinseHold": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_stain": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_steamMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_tcSensor": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_ultraMix": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wetMode": {
+      "timestamp": 1788780638
+     },
+     "EWX1493A_wmEconomy": {
+      "timestamp": 1788780638
+     },
+     "adTankASel": {
+      "timestamp": 1788780638
+     },
+     "adTankBSel": {
+      "timestamp": 1788780638
+     },
+     "analogSpinSpeed": {
+      "timestamp": 1788780638
+     },
+     "analogTemperature": {
+      "timestamp": 1788780638
+     },
+     "extraRinseNumber": {
+      "timestamp": 1788780638
+     },
+     "memoryId": {
+      "timestamp": 1788780638
+     },
+     "programUID": {
+      "timestamp": 1788780638
+     },
+     "steamValue": {
+      "timestamp": 1788780638
+     },
+     "timeManagerLevel": {
+      "timestamp": 1788780638
+     }
+    },
+    "washingNominalLoadWeight": {
+     "timestamp": 1788780677
+    },
+    "waterHardness": {
+     "timestamp": 1788780638
+    },
+    "waterSoftenerMode": {
+     "timestamp": 1788780638
+    }
+   },
+   "metadataDesired": {},
+   "reported": {
+    "alerts": [],
+    "applianceCareAndMaintenance0": {
+     "1": {
+      "occured": false,
+      "threshold": 60
+     },
+     "2": {
+      "occured": false,
+      "threshold": 80
+     },
+     "3": {
+      "occured": false,
+      "threshold": 80
+     },
+     "4": {
+      "occured": false,
+      "threshold": 240
+     },
+     "5": {
+      "occured": false,
+      "threshold": 240
+     }
+    },
+    "applianceCareAndMaintenance1": {
+     "10": {
+      "occured": false,
+      "threshold": 0
+     },
+     "6": {
+      "occured": false,
+      "threshold": 150
+     },
+     "7": {
+      "occured": false,
+      "threshold": 0
+     },
+     "8": {
+      "occured": false,
+      "threshold": 0
+     },
+     "9": {
+      "occured": false,
+      "threshold": 0
+     }
+    },
+    "applianceCareAndMaintenance2": {
+     "11": {
+      "occured": false,
+      "threshold": 0
+     }
+    },
+    "applianceCareAndMaintenance3": {
+     "16": {
+      "occured": false,
+      "threshold": 0
+     }
+    },
+    "applianceInfo": {
+     "applianceType": "WM",
+     "capabilityHash": "94a68de9e2edf1e5832448ddf9d7add42b2b2dc373d05a90e3aab3267b658ed0"
+    },
+    "applianceMainBoardSwVersion": "WKB32028",
+    "applianceMode": "NORMAL",
+    "applianceState": "IDLE",
+    "applianceTotalWorkingTime": 0,
+    "applianceUiSwVersion": "URGA003Q",
+    "autoDosing": {
+     "adLocalFineTuning": false,
+     "adTankAConfiguration": "DISABLED",
+     "adTankADetStandardDose": 0,
+     "adTankBConfiguration": "DISABLED",
+     "adTankBDetStandardDose": 0,
+     "adTankBSoftStandardDose": 0
+    },
+    "connectivityState": "connected",
+    "cpv": "00",
+    "cycleMemory1": {
+     "EWX1493A_anticreaseNoSteam": false,
+     "EWX1493A_anticreaseWSteam": false,
+     "EWX1493A_dryMode": false,
+     "EWX1493A_easyIron": false,
+     "EWX1493A_intensive": false,
+     "EWX1493A_nightCycle": false,
+     "EWX1493A_pod": false,
+     "EWX1493A_preWashPhase": false,
+     "EWX1493A_rinseHold": false,
+     "EWX1493A_stain": false,
+     "EWX1493A_steamMode": false,
+     "EWX1493A_tcSensor": false,
+     "EWX1493A_ultraMix": false,
+     "EWX1493A_wetMode": false,
+     "EWX1493A_wmEconomy": false,
+     "analogSpinSpeed": "DISABLED",
+     "memoryId": 30,
+     "programUID": "MACHINE_SETTINGS_HIDDEN_TEST",
+     "timeManagerLevel": "TIME_MANAGER_HIDDEN"
+    },
+    "cycleMemory2": {
+     "EWX1493A_anticreaseNoSteam": false,
+     "EWX1493A_anticreaseWSteam": false,
+     "EWX1493A_dryMode": false,
+     "EWX1493A_easyIron": false,
+     "EWX1493A_intensive": false,
+     "EWX1493A_nightCycle": false,
+     "EWX1493A_pod": false,
+     "EWX1493A_preWashPhase": false,
+     "EWX1493A_rinseHold": false,
+     "EWX1493A_stain": false,
+     "EWX1493A_steamMode": false,
+     "EWX1493A_tcSensor": false,
+     "EWX1493A_ultraMix": false,
+     "EWX1493A_wetMode": false,
+     "EWX1493A_wmEconomy": false,
+     "analogSpinSpeed": "DISABLED",
+     "memoryId": 20,
+     "programUID": "MACHINE_SETTINGS_HIDDEN_TEST",
+     "timeManagerLevel": "TIME_MANAGER_HIDDEN"
+    },
+    "cycleMemory3": {
+     "EWX1493A_anticreaseNoSteam": false,
+     "EWX1493A_anticreaseWSteam": false,
+     "EWX1493A_dryMode": false,
+     "EWX1493A_easyIron": false,
+     "EWX1493A_intensive": false,
+     "EWX1493A_nightCycle": false,
+     "EWX1493A_pod": false,
+     "EWX1493A_preWashPhase": false,
+     "EWX1493A_rinseHold": false,
+     "EWX1493A_stain": false,
+     "EWX1493A_steamMode": false,
+     "EWX1493A_tcSensor": false,
+     "EWX1493A_ultraMix": false,
+     "EWX1493A_wetMode": false,
+     "EWX1493A_wmEconomy": false,
+     "analogSpinSpeed": "DISABLED",
+     "memoryId": 10,
+     "programUID": "MACHINE_SETTINGS_HIDDEN_TEST",
+     "timeManagerLevel": "TIME_MANAGER_HIDDEN"
+    },
+    "cyclePhase": "UNAVAILABLE",
+    "cycleSubPhase": "NOT_AVAILABLE",
+    "defaultExtraRinse": "EXTRA_RINSE_OFF",
+    "displayLight": "DISPLAY_LIGHT_0",
+    "doorLock": "OFF",
+    "doorState": "OPEN",
+    "dwywWashData": {
+     "dwywDataType": "FOR_PLANNING",
+     "programUID": "COTTON_PR_ECO40-60",
+     "roomTemp": 255,
+     "wmLoadError": 18,
+     "wmLoadMoisture": 45,
+     "wmLoadWeight": 100
+    },
+    "endOfCycleSound": "SHORT_SOUND",
+    "fCMiscellaneousState": {
+     "adTankADetLoaded": 0,
+     "adTankBDetLoaded": 0,
+     "adTankBSoftLoaded": 0,
+     "detergentExtradosage": 0,
+     "ecoLevel": 255,
+     "optisenseResult": 0,
+     "softenerExtradosage": 0,
+     "tankADetLoadForNominalWeight": 0,
+     "tankAReserve": false,
+     "tankBDetLoadForNominalWeight": 0,
+     "tankBReserve": false,
+     "waterUsage": 0
+    },
+    "fcOptisenseLoadWeight": 65535,
+    "language": "ENGLISH",
+    "measuredLoadWeight": 65535,
+    "minFinishInTime": 14400,
+    "miscellaneous": {
+     "defaultSoftPlus": false
+    },
+    "networkInterface": {
+     "autoLocalTimeOffset": -2147483648,
+     "linkQualityIndicator": "GOOD",
+     "niuSwUpdateCurrentDescription": "A23642207A-S00010201A",
+     "otaState": "IDLE",
+     "swAncAndRevision": "S00010201A",
+     "swVersion": "v4.1.0S_argo",
+     "timeZoneDatabaseName": "Etc/UTC"
+    },
+    "networkInterfaceAlwaysOn": "ON",
+    "remoteControl": "NOT_SAFETY_RELEVANT_ENABLED",
+    "remoteNotificationPending": "OFF",
+    "startTime": -1,
+    "stopTime": -1,
+    "timeToEnd": -1,
+    "totalCycleCounter": 1,
+    "totalSteamCycleCounter": 0,
+    "totalWashCyclesCount": 1,
+    "totalWashingTime": 0,
+    "uiLockMode": false,
+    "userSelections": {
+     "EWX1493A_anticreaseNoSteam": false,
+     "EWX1493A_anticreaseWSteam": false,
+     "EWX1493A_dryMode": false,
+     "EWX1493A_easyIron": false,
+     "EWX1493A_intensive": false,
+     "EWX1493A_nightCycle": false,
+     "EWX1493A_pod": false,
+     "EWX1493A_preWashPhase": false,
+     "EWX1493A_rinseHold": false,
+     "EWX1493A_stain": false,
+     "EWX1493A_steamMode": false,
+     "EWX1493A_tcSensor": false,
+     "EWX1493A_ultraMix": false,
+     "EWX1493A_wetMode": true,
+     "EWX1493A_wmEconomy": true,
+     "adTankASel": "AUTODOSE_OFF",
+     "adTankBSel": "AUTODOSE_OFF",
+     "analogSpinSpeed": "1400_RPM",
+     "analogTemperature": "40_CELSIUS",
+     "extraRinseNumber": "NONE",
+     "memoryId": 255,
+     "programUID": "COTTON_PR_ECO40-60",
+     "steamValue": "STEAM_OFF",
+     "timeManagerLevel": "NORMAL"
+    },
+    "washingNominalLoadWeight": 0,
+    "waterHardness": "STEP_4",
+    "waterSoftenerMode": "WASH_ONLY"
+   }
+  },
+  "status": "enabled"
+ }
+]

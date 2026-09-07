@@ -13,9 +13,9 @@ Requires Home Assistant 2026.9 or newer, which itself needs Python 3.14.2.
 
 ## State of the work
 
-The integration loads and an account can be added through the interface. It
-exposes no entities yet, so once added it sits there doing nothing useful: the
-capability tree still has to be mapped onto Home Assistant entities.
+An account can be added through the interface and its appliances turn up as
+Home Assistant entities. State is polled every thirty seconds; the websocket
+that would push it instead is not written yet.
 
 | Piece | Where | Done |
 | --- | --- | --- |
@@ -24,8 +24,8 @@ capability tree still has to be mapped onto Home Assistant entities.
 | OneAccount tokens | `custom_components/aeg/auth.py` | yes |
 | Appliance API | `custom_components/aeg/api.py` | yes |
 | Config flow, with reauthentication | `custom_components/aeg/config_flow.py` | yes |
-| Capability to entity mapping | | no |
-| Entity platforms | | no |
+| Capability to entity mapping | `custom_components/aeg/capability.py` | yes |
+| Entity platforms | `custom_components/aeg/{sensor,switch,select,number,button,binary_sensor}.py` | yes |
 | Websocket for live state | | no |
 
 ## How the login works
@@ -82,6 +82,28 @@ registered in.
 The tokens are written into the config entry and renewed in the background. If
 they ever stop working, Home Assistant asks to sign in again rather than
 failing quietly.
+
+## What you get
+
+Every appliance describes itself: what each field is called, whether it can be
+read or written, what it holds, and what values or range it accepts. The
+entities are built from that description, so nothing in the integration knows
+what a washing machine is, and a model it has never seen works the same way.
+
+| The appliance says | You get |
+| --- | --- |
+| a command, with the commands it takes | a button each |
+| a flag it will let you set | a switch |
+| a flag it only reports | a binary sensor |
+| a choice, with the values it takes | a select |
+| a number with a range | a number |
+| anything else it reports | a sensor |
+
+A washing machine describes about 120 fields. Most of them are the machine
+talking to itself, so the maintenance counters, stored cycles, network stack
+and the rest arrive as diagnostics and start disabled. What is left is the
+wash: the programme, temperature, spin speed, rinse, steam, the door and the
+start and stop buttons. Enable the rest from the device page if you want it.
 
 ## Where the protocol knowledge comes from
 

@@ -55,8 +55,20 @@ BUTTON = "button"
 # Types that hold a number rather than a word.
 NUMERIC = frozenset({"number", "int", "temperature"})
 
-# Types that group other nodes and hold nothing themselves.
-GROUPING = frozenset({"container", "object", "careMaintenance"})
+# Types that group other nodes and hold nothing themselves. Their fields appear
+# beside them with the group written into the key, as "userSelections/rinse".
+GROUPING = frozenset({"container", "object", "careMaintenance", "complex"})
+
+# Groups that describe the machine's own housekeeping rather than the wash.
+# Their fields are worth having but not worth showing by default.
+HOUSEKEEPING = (
+    "applianceCareAndMaintenance",
+    "cycleMemory",
+    "dwywWashData",
+    "fCMiscellaneousState",
+    "miscellaneous",
+    "networkInterface",
+)
 
 
 @dataclass(frozen=True)
@@ -149,14 +161,37 @@ def platform_for(capability: Capability) -> str | None:
     if capability.kind == "boolean":
         return SWITCH if capability.writable else BINARY_SENSOR
 
+    # A range wins over a list of values. A number can carry both, where the
+    # values are sentinels rather than the choice on offer: stopTime accepts
+    # anything from 0 to 86400 and also -1, meaning no stop time is set.
+    if capability.kind in NUMERIC and capability.minimum is not None:
+        return NUMBER if capability.writable else SENSOR
+
     if capability.values:
         return SELECT if capability.writable else SENSOR
 
-    if capability.kind in NUMERIC:
-        # A number entity needs a range to offer. Without one there is nothing
-        # to bound the input with, so it stays a reading.
-        if capability.writable and capability.minimum is not None:
-            return NUMBER
-        return SENSOR
-
     return SENSOR if capability.readable else None
+
+
+def is_housekeeping(capability: Capability) -> bool:
+    """Whether a field is the machine talking to itself.
+
+    Maintenance counters, stored cycles and the network stack are all readable
+    and worth keeping, but nobody wants forty of them in front of the wash.
+    """
+    return capability.path.startswith(HOUSEKEEPING)
+
+
+def value_at(reported: Mapping[str, Any], path: str) -> Any:
+    """Follow a capability path into the state an appliance reports.
+
+    Capabilities write the path into the key, as "userSelections/rinse", while
+    the reported state nests the same thing. Missing is not an error: a field
+    an appliance describes is not always one it currently reports.
+    """
+    current: Any = reported
+    for segment in path.split("/"):
+        if not isinstance(current, Mapping) or segment not in current:
+            return None
+        current = current[segment]
+    return current

@@ -38,7 +38,6 @@ from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_COUNTRY, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import AegApi
@@ -49,10 +48,16 @@ from .const import (
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
 )
-from .errors import AegAuthError, AegError
+from .coordinator import AegCoordinator
 
-# Entities come once the capability tree is mapped.
-PLATFORMS: list[Platform] = []
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
 @dataclass
@@ -60,6 +65,7 @@ class AegData:
     """What an entry needs while it is loaded."""
 
     api: AegApi
+    coordinator: AegCoordinator
 
 
 type AegConfigEntry = ConfigEntry[AegData]
@@ -92,16 +98,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
         session, auth, tokens, entry.data[CONF_BASE_URL], country, on_tokens=store
     )
 
-    # One call proves the stored tokens still work, so a revoked account asks
-    # for reauthentication now rather than when the first entity updates.
-    try:
-        await api.appliances()
-    except AegAuthError as err:
-        raise ConfigEntryAuthFailed(str(err)) from err
-    except AegError as err:
-        raise ConfigEntryNotReady(str(err)) from err
+    # The first refresh reads what every appliance can do and what it is
+    # doing, and proves the stored tokens still work while it is at it.
+    coordinator = AegCoordinator(hass, entry, api)
+    await coordinator.async_config_entry_first_refresh()
 
-    entry.runtime_data = AegData(api=api)
+    entry.runtime_data = AegData(api=api, coordinator=coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
