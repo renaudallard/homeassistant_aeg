@@ -9,13 +9,13 @@ A Home Assistant integration for AEG appliances, talking to the Electrolux OCP
 cloud the way the AEG OneApp does. Onboarding of new hardware is out of scope:
 pair the appliance with the vendor app once, then drive it from here.
 
-Requires Home Assistant 2026.9 or newer.
+Requires Home Assistant 2026.9 or newer, which itself needs Python 3.14.2.
 
 ## State of the work
 
-The cloud client is in place and checked. The Home Assistant entry points, the
-config flow and the entity platforms are not written yet, so the integration
-does not load in Home Assistant as it stands.
+The integration loads and an account can be added through the interface. It
+exposes no entities yet, so once added it sits there doing nothing useful: the
+capability tree still has to be mapped onto Home Assistant entities.
 
 | Piece | Where | Done |
 | --- | --- | --- |
@@ -23,8 +23,9 @@ does not load in Home Assistant as it stands.
 | Gigya login and JWT | `custom_components/aeg/gigya.py` | yes |
 | OneAccount tokens | `custom_components/aeg/auth.py` | yes |
 | Appliance API | `custom_components/aeg/api.py` | yes |
+| Config flow, with reauthentication | `custom_components/aeg/config_flow.py` | yes |
 | Capability to entity mapping | | no |
-| Config flow and platforms | | no |
+| Entity platforms | | no |
 | Websocket for live state | | no |
 
 ## How the login works
@@ -58,6 +59,19 @@ config flow should ask rather than guess, and treat a rejected password as a
 cue to offer the code instead. `AegAuthError` carries the Gigya error code for
 that, and `gigya.INVALID_CREDENTIALS` is the one that means the password was
 wrong.
+
+## Adding an account
+
+Copy `custom_components/aeg` into the `custom_components` directory of your
+Home Assistant configuration and restart, then add the AEG integration from the
+interface. It asks how the account signs in, because that cannot be looked up,
+and takes either a password or a code sent to the address. The country is what
+picks the server the appliances are on, so it has to be the one the account was
+registered in.
+
+The tokens are written into the config entry and renewed in the background. If
+they ever stop working, Home Assistant asks to sign in again rather than
+failing quietly.
 
 ## Where the protocol knowledge comes from
 
@@ -116,3 +130,11 @@ appliance id.
     python tools/check_login.py you@example.com FR
 
 `aiohttp` is the only runtime dependency, and Home Assistant already ships it.
+The checks need `homeassistant` and `pytest-homeassistant-custom-component`,
+and `tools/make_icons.py` needs Pillow. None of those are needed to run the
+integration.
+
+The config flow tests drive the real Home Assistant flow machinery with the
+cloud mocked at the two classes the flow talks to, so they cover which step
+follows which, what lands in the config entry, and which message a failure
+puts on the form.

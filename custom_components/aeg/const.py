@@ -7,6 +7,14 @@ are the same for every installation, so they are not user secrets.
 
 DOMAIN = "aeg"
 
+# Config entry keys of our own. The account and country use the Home Assistant
+# constants. The tokens live in the entry because the refresh token rotates on
+# every renewal and has to survive a restart.
+CONF_BASE_URL = "base_url"
+CONF_ACCESS_TOKEN = "access_token"
+CONF_REFRESH_TOKEN = "refresh_token"
+CONF_EXPIRES_AT = "expires_at"
+
 # Electrolux OCP, production tier. The app also ships dev and staging hosts,
 # which we have no use for.
 OCP_BASE_URL = "https://api.ocp.electrolux.one"

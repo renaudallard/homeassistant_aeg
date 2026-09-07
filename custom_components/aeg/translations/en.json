@@ -1,0 +1,55 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "AEG account",
+        "description": "How do you sign in to this account? An account with no password can only be reached with a code sent by email.",
+        "menu_options": {
+          "password": "With a password",
+          "email_code": "With a code sent by email"
+        }
+      },
+      "password": {
+        "title": "Sign in with a password",
+        "description": "Use the same address and password as the AEG app.",
+        "data": {
+          "email": "Email address",
+          "country": "Country",
+          "password": "Password"
+        },
+        "data_description": {
+          "country": "The country the account was registered in, which decides which server holds your appliances."
+        }
+      },
+      "email_code": {
+        "title": "Sign in with a code",
+        "description": "A code will be sent to this address.",
+        "data": {
+          "email": "Email address",
+          "country": "Country"
+        },
+        "data_description": {
+          "country": "The country the account was registered in, which decides which server holds your appliances."
+        }
+      },
+      "code": {
+        "title": "Enter the code",
+        "description": "Enter the code sent to {email}.",
+        "data": {
+          "code": "Code"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the AEG service. Check your connection and try again.",
+      "invalid_auth": "The account could not be signed in.",
+      "invalid_password": "Wrong email address or password. If this account has no password, go back and sign in with a code sent by email.",
+      "invalid_code": "That code was not accepted. It may have expired, in which case request a new one.",
+      "unknown": "Something unexpected went wrong. Check the log for details."
+    },
+    "abort": {
+      "already_configured": "This account is already set up.",
+      "reauth_successful": "Signed in again successfully."
+    }
+  }
+}

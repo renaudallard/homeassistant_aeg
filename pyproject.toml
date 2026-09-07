@@ -9,3 +9,11 @@ strict = true
 namespace_packages = true
 explicit_package_bases = true
 mypy_path = "."
+
+[[tool.mypy.overrides]]
+module = "pytest_homeassistant_custom_component.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
