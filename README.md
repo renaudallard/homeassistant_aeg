@@ -138,10 +138,12 @@ which base64 variant the signature needed. Press enter at the password prompt
 to take the mailed code path instead.
 
 It logs every request and every answer, so a failure can be read rather than
-guessed at. Tokens, keys, codes, the address and the appliance ids are replaced
-by a note of how long they were, in bodies and in paths alike, which makes the
-output safe to paste into a bug report. What kind of appliance it is stays
-readable, only which one it is goes. Pass `-q` to log only failures.
+guessed at. Everything that says who you are or which machine is yours is
+replaced by a note of how long it was, in bodies and in paths alike: tokens,
+keys, codes, the address, the name and town on the account, and the appliance
+ids. What kind of appliance it is and what it is doing stay readable, because a
+log without those is not worth keeping. That makes the output safe to paste
+into a bug report. Pass `-q` to log only failures.
 
     python tools/check_login.py you@example.com FR
 

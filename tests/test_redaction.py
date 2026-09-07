@@ -93,6 +93,68 @@ def test_hides_everything_secret_in_a_token_answer() -> None:
     assert "offline_access" in text
 
 
+def test_hides_who_the_account_belongs_to() -> None:
+    """The Gigya login answer carries a name, a town and a postcode."""
+    text = json.dumps(
+        redact(
+            {
+                "UID": "68193f82504b46c189b6803592d6e840",
+                "UIDSignature": "S/6IBYvZq2Hfyy/YyTLAIEVZftE=",
+                "isActive": True,
+                "loginProvider": "site",
+                "profile": {
+                    "firstName": "Renaud",
+                    "lastName": "ALLARD",
+                    "city": "Braine-l'Alleud",
+                    "country": "BE",
+                    "email": "someone@example.com",
+                    "zip": "1420",
+                },
+            }
+        )
+    )
+    for personal in (
+        "68193f82504b46c189b6803592d6e840",
+        "S/6IBYvZq2Hfyy/YyTLAIEVZftE=",
+        "Renaud",
+        "ALLARD",
+        "Braine",
+        "someone@example.com",
+        "1420",
+    ):
+        assert personal not in text
+    # Whether the account works, and where it lives, still readable.
+    assert "isActive" in text
+    assert "site" in text
+    assert "BE" in text
+
+
+def test_hides_the_client_identifiers_gigya_hands_out() -> None:
+    text = json.dumps(
+        redact(
+            {
+                "gmid": "gmid.ver4.AtLtiXua1w.55PlvD7cD8eh",
+                "gcid": "gmid.ver4.AtLtiXua1w.PoRGq7Xw6yTA",
+                "ucid": "a-ucid-value",
+                "errorCode": 0,
+            }
+        )
+    )
+    assert "AtLtiXua1w" not in text
+    assert "a-ucid-value" not in text
+    assert "errorCode" in text
+
+
+def test_appliance_state_is_not_mistaken_for_a_profile_field() -> None:
+    """A log with the appliance state redacted out would be useless."""
+    text = json.dumps(
+        redact({"doorState": "OPEN", "state": "RUNNING", "cyclePhase": "MAIN_WASH"})
+    )
+    assert "OPEN" in text
+    assert "RUNNING" in text
+    assert "MAIN_WASH" in text
+
+
 def test_hides_the_account_and_its_credentials() -> None:
     text = json.dumps(
         redact(

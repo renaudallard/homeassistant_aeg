@@ -47,35 +47,52 @@ _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=CONNECT_TIMEOUT)
 
-# Anything under one of these names is a credential, a token or the identity of
-# the person using it. Debug logging is meant to be pasted into a bug report,
-# so none of it goes out in the clear.
+# Anything under one of these names is a credential, a token, or says who the
+# account belongs to and which appliance is theirs. Debug logging is meant to be
+# pasted into a bug report, so none of it goes out in the clear.
+#
+# "state" is deliberately absent: it is a profile field, but it is also what an
+# appliance calls the thing we most want to read in a log.
 SECRETS = frozenset(
     {
         "access_token",
         "accesstoken",
-        "applianceid",
+        "address",
         "apikey",
+        "applianceid",
         "authorization",
+        "birthday",
+        "birthyear",
+        "city",
         "client_secret",
         "clientsecret",
         "code",
         "cookievalue",
         "email",
+        "firstname",
+        "gcid",
         "gmid",
         "id_token",
         "idtoken",
+        "lastname",
         "loginid",
+        "nickname",
         "oauth_token",
         "password",
+        "phone",
+        "phonenumber",
         "refresh_token",
         "refreshtoken",
         "sessionsecret",
         "sessiontoken",
         "sig",
         "ucid",
+        "uid",
+        "uidsignature",
         "vtoken",
         "x-api-key",
+        "zip",
+        "zipcode",
     }
 )
 
