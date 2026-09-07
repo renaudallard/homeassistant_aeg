@@ -751,4 +751,77 @@ async def test_a_nested_field_is_sent_back_nested(
     )
     api.send_command.assert_awaited_once()
     _, command = api.send_command.await_args.args
-    assert command == {"userSelections": {"analogTemperature": "60_CELSIUS"}}
+    # The programme the setting belongs to goes with it.
+    assert command == {
+        "userSelections": {
+            "programUID": "COTTON_PR_ECO40-60",
+            "analogTemperature": "60_CELSIUS",
+        }
+    }
+
+
+async def test_a_field_of_its_own_is_sent_on_its_own(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Nothing to belong to, so nothing to say it belongs to."""
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": "select.lave_linge_water_hardness", "option": "6"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"waterHardness": "STEP_6"}
+
+
+async def test_a_flag_the_appliance_words_is_sent_in_its_words(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The panel lock is ON and OFF, and reports itself as true and false."""
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "switch",
+        "turn_on",
+        {"entity_id": "switch.lave_linge_ui_lock_mode"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"uiLockMode": "ON"}
+
+    await hass.services.async_call(
+        "switch",
+        "turn_off",
+        {"entity_id": "switch.lave_linge_ui_lock_mode"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"uiLockMode": "OFF"}
+
+
+async def test_a_flag_with_no_words_is_sent_as_a_yes_or_a_no(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "switch",
+        "turn_on",
+        {"entity_id": "switch.lave_linge_user_selections_stain"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command["userSelections"]["EWX1493A_stain"] is True
+
+
+async def test_a_flag_reported_as_a_word_is_read_as_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Every word is true if it is only asked whether it is empty."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["uiLockMode"] = "OFF"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    lock = hass.states.get("switch.lave_linge_ui_lock_mode")
+    assert lock is not None
+    assert lock.state == "off"

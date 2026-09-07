@@ -162,8 +162,10 @@ network settings after that.
 
 - **Nothing has been written to an appliance yet.** Reading is well covered
   against a real machine; the switches, selects, numbers and buttons have never
-  been exercised against one, and the shape a command is sent in is inferred
-  from the shape state comes back in.
+  been exercised against one. The shape a command is sent in matches what
+  [homeassistant_electrolux_status](https://github.com/albaintor/homeassistant_electrolux_status)
+  sends, which does write to real appliances, but that is a second opinion
+  rather than a demonstration.
 - **Onboarding is out of scope.** Pair new hardware with the vendor app.
 - **Nothing is translated.** Entity names come from the appliance's own field
   names, so some of them read awkwardly. The icon beside each one is guessed

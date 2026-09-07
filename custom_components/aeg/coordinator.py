@@ -58,6 +58,9 @@ _LOGGER = logging.getLogger(__name__)
 # understood, so the next start fetches instead of trusting it.
 STORE_VERSION = 1
 
+# What a group of settings says it is a setting of.
+PROGRAMME = "programUID"
+
 SCAN_INTERVAL = timedelta(seconds=30)
 # Once the cloud is really pushing, polling is only there to catch what a
 # dropped connection missed.
@@ -219,12 +222,22 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             self.update_interval = SCAN_INTERVAL
 
     async def send(self, appliance_id: str, path: str, value: Any) -> None:
-        """Send one field, nested the way the appliance reports it back."""
+        """Send one field, nested the way the appliance reports it back.
+
+        A group is sent with the programme it belongs to. A washing machine
+        holds its wash settings under one, and changing one of them without
+        saying which programme it is a setting of is not something it takes.
+        """
         command: dict[str, Any] = {}
         target = command
         segments = path.split("/")
+        appliance = self.data.get(appliance_id)
         for segment in segments[:-1]:
             target = target.setdefault(segment, {})
+            if appliance is not None:
+                belongs_to = value_at(appliance.reported, f"{segment}/{PROGRAMME}")
+                if belongs_to is not None:
+                    target[PROGRAMME] = belongs_to
         target[segments[-1]] = value
         await self.api.send_command(appliance_id, command)
         await self.async_request_refresh()
