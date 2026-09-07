@@ -262,6 +262,35 @@ async def test_a_richer_alert_is_not_thrown_away(
     assert state.attributes["alerts"] == ["WATER_LEAK"]
 
 
+async def test_a_length_of_time_is_also_offered_as_a_clock(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 4145
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    seconds = hass.states.get("sensor.lave_linge_time_to_end")
+    assert seconds is not None
+    assert seconds.state == "4145"
+    assert seconds.attributes["device_class"] == "duration"
+
+    clock = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert clock is not None
+    assert clock.state == "01:09:05"
+
+
+async def test_a_time_the_machine_does_not_have_reads_as_nothing(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine says -1 for the end of a cycle it is not running."""
+    await _setup(hass, entry, api)
+    assert _fixture("wm-appliances")[0]["properties"]["reported"]["timeToEnd"] == -1
+    clock = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert clock is not None
+    assert clock.state == "unknown"
+
+
 async def test_a_nested_field_is_sent_back_nested(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

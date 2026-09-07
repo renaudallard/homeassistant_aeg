@@ -35,12 +35,12 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import SENSOR, Capability
+from .capability import SENSOR, Capability, is_duration
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
@@ -49,10 +49,14 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback
 ) -> None:
     coordinator = entry.runtime_data.coordinator
-    add(
-        AegSensor(coordinator, appliance_id, capability)
-        for appliance_id, capability in fields(coordinator, SENSOR)
-    )
+    readings: list[SensorEntity] = []
+    for appliance_id, capability in fields(coordinator, SENSOR):
+        readings.append(AegSensor(coordinator, appliance_id, capability))
+        if is_duration(capability):
+            # The seconds are what the appliance says; the clock is what
+            # anyone actually wants to read.
+            readings.append(AegDuration(coordinator, appliance_id, capability))
+    add(readings)
 
 
 class AegSensor(AegEntity, SensorEntity):
@@ -65,7 +69,10 @@ class AegSensor(AegEntity, SensorEntity):
         # Kept rather than read back off the entity: an attribute Home
         # Assistant never assigned is not there to be read.
         self._enum_options: tuple[str, ...] = ()
-        if capability.kind == "temperature":
+        if is_duration(capability):
+            self._attr_device_class = SensorDeviceClass.DURATION
+            self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
+        elif capability.kind == "temperature":
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
             self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -92,3 +99,26 @@ class AegSensor(AegEntity, SensorEntity):
             # every refresh, which is worse than saying nothing.
             return super().available and self.reported in self._enum_options
         return super().available
+
+
+class AegDuration(AegEntity, SensorEntity):
+    """The same length of time, written as a clock reads it."""
+
+    def __init__(
+        self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
+    ) -> None:
+        super().__init__(coordinator, appliance_id, capability)
+        self._attr_unique_id = f"{appliance_id}-{capability.path}-formatted"
+        self._attr_name = f"{self._attr_name} formatted"
+
+    @property
+    def native_value(self) -> str | None:
+        seconds = self.reported
+        if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
+            return None
+        # A washing machine says -1 for a time it does not have, such as the
+        # end of a cycle it is not running.
+        if seconds < 0:
+            return None
+        whole = int(seconds)
+        return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"

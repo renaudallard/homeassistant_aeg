@@ -183,6 +183,16 @@ def platform_for(capability: Capability) -> str | None:
     return SENSOR if capability.readable else None
 
 
+def is_duration(capability: Capability) -> bool:
+    """Whether a field holds a length of time rather than a plain number.
+
+    An appliance names them plainly, and the ones on a washing machine that
+    can be checked are in seconds: four hours of minimum finish time reads as
+    14400, and a stop time runs to 86400 in steps of an hour.
+    """
+    return capability.kind in NUMERIC and "time" in capability.name.lower()
+
+
 def is_housekeeping(capability: Capability) -> bool:
     """Whether a field is the machine talking to itself.
 
