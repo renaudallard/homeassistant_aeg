@@ -33,9 +33,11 @@ appliance API expects, and renews them afterwards.
 
 from __future__ import annotations
 
+import binascii
+import json
 import logging
 import time
-from base64 import b64encode
+from base64 import b64encode, urlsafe_b64decode
 from dataclasses import dataclass
 from typing import Any
 
@@ -47,12 +49,14 @@ from .const import (
     BRAND,
     CLIENT_ID,
     CLIENT_SECRET,
+    GRANT_CLIENT_CREDENTIALS,
     GRANT_REFRESH_TOKEN,
     GRANT_TOKEN_EXCHANGE,
     IDENTITY_PROVIDERS_PATH,
     OCP_BASE_URL,
     TOKEN_EXPIRY_MARGIN,
     TOKEN_PATH,
+    TOKEN_PATH_V1,
 )
 from .errors import AegAuthError, AegConnectionError
 
@@ -85,6 +89,23 @@ class Tokens:
     @property
     def expired(self) -> bool:
         return time.time() >= self.expires_at - TOKEN_EXPIRY_MARGIN
+
+
+def _jwt_country(id_token: str) -> str | None:
+    """Read the country the JWT was minted for.
+
+    The Gigya JWT is asked for with the country field precisely so this header
+    can carry it, which is more reliable than what the user picked.
+    """
+    try:
+        claims_part = id_token.split(".")[1]
+        padded = claims_part + "=" * (-len(claims_part) % 4)
+        claims = json.loads(urlsafe_b64decode(padded))
+    except (IndexError, ValueError, binascii.Error):
+        _LOGGER.debug("could not read the country out of the id token")
+        return None
+    country = claims.get("country")
+    return str(country) if country else None
 
 
 def _tokens_from(payload: dict[str, Any]) -> Tokens:
@@ -143,12 +164,35 @@ class AegAuth:
             raise AegConnectionError(f"{url} returned an empty body")
         return payload
 
+    async def client_credentials(self) -> str:
+        """Authorise the application itself.
+
+        The provider lookup is not anonymous. It wants a token that stands for
+        the app rather than for a user, which is the one thing that has to
+        happen before anybody signs in.
+        """
+        payload = await self._request(
+            "POST",
+            OCP_BASE_URL + TOKEN_PATH_V1,
+            headers={"x-api-key": API_KEY},
+            json_body={
+                "grantType": GRANT_CLIENT_CREDENTIALS,
+                "clientId": CLIENT_ID,
+                "clientSecret": CLIENT_SECRET,
+                "scope": "",
+            },
+        )
+        token = payload.get("accessToken")
+        if not token:
+            raise AegAuthError("OneAccount did not return an application token")
+        return f"{payload.get('tokenType', 'Bearer')} {token}"
+
     async def identity_provider(self) -> IdentityProvider:
         """Look up the Gigya tenant and regional endpoints for this country."""
         payload = await self._request(
             "GET",
             OCP_BASE_URL + IDENTITY_PROVIDERS_PATH,
-            headers=self._headers(),
+            headers=self._headers(await self.client_credentials()),
             params={"brand": BRAND, "countryCode": self._country},
         )
         if not isinstance(payload, list) or not payload:
@@ -187,10 +231,14 @@ class AegAuth:
 
         This call carries no client secret. Only the refresh does.
         """
+        headers = {
+            "x-api-key": API_KEY,
+            "Origin-Country-Code": _jwt_country(id_token) or self._country,
+        }
         payload = await self._request(
             "POST",
             OCP_BASE_URL + TOKEN_PATH,
-            headers=self._headers(),
+            headers=headers,
             json_body={
                 "grant_type": GRANT_TOKEN_EXCHANGE,
                 "client_id": CLIENT_ID,

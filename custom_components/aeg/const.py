@@ -58,11 +58,16 @@ API_KEY = "PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz"
 # OneAccount. The app talks to v2 of the token endpoint, which uses the
 # standard snake_case OAuth field names.
 TOKEN_PATH = "/one-account-authorization/api/v2/token"
+# The app authorises itself before it can look anything up. The established
+# Python client does that against v1 with the camelCase field names, so that is
+# the shape used here.
+TOKEN_PATH_V1 = "/one-account-authorization/api/v1/token"
 IDENTITY_PROVIDERS_PATH = "/one-account-user/api/v1/identity-providers"
 CURRENT_USER_PATH = "/one-account-user/api/v1/users/current"
 
 GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange"
 GRANT_REFRESH_TOKEN = "refresh_token"
+GRANT_CLIENT_CREDENTIALS = "client_credentials"
 
 # Appliance service.
 APPLIANCES_PATH = "/appliance/api/v2/appliances"
