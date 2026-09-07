@@ -50,6 +50,9 @@ _LOGGER = logging.getLogger(__name__)
 # The cloud drops a connection that says nothing for ten minutes.
 HEARTBEAT = 300.0
 RECONNECT_DELAY = 5.0
+# However close a token is to expiring, hold the connection this long, so a
+# clock that has gone wrong cannot turn the stream into a reconnect loop.
+MINIMUM_LIFE = 60.0
 # Something is wrong rather than merely unlucky, so wait longer.
 RECONNECT_DELAY_UNEXPECTED = 30.0
 
@@ -62,6 +65,7 @@ class AegStream:
         session: aiohttp.ClientSession,
         url: str,
         authorization: Callable[[], Any],
+        renew_after: Callable[[], float],
         appliance_ids: list[str],
         on_message: Callable[[dict[str, Any]], None],
         on_connected: Callable[[bool], None],
@@ -69,6 +73,7 @@ class AegStream:
         self._session = session
         self._url = url
         self._authorization = authorization
+        self._renew_after = renew_after
         self._appliance_ids = appliance_ids
         self._on_message = on_message
         self._on_connected = on_connected
@@ -99,7 +104,10 @@ class AegStream:
         while True:
             delay = RECONNECT_DELAY
             try:
-                await self._listen()
+                if await self._listen():
+                    # It ended because the token was running out, which is
+                    # not a reason to wait before opening another.
+                    delay = 0.0
             except asyncio.CancelledError:
                 raise
             except aiohttp.ClientError as err:
@@ -109,21 +117,41 @@ class AegStream:
                 delay = RECONNECT_DELAY_UNEXPECTED
             finally:
                 self._on_connected(False)
-            await asyncio.sleep(delay)
+            if delay:
+                await asyncio.sleep(delay)
 
-    async def _listen(self) -> None:
+    async def _listen(self) -> bool:
+        """Watch until the connection ends. True if the token ran it out.
+
+        A connection is opened with a token and keeps it for as long as it
+        lives, so it is closed and opened again before that token expires.
+        Waiting for the cloud to object would mean trusting it to notice, and
+        a stream that is quietly ignored looks exactly like a quiet appliance.
+        """
+        headers = await self._headers()
+        renew_in = max(MINIMUM_LIFE, self._renew_after())
         async with self._session.ws_connect(
-            self._url, headers=await self._headers(), heartbeat=HEARTBEAT
+            self._url, headers=headers, heartbeat=HEARTBEAT
         ) as socket:
-            _LOGGER.debug("watching %d appliances", len(self._appliance_ids))
+            _LOGGER.debug(
+                "watching %d appliances for the next %d seconds",
+                len(self._appliance_ids),
+                renew_in,
+            )
             self._on_connected(True)
-            async for message in socket:
-                if message.type is aiohttp.WSMsgType.TEXT:
-                    self._on_message(message.json())
-                elif message.type is aiohttp.WSMsgType.ERROR:
-                    raise aiohttp.ClientError("the stream reported an error")
-                else:
-                    break
+            try:
+                async with asyncio.timeout(renew_in):
+                    async for message in socket:
+                        if message.type is aiohttp.WSMsgType.TEXT:
+                            self._on_message(message.json())
+                        elif message.type is aiohttp.WSMsgType.ERROR:
+                            raise aiohttp.ClientError("the stream reported an error")
+                        else:
+                            return False
+            except TimeoutError:
+                _LOGGER.debug("opening the stream again before the token expires")
+                return True
+        return False
 
 
 def merge(reported: dict[str, Any], name: str, value: Any) -> None:

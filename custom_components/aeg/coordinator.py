@@ -148,6 +148,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             self._session,
             url,
             self.api.authorization,
+            self.api.seconds_until_renewal,
             list(self.data),
             self._pushed,
             self._streaming,

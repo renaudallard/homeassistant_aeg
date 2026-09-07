@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -43,7 +44,7 @@ import aiohttp
 
 from . import http
 from .auth import AegAuth, Tokens
-from .const import API_KEY, APPLIANCES_PATH
+from .const import API_KEY, APPLIANCES_PATH, TOKEN_EXPIRY_MARGIN
 from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 from .http import redact_url
 
@@ -83,6 +84,15 @@ class AegApi:
     def tokens(self) -> Tokens:
         """The current token pair, which changes on every renewal."""
         return self._tokens
+
+    def seconds_until_renewal(self) -> float:
+        """How long the token in hand is good for, less the margin.
+
+        The stream holds one connection open for as long as it is allowed to,
+        so it has to know when the token it opened with stops being worth
+        anything.
+        """
+        return max(0.0, self._tokens.expires_at - TOKEN_EXPIRY_MARGIN - time.time())
 
     async def authorization(self) -> str:
         """A bearer header, renewed if it is due. The stream reconnects with it."""
