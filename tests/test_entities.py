@@ -46,6 +46,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
+    async_fire_time_changed,
 )
 
 from custom_components.aeg.const import (
@@ -391,6 +392,149 @@ async def test_a_length_of_time_is_also_offered_as_a_clock(
     # It counts down from the moment the appliance said it, so a moment can
     # have gone by while the entity was being set up.
     assert 4135 <= hours * 3600 + minutes * 60 + seconds_left <= 4145
+
+
+async def test_the_clock_ticks_down_between_updates(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The cloud mentions the time left now and then, not every second."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        started = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+        assert started is not None
+        assert started.state == "01:00:00"
+
+        for elapsed, expected in ((1.0, "00:59:59"), (61.0, "00:58:59")):
+            clock.monotonic.return_value = 1000.0 + elapsed
+            async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+            await hass.async_block_till_done()
+            ticked = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+            assert ticked is not None
+            assert ticked.state == expected
+
+
+async def test_the_clock_does_not_drift_when_the_programme_changes(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A shorter cycle is picked, and the clock is on the new time at once.
+
+    Not a minute later, and not somewhere between the two: the figure that
+    arrives replaces the one being counted from.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+
+        # Ten minutes of counting down on the old programme.
+        clock.monotonic.return_value = 1600.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+        counting = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+        assert counting is not None
+        assert counting.state == "00:50:00"
+
+        # A shorter programme, and the cloud says so.
+        shorter = _fixture("wm-appliances")
+        shorter[0]["properties"]["reported"]["timeToEnd"] = 1200
+        shorter[0]["properties"]["reported"]["userSelections"]["programUID"] = (
+            "QUICK_20_MIN_PR_20MIN3KG"
+        )
+        api.appliances.return_value = shorter
+        await entry.runtime_data.coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+        moved = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+        assert moved is not None
+        assert moved.state == "00:20:00"
+
+        # And it counts down from the new figure, not the old one.
+        clock.monotonic.return_value = 1660.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+        after = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+        assert after is not None
+        assert after.state == "00:19:00"
+
+
+async def test_the_clock_takes_a_pushed_time_as_the_new_truth(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+
+        coordinator = entry.runtime_data.coordinator
+        appliance_id = next(iter(coordinator.data))
+        clock.monotonic.return_value = 1300.0
+        coordinator._pushed(
+            {
+                "Payload": {
+                    "Appliances": [
+                        {
+                            "ApplianceId": appliance_id,
+                            "Metrics": [{"Name": "timeToEnd", "Value": 900}],
+                        }
+                    ]
+                }
+            }
+        )
+        await hass.async_block_till_done()
+
+    pushed = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert pushed is not None
+    assert pushed.state == "00:15:00"
+
+
+async def test_the_clock_stops_at_nothing_left(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 30
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 9000.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+
+    finished = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert finished is not None
+    assert finished.state == "00:00:00"
+
+
+async def test_a_time_that_is_not_counting_down_stays_where_it_is(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A time the machine was set to does not move on its own."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["minFinishInTime"] = 14400
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 5000.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+
+    steady = hass.states.get("sensor.lave_linge_min_finish_in_time_formatted")
+    assert steady is not None
+    assert steady.state == "04:00:00"
 
 
 async def test_the_finish_is_fixed_to_a_moment(

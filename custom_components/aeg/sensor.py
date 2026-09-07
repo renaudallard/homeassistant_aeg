@@ -28,6 +28,7 @@
 
 from __future__ import annotations
 
+import time
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -39,6 +40,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
@@ -106,7 +108,14 @@ class AegSensor(AegEntity, SensorEntity):
 
 
 class AegDuration(AegEntity, SensorEntity):
-    """The same length of time, written as a clock reads it."""
+    """The same length of time, written as a clock reads it.
+
+    Time left counts down here rather than waiting to be told. It cannot drift
+    from what the appliance says, because every figure that arrives replaces
+    the one being counted from: pick a shorter programme and the clock is on
+    the new time as soon as the cloud mentions it, not a minute later and not
+    somewhere between the two.
+    """
 
     def __init__(
         self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
@@ -114,18 +123,54 @@ class AegDuration(AegEntity, SensorEntity):
         super().__init__(coordinator, appliance_id, capability)
         self._attr_unique_id = f"{appliance_id}-{capability.path}-formatted"
         self._attr_name = f"{self._attr_name} formatted"
+        self._ticks = counts_down(capability)
+        self._seen: float | None = None
+        self._seen_at = time.monotonic()
+        self._shown: str | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._remember()
+        if self._ticks:
+            self.async_on_remove(
+                async_track_time_interval(self.hass, self._tick, timedelta(seconds=1))
+            )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        # The appliance has spoken, so count from what it just said.
+        self._remember()
+        super()._handle_coordinator_update()
+
+    def _remember(self) -> None:
+        self._shown = None
+        value = self.reported
+        usable = isinstance(value, (int, float)) and not isinstance(value, bool)
+        self._seen = float(value) if usable else None
+        self._seen_at = time.monotonic()
+
+    @callback
+    def _tick(self, now: Any) -> None:
+        """Write the clock out again, but only when it says something new."""
+        current = self._clock()
+        if current != self._shown:
+            self._shown = current
+            self.async_write_ha_state()
+
+    def _clock(self) -> str | None:
+        seconds = self._seen
+        # A washing machine says -1 for a time it does not have, such as the
+        # end of a cycle it is not running.
+        if seconds is None or seconds < 0:
+            return None
+        if self._ticks:
+            seconds = max(0.0, seconds - (time.monotonic() - self._seen_at))
+        whole = int(seconds)
+        return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"
 
     @property
     def native_value(self) -> str | None:
-        seconds = self.reported
-        if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
-            return None
-        # A washing machine says -1 for a time it does not have, such as the
-        # end of a cycle it is not running.
-        if seconds < 0:
-            return None
-        whole = int(seconds)
-        return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"
+        return self._clock()
 
 
 class AegFinishesAt(AegEntity, SensorEntity):

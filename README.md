@@ -56,10 +56,10 @@ model nobody has tried works the same way as the one this was written against.
   finishing shows up when it happens. Polling carries on in the background at a
   slower rate to catch whatever a dropped connection missed.
 - **Readable readings** — a duration gets a second reading written as a clock,
-  and a cycle that is running gets a **finishes at** timestamp, which Home
-  Assistant counts down to on its own. A numbered scale reads as its numbers,
-  and whatever the machine is complaining about arrives as one problem sensor
-  with the codes.
+  and the time left to a cycle counts down by the second rather than waiting to
+  be told. There is a **finishes at** timestamp beside it. A numbered scale
+  reads as its numbers, and whatever the machine is complaining about arrives
+  as one problem sensor with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
 - **Quiet by default** — a washing machine describes about 120 fields and most
@@ -95,7 +95,7 @@ quietly.
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
 | a length of time | a sensor in seconds, and one reading as a clock |
-| how long is left | also a timestamp of when it finishes |
+| how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
 
 A washing machine comes out as about 67 entities with 47 of them shown: the
@@ -115,6 +115,14 @@ Two details worth knowing, because they look like faults and are not:
   remote start, and the app greys the same buttons out.
 - **Water hardness and the softener mode go read-only** while a cycle is
   running, delayed, paused or has just ended. That is the appliance's own rule.
+
+The clock counting down cannot drift from what the appliance says, because
+every figure that arrives replaces the one being counted from: pick a shorter
+programme and it is on the new time as soon as the cloud mentions it. It writes
+a state every second while a cycle runs, so exclude
+`sensor.*_time_to_end_formatted` from the recorder if that history is not worth
+keeping. The finishes at timestamp says the same thing and writes nothing
+between updates.
 
 A value that is a name and a number is a step in a scale. Water hardness is
 seven steps, and a washing machine names the first three and numbers the rest;
