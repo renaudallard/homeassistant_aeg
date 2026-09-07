@@ -43,9 +43,9 @@ CONF_REFRESH_TOKEN = "refresh_token"
 CONF_EXPIRES_AT = "expires_at"
 
 # Electrolux OCP, production tier. The app also ships dev and staging hosts,
-# which we have no use for.
+# which we have no use for. The websocket endpoint is not here because it is
+# not fixed: the provider lookup says which one this account streams from.
 OCP_BASE_URL = "https://api.ocp.electrolux.one"
-OCP_WS_URL = "wss://ws.eu.ocp.electrolux.one"
 
 # Brand identity of the AEG build of the OneApp.
 BRAND = "aeg"
@@ -65,7 +65,6 @@ API_KEY = "PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz"
 TOKEN_PATH_V2 = "/one-account-authorization/api/v2/token"
 TOKEN_PATH_V1 = "/one-account-authorization/api/v1/token"
 IDENTITY_PROVIDERS_PATH = "/one-account-user/api/v1/identity-providers"
-CURRENT_USER_PATH = "/one-account-user/api/v1/users/current"
 
 GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange"
 GRANT_REFRESH_TOKEN = "refresh_token"
