@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_COUNTRY, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import AegApi
@@ -51,6 +52,7 @@ from .const import (
     CONF_WS_URL,
 )
 from .coordinator import AegCoordinator
+from .entity import provided
 from .errors import AegError
 
 _LOGGER = logging.getLogger(__name__)
@@ -111,8 +113,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     coordinator.start_stream(await _stream_url(hass, entry, auth))
 
     entry.runtime_data = AegData(api=api, coordinator=coordinator)
+    _forget_what_is_gone(hass, entry, coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+def _forget_what_is_gone(
+    hass: HomeAssistant, entry: AegConfigEntry, coordinator: AegCoordinator
+) -> None:
+    """Drop entities this account no longer has.
+
+    An earlier version made one for every field an appliance described, including
+    the ones it does not have, and those stay in the register until something
+    removes them.
+    """
+    registry = er.async_get(hass)
+    keep = provided(coordinator)
+    for existing in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if existing.unique_id not in keep:
+            _LOGGER.debug(
+                "dropping %s, the appliance does not report it", existing.entity_id
+            )
+            registry.async_remove(existing.entity_id)
 
 
 async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth) -> str:

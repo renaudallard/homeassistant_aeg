@@ -40,7 +40,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .capability import Capability, is_housekeeping, platform_for, value_at
+from .capability import BUTTON, Capability, is_housekeeping, platform_for, value_at
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
 from .triggers import Override
@@ -68,14 +68,45 @@ def pretty(name: str) -> str:
     return " ".join(readable)
 
 
+def carried(appliance: Appliance, capability: Capability) -> bool:
+    """Whether this appliance actually has the field it describes.
+
+    A capability tree covers a range of models, so it lists fields a given
+    machine does not have. Those are never reported, and an entity for one
+    would sit there unavailable for good.
+    """
+    if not capability.readable:
+        # A command is never reported back, so there is nothing to look for.
+        return True
+    return value_at(appliance.reported, capability.path) is not None
+
+
 def fields(coordinator: AegCoordinator, platform: str) -> list[tuple[str, Capability]]:
     """Every field on the account that belongs to one platform."""
     return [
         (appliance_id, capability)
         for appliance_id, appliance in coordinator.data.items()
         for capability in appliance.capabilities
-        if platform_for(capability) == platform
+        if platform_for(capability) == platform and carried(appliance, capability)
     ]
+
+
+def provided(coordinator: AegCoordinator) -> set[str]:
+    """Every entity this account should have, by unique id."""
+    ids: set[str] = set()
+    for appliance_id, appliance in coordinator.data.items():
+        for capability in appliance.capabilities:
+            platform = platform_for(capability)
+            if platform is None or not carried(appliance, capability):
+                continue
+            if platform == BUTTON:
+                ids.update(
+                    f"{appliance_id}-{capability.path}-{command}"
+                    for command in capability.values
+                )
+            else:
+                ids.add(f"{appliance_id}-{capability.path}")
+    return ids
 
 
 class AegEntity(CoordinatorEntity[AegCoordinator]):
@@ -99,9 +130,6 @@ class AegEntity(CoordinatorEntity[AegCoordinator]):
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
-            self._attr_entity_registry_enabled_default = False
-        elif capability.readable and self.reported is None:
-            # Described but never reported, so this model does not have it.
             self._attr_entity_registry_enabled_default = False
 
     @property

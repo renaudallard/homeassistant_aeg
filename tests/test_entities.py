@@ -166,6 +166,39 @@ async def test_every_entity_survives_being_added(
     assert not missing, f"entities that failed to load: {missing}"
 
 
+async def test_nothing_is_made_for_a_field_the_machine_does_not_have(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A tree covers a range of models and lists fields this one lacks."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    made = {
+        e.unique_id.split("-", 1)[1]
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    # This machine never reports the stored personalisation, only the live one.
+    assert "userSelections/analogTemperature" in made
+    assert not [path for path in made if path.startswith("cyclePersonalization/")]
+
+
+async def test_what_an_earlier_version_left_behind_is_taken_away(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Entities already in the register outlive a change of mind about them."""
+    registry = er.async_get(hass)
+    stale = registry.async_get_or_create(
+        "select",
+        DOMAIN,
+        "an-appliance-cyclePersonalization/analogTemperature",
+        config_entry=entry,
+        suggested_object_id="lave_linge_stale",
+    )
+    assert registry.async_get(stale.entity_id) is not None
+
+    await _setup(hass, entry, api)
+    assert registry.async_get(stale.entity_id) is None
+
+
 async def test_readings_carry_the_reported_value(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
