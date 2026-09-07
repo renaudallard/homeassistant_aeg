@@ -1,0 +1,45 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new commit on the same ref makes the run in progress pointless.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          # Home Assistant 2026.9 will not start on anything older.
+          python-version: "3.14"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Pinned: an upstream release of Home Assistant or of the test shim
+          # would otherwise turn main red without anything here changing.
+          pip install \
+            ruff==0.16.3 \
+            mypy==2.3.1 \
+            pytest==9.0.3 \
+            pytest-asyncio==1.4.0 \
+            homeassistant==2026.9.1 \
+            pytest-homeassistant-custom-component==0.13.364
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Type check
+        run: mypy custom_components/ tests/ tools/
+      - name: Tests
+        run: pytest tests/ -q
