@@ -55,6 +55,11 @@ BUTTON = "button"
 # Types that hold a number rather than a word.
 NUMERIC = frozenset({"number", "int", "temperature"})
 
+# What an appliance calls the field saying what it is doing, and the word it
+# uses for actually doing it.
+STATE = "applianceState"
+RUNNING = "RUNNING"
+
 # An appliance reports its problems as a list of codes, empty when it is happy.
 # Some models name the type in the singular and some in the plural.
 ALERTS = frozenset({"alert", "alerts"})

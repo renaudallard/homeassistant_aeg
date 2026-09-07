@@ -44,7 +44,15 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
-from .capability import SENSOR, Capability, counts_down, is_duration
+from .capability import (
+    RUNNING,
+    SENSOR,
+    STATE,
+    Capability,
+    counts_down,
+    is_duration,
+    value_at,
+)
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
@@ -169,6 +177,19 @@ class AegDuration(AegEntity, SensorEntity):
             self._shown = current
             self.async_write_ha_state()
 
+    @property
+    def _running(self) -> bool:
+        """Whether the appliance is doing the thing it is counting down to.
+
+        A washing machine that has finished turns itself off and puts the
+        length of the programme it is set to back where the time left was.
+        Counting that down would show a wash that is not happening.
+        """
+        appliance = self.appliance
+        if appliance is None:
+            return False
+        return str(value_at(appliance.reported, STATE)).upper() == RUNNING
+
     def _stale_after(self) -> float:
         """How long a figure can be counted down from before it is guesswork.
 
@@ -184,7 +205,7 @@ class AegDuration(AegEntity, SensorEntity):
         # end of a cycle it is not running.
         if seconds is None or seconds < 0:
             return None
-        if self._ticks:
+        if self._ticks and self._running:
             elapsed = time.monotonic() - self._seen_at
             if elapsed > self._stale_after():
                 # Counting down from a figure this old would end at nothing
@@ -230,10 +251,19 @@ class AegFinishesAt(AegEntity, SensorEntity):
         super()._handle_coordinator_update()
 
     def _work_out_when(self) -> None:
-        """Fix the finish to a moment, from the seconds left as they arrive."""
+        """Fix the finish to a moment, from the seconds left as they arrive.
+
+        Only while the appliance is running: a machine that has finished puts
+        the length of its next programme where the time left was, and a finish
+        worked out from that is for a wash nobody has started.
+        """
+        appliance = self.appliance
+        running = appliance is not None and (
+            str(value_at(appliance.reported, STATE)).upper() == RUNNING
+        )
         seconds = self.reported
         usable = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
-        if not usable or seconds < 0:
+        if not running or not usable or seconds < 0:
             self._at = None
             return
         # To the second: the appliance counts in seconds, and a finish that
