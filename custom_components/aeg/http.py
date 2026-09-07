@@ -35,6 +35,7 @@ appliance endpoints.
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 import aiohttp
@@ -42,7 +43,66 @@ import aiohttp
 from .const import CONNECT_TIMEOUT, REQUEST_TIMEOUT
 from .errors import AegBackendError, AegConnectionError
 
+_LOGGER = logging.getLogger(__name__)
+
 TIMEOUT = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=CONNECT_TIMEOUT)
+
+# Anything under one of these names is a credential, a token or the identity of
+# the person using it. Debug logging is meant to be pasted into a bug report,
+# so none of it goes out in the clear.
+SECRETS = frozenset(
+    {
+        "access_token",
+        "accesstoken",
+        "apikey",
+        "authorization",
+        "client_secret",
+        "clientsecret",
+        "code",
+        "cookievalue",
+        "email",
+        "gmid",
+        "id_token",
+        "idtoken",
+        "loginid",
+        "oauth_token",
+        "password",
+        "refresh_token",
+        "refreshtoken",
+        "sessionsecret",
+        "sessiontoken",
+        "sig",
+        "ucid",
+        "vtoken",
+        "x-api-key",
+    }
+)
+
+
+def redact(data: Any) -> Any:
+    """Copy a structure with every secret replaced by a note of its length."""
+    if isinstance(data, dict):
+        return {
+            key: (
+                f"<{len(value)} chars hidden>"
+                if str(key).lower() in SECRETS and isinstance(value, str) and value
+                else redact(value)
+            )
+            for key, value in data.items()
+        }
+    if isinstance(data, list):
+        return [redact(item) for item in data]
+    return data
+
+
+def _readable(body: bytes) -> str:
+    """A body fit to log: redacted if it is JSON, described if it is not."""
+    if not body:
+        return "empty"
+    try:
+        return json.dumps(redact(json.loads(body)))[:2000]
+    except ValueError:
+        return f"<{len(body)} bytes that are not JSON>"
 
 
 async def request(
@@ -61,6 +121,12 @@ async def request(
     server side failure, or a body that does not parse. An empty body is fine
     and reads back as None.
     """
+    _LOGGER.debug("%s %s params=%s", method, url, params)
+    _LOGGER.debug("  headers %s", redact(dict(headers or {})))
+    if data is not None:
+        _LOGGER.debug("  form %s", redact(data))
+    if json_body is not None:
+        _LOGGER.debug("  json %s", redact(json_body))
     try:
         async with session.request(
             method,
@@ -73,8 +139,12 @@ async def request(
         ) as response:
             status = response.status
             body = await response.read()
+            _LOGGER.debug("  <- %s %s", status, dict(response.headers))
     except (aiohttp.ClientError, TimeoutError) as err:
+        _LOGGER.debug("  <- did not answer: %s", err)
         raise AegConnectionError(f"{url} is unreachable: {err}") from err
+
+    _LOGGER.debug("  <- body %s", _readable(body))
 
     if status >= 500:
         raise AegBackendError(f"{url} failed with status {status}")

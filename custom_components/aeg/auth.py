@@ -37,7 +37,7 @@ import binascii
 import json
 import logging
 import time
-from base64 import b64encode, urlsafe_b64decode
+from base64 import urlsafe_b64decode
 from dataclasses import dataclass
 from typing import Any
 
@@ -55,7 +55,6 @@ from .const import (
     IDENTITY_PROVIDERS_PATH,
     OCP_BASE_URL,
     TOKEN_EXPIRY_MARGIN,
-    TOKEN_PATH,
     TOKEN_PATH_V1,
 )
 from .errors import AegAuthError, AegConnectionError
@@ -89,6 +88,14 @@ class Tokens:
     @property
     def expired(self) -> bool:
         return time.time() >= self.expires_at - TOKEN_EXPIRY_MARGIN
+
+
+def _detail(payload: Any) -> str:
+    """A short printable form of an error body, to say why a call was refused."""
+    if payload is None:
+        return "no body"
+    text = payload if isinstance(payload, str) else json.dumps(payload)
+    return text[:300]
 
 
 def _jwt_country(id_token: str) -> str | None:
@@ -126,9 +133,18 @@ def _tokens_from(payload: dict[str, Any]) -> Tokens:
 class AegAuth:
     """Talks to the OneAccount half of the OCP API."""
 
-    def __init__(self, session: aiohttp.ClientSession, country_code: str) -> None:
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        country_code: str,
+        base_url: str = OCP_BASE_URL,
+    ) -> None:
         self._session = session
         self._country = country_code.upper()
+        # Token calls go to the regional endpoint once it is known. The app
+        # caches it the same way and falls back to the global one until the
+        # provider lookup has run, which is the only call that cannot use it.
+        self._base_url = base_url.rstrip("/")
 
     def _headers(self, authorization: str | None = None) -> dict[str, str]:
         headers = {
@@ -157,9 +173,13 @@ class AegAuth:
             json_body=json_body,
         )
         if status in (401, 403):
-            raise AegAuthError(f"OneAccount rejected the credentials ({status})")
+            raise AegAuthError(
+                f"OneAccount rejected the credentials ({status}): {_detail(payload)}"
+            )
         if status >= 400:
-            raise AegConnectionError(f"OneAccount refused the request ({status})")
+            raise AegConnectionError(
+                f"OneAccount refused the request ({status}): {_detail(payload)}"
+            )
         if payload is None:
             raise AegConnectionError(f"{url} returned an empty body")
         return payload
@@ -218,6 +238,8 @@ class AegAuth:
             _LOGGER.warning(
                 "no regional endpoint for this account, using %s", OCP_BASE_URL
             )
+        # Everything after this point talks to the regional endpoint.
+        self._base_url = str(base_url).rstrip("/")
         return IdentityProvider(
             domain=str(domain),
             api_key=str(api_key),
@@ -237,12 +259,14 @@ class AegAuth:
         }
         payload = await self._request(
             "POST",
-            OCP_BASE_URL + TOKEN_PATH,
+            self._base_url + TOKEN_PATH_V1,
             headers=headers,
             json_body={
-                "grant_type": GRANT_TOKEN_EXCHANGE,
-                "client_id": CLIENT_ID,
-                "id_token": id_token,
+                "grantType": GRANT_TOKEN_EXCHANGE,
+                "clientId": CLIENT_ID,
+                "clientSecret": None,
+                "idToken": id_token,
+                "refreshToken": None,
                 "scope": "",
             },
         )
@@ -254,14 +278,16 @@ class AegAuth:
         The refresh token rotates on every call, so the caller has to persist
         what comes back or the next start will fail.
         """
-        credentials = b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
         payload = await self._request(
             "POST",
-            OCP_BASE_URL + TOKEN_PATH,
-            headers=self._headers(f"Basic {credentials}"),
+            self._base_url + TOKEN_PATH_V1,
+            headers=self._headers(),
             json_body={
-                "grant_type": GRANT_REFRESH_TOKEN,
-                "refresh_token": tokens.refresh_token,
+                "grantType": GRANT_REFRESH_TOKEN,
+                "clientId": CLIENT_ID,
+                "clientSecret": None,
+                "idToken": None,
+                "refreshToken": tokens.refresh_token,
                 "scope": "",
             },
         )

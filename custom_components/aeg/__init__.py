@@ -69,7 +69,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     """Set up an AEG account."""
     session = async_get_clientsession(hass)
     country = entry.data[CONF_COUNTRY]
-    auth = AegAuth(session, country)
+    auth = AegAuth(session, country, entry.data[CONF_BASE_URL])
     tokens = Tokens(
         access_token=entry.data[CONF_ACCESS_TOKEN],
         refresh_token=entry.data[CONF_REFRESH_TOKEN],

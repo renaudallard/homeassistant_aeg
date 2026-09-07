@@ -26,26 +26,28 @@
 
 """Check the cloud login chain against a real account.
 
-This is not part of the integration. It exists to prove the login end to end
-and to settle the two details that could not be read out of the app package:
-whether asking for a mobile target really yields a session that can sign, and
-which base64 variant the Gigya signature needs.
+This is not part of the integration. It walks the whole sign in, says which
+step fails, and logs every request and answer so a failure can be diagnosed
+without guessing.
 
 Press enter at the password prompt to sign in with a code mailed to the
 account instead, which is the only way in for an account that has no password.
 
-The password is read from the terminal, is never echoed, and is never written
-to a file or a log. Tokens are not printed either, only whether they arrived
-and how long they last.
+Nothing secret is printed. The password is read from the terminal and never
+echoed, and the log replaces tokens, keys, codes and the address itself with a
+note of how long they were, so the output can be pasted into a bug report. Pass
+-q to log only failures.
 
-    python tools/check_login.py you@example.com FR
+    python tools/check_login.py you@example.com BE
 """
 
 from __future__ import annotations
 
 import asyncio
+import logging
 import sys
 import time
+import traceback
 from base64 import b64decode, b64encode
 from getpass import getpass
 from hashlib import sha1
@@ -70,7 +72,15 @@ def _urlsafe_sign(secret: str, method: str, url: str, params: dict[str, str]) ->
 
 
 def _step(number: int, what: str) -> None:
-    print(f"{number}. {what:.<38} ", end="", flush=True)
+    print(f"\n{number}. {what}", flush=True)
+
+
+def _ok(detail: str = "") -> None:
+    print(f"   ok {detail}".rstrip(), flush=True)
+
+
+def _note(detail: str) -> None:
+    print(f"   {detail}", flush=True)
 
 
 def _redact(value: str) -> str:
@@ -88,12 +98,12 @@ async def sign_in(
     else:
         _step(3, "gigya sendCode")
         vtoken = await client.send_otp_code(email, ids)
-        print("ok  code mailed")
+        _ok("code mailed")
         code = input("   code from the mail: ").strip()
         _step(3, "gigya login with code")
         session = await client.login_with_otp(code, vtoken, ids)
-    print("ok  session token and secret present")
-    print("   so targetEnv=mobile does yield a signable session")
+    _ok("session token and secret present")
+    _note("so targetEnv=mobile does yield a signable session")
     return session
 
 
@@ -103,16 +113,16 @@ async def check(email: str, country: str) -> int:
 
         _step(1, "identity provider")
         provider = await auth.identity_provider()
-        print(f"ok  tenant {provider.domain}")
-        print(f"   regional endpoint {provider.http_base_url}")
+        _ok(f"tenant {provider.domain}")
+        _note(f"regional endpoint {provider.http_base_url}")
         if provider.ws_base_url:
-            print(f"   websocket        {provider.ws_base_url}")
+            _note(f"websocket        {provider.ws_base_url}")
 
         client = gigya.GigyaClient(session, provider.api_key, provider.domain)
 
         _step(2, "gigya ids")
         ids = await client.ids()
-        print(f"ok  gmid {_redact(ids.gmid)}")
+        _ok(f"gmid {_redact(ids.gmid)}")
 
         gigya_session = await sign_in(client, ids, email)
 
@@ -121,7 +131,7 @@ async def check(email: str, country: str) -> int:
         try:
             id_token = await client.jwt(gigya_session, ids)
         except AegError as err:
-            print(f"failed with standard base64: {err}")
+            _note(f"standard base64 was refused: {err}")
             _step(4, "accounts.getJWT, url safe")
             original = gigya.sign_request
             gigya.sign_request = _urlsafe_sign
@@ -130,27 +140,26 @@ async def check(email: str, country: str) -> int:
             finally:
                 gigya.sign_request = original
             variant = "url safe base64"
-        print(f"ok  signed with {variant}")
+        _ok(f"signed with {variant}")
 
         _step(5, "token exchange")
         tokens = await auth.exchange(id_token)
-        lifetime = int(tokens.expires_at - time.time())
-        print(f"ok  access token good for {lifetime}s")
+        _ok(f"access token good for {int(tokens.expires_at - time.time())}s")
 
         _step(6, "token refresh")
         refreshed = await auth.refresh(tokens)
         rotated = refreshed.refresh_token != tokens.refresh_token
-        print(f"ok  refresh token {'rotated' if rotated else 'unchanged'}")
+        _ok(f"refresh token {'rotated' if rotated else 'unchanged'}")
 
         api = AegApi(session, auth, refreshed, provider.http_base_url, country)
 
         _step(7, "appliances")
         appliances = await api.appliances()
-        print(f"ok  {len(appliances)} found")
+        _ok(f"{len(appliances)} found")
         for entry in appliances:
             info: dict[str, Any] = entry.get("applianceData") or {}
-            print(
-                f"   {_redact(str(entry.get('applianceId', '')))} "
+            _note(
+                f"{_redact(str(entry.get('applianceId', '')))} "
                 f"{info.get('modelName', 'unknown model')} "
                 f"({entry.get('status', 'unknown status')})"
             )
@@ -161,26 +170,33 @@ async def check(email: str, country: str) -> int:
                 continue
             _step(8, f"capabilities of {_redact(appliance_id)}")
             capabilities = await api.capabilities(appliance_id)
-            print(f"ok  {len(capabilities)} top level nodes")
-            print(f"   {', '.join(sorted(capabilities)[:12])}")
+            _ok(f"{len(capabilities)} top level nodes")
+            _note(", ".join(sorted(capabilities)[:12]))
 
     return 0
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
+    arguments = [a for a in sys.argv[1:] if not a.startswith("-")]
+    if len(arguments) != 2:
         print(__doc__)
         return 2
-    email, country = sys.argv[1], sys.argv[2]
+    logging.basicConfig(
+        level=logging.WARNING if "-q" in sys.argv else logging.DEBUG,
+        format="   %(levelname)s %(name)s %(message)s",
+        stream=sys.stderr,
+    )
+    email, country = arguments
     try:
         return asyncio.run(check(email, country))
     except AegError as err:
-        code = getattr(err, "code", None)
-        if code == gigya.INVALID_CREDENTIALS:
-            print(f"failed: {err}")
+        print(f"\nfailed: {type(err).__name__}: {err}")
+        if getattr(err, "code", None) == gigya.INVALID_CREDENTIALS:
             print("that is the wrong password code, so try the mailed code path")
-            return 1
-        print(f"failed: {err}")
+        return 1
+    except Exception:
+        print("\nfailed with something the client did not expect:")
+        traceback.print_exc()
         return 1
 
 

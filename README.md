@@ -130,8 +130,12 @@ The app package itself is not tracked either.
 `tools/check_login.py` walks the whole login against a real account, from the
 provider lookup through to reading an appliance capability tree, and reports
 which base64 variant the signature needed. Press enter at the password prompt
-to take the mailed code path instead. It prints no password, token or full
-appliance id.
+to take the mailed code path instead.
+
+It logs every request and every answer, so a failure can be read rather than
+guessed at. Tokens, keys, codes and the address itself are replaced by a note
+of how long they were, which makes the output safe to paste into a bug report.
+Pass `-q` to log only failures.
 
     python tools/check_login.py you@example.com FR
 

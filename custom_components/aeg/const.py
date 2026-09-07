@@ -57,10 +57,11 @@ API_KEY = "PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz"
 
 # OneAccount. The app talks to v2 of the token endpoint, which uses the
 # standard snake_case OAuth field names.
-TOKEN_PATH = "/one-account-authorization/api/v2/token"
-# The app authorises itself before it can look anything up. The established
-# Python client does that against v1 with the camelCase field names, so that is
-# the shape used here.
+# The app talks to v2 with snake_case field names, but that answers 400 to the
+# same exchange that v1 accepts, so v1 with the camelCase names is what we use.
+# v2 is kept here because it is what the app does, should it ever be worth
+# another look.
+TOKEN_PATH_V2 = "/one-account-authorization/api/v2/token"
 TOKEN_PATH_V1 = "/one-account-authorization/api/v1/token"
 IDENTITY_PROVIDERS_PATH = "/one-account-user/api/v1/identity-providers"
 CURRENT_USER_PATH = "/one-account-user/api/v1/users/current"

@@ -87,6 +87,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         self._email = ""
         self._country = ""
         self._vtoken = ""
+        self._auth: AegAuth | None = None
         self._client: GigyaClient | None = None
         self._ids: GigyaIds | None = None
         self._provider: IdentityProvider | None = None
@@ -196,8 +197,10 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _prepare(self) -> None:
         """Find where the account lives and open a Gigya client for it."""
         session = async_get_clientsession(self.hass)
-        provider = await AegAuth(session, self._country).identity_provider()
+        auth = AegAuth(session, self._country)
+        provider = await auth.identity_provider()
         client = GigyaClient(session, provider.api_key, provider.domain)
+        self._auth = auth
         self._provider = provider
         self._client = client
         self._ids = await client.ids()
@@ -221,9 +224,10 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         """Trade the Gigya session for tokens and write the entry."""
         if self._client is None or self._ids is None or self._provider is None:
             return self.async_abort(reason="unknown")
-        http = async_get_clientsession(self.hass)
+        if self._auth is None:
+            return self.async_abort(reason="unknown")
         id_token = await self._client.jwt(session, self._ids)
-        tokens = await AegAuth(http, self._country).exchange(id_token)
+        tokens = await self._auth.exchange(id_token)
         data = {
             CONF_EMAIL: self._email,
             CONF_COUNTRY: self._country,
