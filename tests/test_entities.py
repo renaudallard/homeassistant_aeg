@@ -221,6 +221,47 @@ async def test_readings_carry_the_reported_value(
     assert temperature is not None and temperature.state == "40_CELSIUS"
 
 
+async def test_a_quiet_machine_reports_no_problem(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An empty list of alerts is an answer, not a missing value."""
+    await _setup(hass, entry, api)
+    state = hass.states.get("binary_sensor.lave_linge_alerts")
+    assert state is not None
+    assert state.state == "off"
+    assert state.attributes["alerts"] == []
+    assert state.attributes["device_class"] == "problem"
+
+
+async def test_a_complaining_machine_says_what_is_wrong(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["alerts"] = ["DOOR", "UNBALANCED_LAUNDRY"]
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    state = hass.states.get("binary_sensor.lave_linge_alerts")
+    assert state is not None
+    assert state.state == "on"
+    assert state.attributes["alerts"] == ["DOOR", "UNBALANCED_LAUNDRY"]
+
+
+async def test_a_richer_alert_is_not_thrown_away(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Not every model has to report a plain code."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["alerts"] = [{"code": "WATER_LEAK"}]
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    state = hass.states.get("binary_sensor.lave_linge_alerts")
+    assert state is not None
+    assert state.state == "on"
+    assert state.attributes["alerts"] == ["WATER_LEAK"]
+
+
 async def test_a_nested_field_is_sent_back_nested(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

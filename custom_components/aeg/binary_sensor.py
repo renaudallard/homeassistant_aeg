@@ -24,16 +24,21 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Flags an appliance reports."""
+"""Flags an appliance reports, and the problems it complains about."""
 
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from typing import Any
+
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import BINARY_SENSOR
+from .capability import ALERTS, BINARY_SENSOR
 from .entity import AegEntity, fields
 
 
@@ -42,7 +47,9 @@ async def async_setup_entry(
 ) -> None:
     coordinator = entry.runtime_data.coordinator
     add(
-        AegBinarySensor(coordinator, appliance_id, capability)
+        AegAlerts(coordinator, appliance_id, capability)
+        if capability.kind in ALERTS
+        else AegBinarySensor(coordinator, appliance_id, capability)
         for appliance_id, capability in fields(coordinator, BINARY_SENSOR)
     )
 
@@ -54,3 +61,47 @@ class AegBinarySensor(AegEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         value = self.reported
         return None if value is None else bool(value)
+
+
+class AegAlerts(AegEntity, BinarySensorEntity):
+    """Whatever the appliance is currently complaining about.
+
+    The appliance reports a list of codes, empty when there is nothing wrong.
+    One entity says whether anything is wrong, and carries the codes, which is
+    more use than a sensor holding a list nobody can read.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+
+    @property
+    def _active(self) -> list[str]:
+        value = self.reported
+        if not isinstance(value, list):
+            return []
+        return [
+            # A code is usually a word. Anything else is shown as it came, so
+            # a model that reports something richer is not thrown away.
+            str(alert.get("code") or alert.get("name") or alert)
+            if isinstance(alert, dict)
+            else str(alert)
+            for alert in value
+        ]
+
+    @property
+    def is_on(self) -> bool | None:
+        return None if self.reported is None else bool(self._active)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"alerts": self._active}
+
+    @property
+    def available(self) -> bool:
+        # An empty list is an answer: nothing is wrong.
+        appliance = self.appliance
+        return (
+            self.coordinator.last_update_success
+            and appliance is not None
+            and appliance.connected
+            and self.reported is not None
+        )

@@ -158,7 +158,13 @@ def test_readings_stay_readings() -> None:
     assert platform_for(
         _one({"runningTime": {"access": "read", "type": "number"}})
     ) == (SENSOR)
-    assert platform_for(_one({"alerts": {"access": "read", "type": "alert"}})) == SENSOR
+
+
+def test_what_is_wrong_is_a_problem_not_a_reading() -> None:
+    """Alerts are a list of codes, empty when nothing is wrong."""
+    for kind in ("alert", "alerts"):
+        field = _one({"alerts": {"access": "read", "type": kind}})
+        assert platform_for(field) == BINARY_SENSOR
 
 
 def test_nothing_is_made_of_what_cannot_change_or_is_not_there() -> None:

@@ -95,6 +95,7 @@ what a washing machine is, and a model it has never seen works the same way.
 | a command, with the commands it takes | a button each |
 | a flag it will let you set | a switch |
 | a flag it only reports | a binary sensor |
+| the problems it is complaining about | a problem binary sensor |
 | a choice, with the values it takes | a select |
 | a number with a range | a number |
 | anything else it reports | a sensor |
@@ -109,6 +110,11 @@ stop buttons. Enable the rest from the device page if you want it.
 The cloud pushes changes over a websocket, so a cycle finishing shows up when
 it happens rather than at the next poll. Polling carries on in the background
 at a slower rate, to catch whatever a dropped connection missed.
+
+An appliance reports its problems as a list of codes, empty when there is
+nothing wrong, so they arrive as one problem binary sensor carrying whatever is
+currently the matter rather than as a list nobody can read. A washing machine
+knows fourteen of them, from an unbalanced load to a water leak.
 
 An appliance also says what it will take at any given moment, and that is
 followed. A washing machine offers START when it is ready to start and PAUSE

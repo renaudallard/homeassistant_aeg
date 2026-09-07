@@ -55,6 +55,10 @@ BUTTON = "button"
 # Types that hold a number rather than a word.
 NUMERIC = frozenset({"number", "int", "temperature"})
 
+# An appliance reports its problems as a list of codes, empty when it is happy.
+# Some models name the type in the singular and some in the plural.
+ALERTS = frozenset({"alert", "alerts"})
+
 # Types that group other nodes and hold nothing themselves. Their fields appear
 # beside them with the group written into the key, as "userSelections/rinse".
 GROUPING = frozenset({"container", "object", "careMaintenance", "complex"})
@@ -159,6 +163,10 @@ def platform_for(capability: Capability) -> str | None:
         # Write only with a fixed set of values is a set of commands, which is
         # what executeCommand is. Without values there is nothing to press.
         return BUTTON if capability.values else None
+
+    if capability.kind in ALERTS:
+        # Something is wrong, or nothing is. The codes go alongside.
+        return BINARY_SENSOR
 
     if capability.kind == "boolean":
         return SWITCH if capability.writable else BINARY_SENSOR
