@@ -33,17 +33,23 @@ without guessing.
 Press enter at the password prompt to sign in with a code mailed to the
 account instead, which is the only way in for an account that has no password.
 
+Pass --dump DIR to write the capability tree and the reported state of every
+appliance into that directory, with the identifiers taken out, which is what
+the entity mapping is built against.
+
 Nothing secret is printed. The password is read from the terminal and never
 echoed, and the log replaces tokens, keys, codes and the address itself with a
 note of how long they were, so the output can be pasted into a bug report. Pass
 -q to log only failures.
 
     python tools/check_login.py you@example.com BE
+    python tools/check_login.py you@example.com BE --dump tmp/appliances
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import sys
 import time
@@ -52,6 +58,7 @@ from base64 import b64decode, b64encode
 from getpass import getpass
 from hashlib import sha1
 from hmac import new as hmac_new
+from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -62,6 +69,7 @@ from custom_components.aeg import gigya
 from custom_components.aeg.api import AegApi
 from custom_components.aeg.auth import AegAuth
 from custom_components.aeg.errors import AegError, AegTooManyRequests
+from custom_components.aeg.http import redact
 
 
 def _urlsafe_sign(secret: str, method: str, url: str, params: dict[str, str]) -> str:
@@ -107,7 +115,15 @@ async def sign_in(
     return session
 
 
-async def check(email: str, country: str) -> int:
+def _dump(where: Path, name: str, data: Any) -> None:
+    """Write a payload out with the identifiers taken out of it."""
+    where.mkdir(parents=True, exist_ok=True)
+    path = where / f"{name}.json"
+    path.write_text(json.dumps(redact(data), indent=1, sort_keys=True))
+    _note(f"wrote {path}")
+
+
+async def check(email: str, country: str, dump: Path | None) -> int:
     async with aiohttp.ClientSession() as session:
         auth = AegAuth(session, country)
 
@@ -165,6 +181,8 @@ async def check(email: str, country: str) -> int:
         _step(7, "appliances")
         appliances = await api.appliances()
         _ok(f"{len(appliances)} found")
+        if dump is not None:
+            _dump(dump, "appliances", appliances)
         for entry in appliances:
             info: dict[str, Any] = entry.get("applianceData") or {}
             _note(
@@ -177,16 +195,30 @@ async def check(email: str, country: str) -> int:
             appliance_id = str(entry.get("applianceId", ""))
             if not appliance_id:
                 continue
+            model = str(
+                (entry.get("applianceData") or {}).get("modelName") or "appliance"
+            )
             _step(8, f"capabilities of {_redact(appliance_id)}")
             capabilities = await api.capabilities(appliance_id)
             _ok(f"{len(capabilities)} top level nodes")
             _note(", ".join(sorted(capabilities)[:12]))
+            if dump is not None:
+                _dump(dump, f"{model}-capabilities", capabilities)
+                _dump(dump, f"{model}-state", await api.appliance(appliance_id))
 
     return 0
 
 
 def main() -> int:
     arguments = [a for a in sys.argv[1:] if not a.startswith("-")]
+    dump = None
+    if "--dump" in sys.argv:
+        index = sys.argv.index("--dump")
+        if index + 1 >= len(sys.argv):
+            print(__doc__)
+            return 2
+        dump = Path(sys.argv[index + 1])
+        arguments = [a for a in arguments if a != str(dump)]
     if len(arguments) != 2:
         print(__doc__)
         return 2
@@ -197,7 +229,7 @@ def main() -> int:
     )
     email, country = arguments
     try:
-        return asyncio.run(check(email, country))
+        return asyncio.run(check(email, country, dump))
     except AegError as err:
         print(f"\nfailed: {type(err).__name__}: {err}")
         if getattr(err, "code", None) == gigya.INVALID_CREDENTIALS:
