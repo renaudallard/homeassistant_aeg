@@ -53,8 +53,8 @@ from .websocket import AegStream, apply
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=30)
-# While the cloud is pushing, polling is only there to catch what a dropped
-# connection missed.
+# Once the cloud is really pushing, polling is only there to catch what a
+# dropped connection missed.
 SCAN_INTERVAL_STREAMING = timedelta(minutes=10)
 
 
@@ -166,13 +166,23 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             message, {key: value.reported for key, value in self.data.items()}
         )
         if touched:
+            # Something arrived, so the stream is not merely open, it is
+            # working, and polling can ease off behind it.
+            self.update_interval = SCAN_INTERVAL_STREAMING
             # What the appliance will accept moves with its state.
             self._refresh_overrides(self.data)
             self.async_set_updated_data(self.data)
 
     def _streaming(self, connected: bool) -> None:
-        # Polling stays as the safety net for whatever a drop missed.
-        self.update_interval = SCAN_INTERVAL_STREAMING if connected else SCAN_INTERVAL
+        """Back to asking regularly whenever the stream is not carrying us.
+
+        Opening a connection is not the same as being told anything over it. A
+        stream the cloud accepts and then says nothing on would otherwise leave
+        an appliance being looked at once every ten minutes, which reads as an
+        integration that has stopped working.
+        """
+        if not connected:
+            self.update_interval = SCAN_INTERVAL
 
     async def send(self, appliance_id: str, path: str, value: Any) -> None:
         """Send one field, nested the way the appliance reports it back."""
