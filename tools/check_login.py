@@ -5,6 +5,9 @@ and to settle the two details that could not be read out of the app package:
 whether asking for a mobile target really yields a session that can sign, and
 which base64 variant the Gigya signature needs.
 
+Press enter at the password prompt to sign in with a code mailed to the
+account instead, which is the only way in for an account that has no password.
+
 The password is read from the terminal, is never echoed, and is never written
 to a file or a log. Tokens are not printed either, only whether they arrived
 and how long they last.
@@ -48,7 +51,27 @@ def _redact(value: str) -> str:
     return f"{value[:4]}..." if len(value) > 4 else "..."
 
 
-async def check(email: str, country: str, password: str) -> int:
+async def sign_in(
+    client: gigya.GigyaClient, ids: gigya.GigyaIds, email: str
+) -> gigya.GigyaSession:
+    """Log in with a password, or with a mailed code when none is given."""
+    password = getpass(f"password for {email}, empty to use a mailed code: ")
+    if password:
+        _step(3, "gigya login with password")
+        session = await client.login(email, password, ids)
+    else:
+        _step(3, "gigya sendCode")
+        vtoken = await client.send_otp_code(email, ids)
+        print("ok  code mailed")
+        code = input("   code from the mail: ").strip()
+        _step(3, "gigya login with code")
+        session = await client.login_with_otp(code, vtoken, ids)
+    print("ok  session token and secret present")
+    print("   so targetEnv=mobile does yield a signable session")
+    return session
+
+
+async def check(email: str, country: str) -> int:
     async with aiohttp.ClientSession() as session:
         auth = AegAuth(session, country)
 
@@ -65,10 +88,7 @@ async def check(email: str, country: str, password: str) -> int:
         ids = await client.ids()
         print(f"ok  gmid {_redact(ids.gmid)}")
 
-        _step(3, "gigya login")
-        gigya_session = await client.login(email, password, ids)
-        print("ok  session token and secret present")
-        print("   so targetEnv=mobile does yield a signable session")
+        gigya_session = await sign_in(client, ids, email)
 
         _step(4, "accounts.getJWT")
         variant = "standard base64"
@@ -126,13 +146,14 @@ def main() -> int:
         print(__doc__)
         return 2
     email, country = sys.argv[1], sys.argv[2]
-    password = getpass(f"password for {email}: ")
-    if not password:
-        print("no password given")
-        return 2
     try:
-        return asyncio.run(check(email, country, password))
+        return asyncio.run(check(email, country))
     except AegError as err:
+        code = getattr(err, "code", None)
+        if code == gigya.INVALID_CREDENTIALS:
+            print(f"failed: {err}")
+            print("that is the wrong password code, so try the mailed code path")
+            return 1
         print(f"failed: {err}")
         return 1
 

@@ -34,6 +34,13 @@ _SDK_VERSION = "Android_7.1.2"
 
 _random = SystemRandom()
 
+# Gigya reports failures by code, and a caller has to act on a few of them. The
+# names are the ones the SDK bundled with the app uses, except the credential
+# error, which the app maps but the SDK does not name.
+INVALID_CREDENTIALS = 403042
+ACCOUNT_PENDING_REGISTRATION = 206001
+ACCOUNT_PENDING_VERIFICATION = 206002
+
 
 @dataclass(frozen=True)
 class GigyaIds:
@@ -162,8 +169,11 @@ class GigyaClient:
         if status >= 400:
             details = payload if isinstance(payload, dict) else {}
             message = details.get("errorMessage", "no message")
-            code = details.get("errorCode", "none")
-            raise AegAuthError(f"Gigya rejected the request: {message} (code {code})")
+            code = details.get("errorCode")
+            raise AegAuthError(
+                f"Gigya rejected the request: {message} (code {code})",
+                code if isinstance(code, int) else None,
+            )
         if not isinstance(payload, dict):
             raise AegConnectionError("Gigya returned no object to read")
         return payload

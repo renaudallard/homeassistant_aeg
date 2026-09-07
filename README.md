@@ -47,9 +47,17 @@ rotates every time, so whatever stores it has to write the new one back. The
 client reports each new pair through the `on_tokens` listener for exactly that
 reason.
 
-Both login paths are implemented. A password reaches the same session as the
-one time code, and the code path is there for anyone who would rather not have
-a password stored in Home Assistant at all.
+Both login paths are implemented, and the config flow needs both. An account
+that has no password can only get in with a code mailed to it, the same way the
+Philips HomeID integration works.
+
+Nothing tells you in advance which an account needs. The app does not look it
+up either: it remembers per email address whether that person last used a code,
+and only offers the choice at all when a server side feature flag is on. So the
+config flow should ask rather than guess, and treat a rejected password as a
+cue to offer the code instead. `AegAuthError` carries the Gigya error code for
+that, and `gigya.INVALID_CREDENTIALS` is the one that means the password was
+wrong.
 
 ## Where the protocol knowledge comes from
 
@@ -101,8 +109,9 @@ The app package itself is not tracked either.
 
 `tools/check_login.py` walks the whole login against a real account, from the
 provider lookup through to reading an appliance capability tree, and reports
-which base64 variant the signature needed. It asks for the password on the
-terminal and prints no password, token or full appliance id.
+which base64 variant the signature needed. Press enter at the password prompt
+to take the mailed code path instead. It prints no password, token or full
+appliance id.
 
     python tools/check_login.py you@example.com FR
 
