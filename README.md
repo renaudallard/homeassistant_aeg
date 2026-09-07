@@ -56,8 +56,10 @@ model nobody has tried works the same way as the one this was written against.
   finishing shows up when it happens. Polling carries on in the background at a
   slower rate to catch whatever a dropped connection missed.
 - **Readable readings** — a duration gets a second reading written as a clock,
-  a numbered scale reads as its numbers, and whatever the machine is
-  complaining about arrives as one problem sensor carrying the codes.
+  and a cycle that is running gets a **finishes at** timestamp, which Home
+  Assistant counts down to on its own. A numbered scale reads as its numbers,
+  and whatever the machine is complaining about arrives as one problem sensor
+  with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
 - **Quiet by default** — a washing machine describes about 120 fields and most
@@ -93,6 +95,7 @@ quietly.
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
 | a length of time | a sensor in seconds, and one reading as a clock |
+| how long is left | also a timestamp of when it finishes |
 | anything else it reports | a sensor |
 
 A washing machine comes out as about 67 entities with 47 of them shown: the

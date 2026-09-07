@@ -193,6 +193,17 @@ def is_duration(capability: Capability) -> bool:
     return capability.kind in NUMERIC and "time" in capability.name.lower()
 
 
+def counts_down(capability: Capability) -> bool:
+    """Whether a duration is time left rather than time spent or time set.
+
+    A field saying how long is left is the one thing on an appliance that is
+    wrong the moment it is read, because it is a moving number and the cloud
+    only mentions it now and then.
+    """
+    plain = capability.name.replace("_", "").lower()
+    return is_duration(capability) and ("toend" in plain or "remaining" in plain)
+
+
 def is_housekeeping(capability: Capability) -> bool:
     """Whether a field is the machine talking to itself.
 

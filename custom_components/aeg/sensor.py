@@ -28,6 +28,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -36,11 +37,12 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfTemperature, UnitOfTime
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
-from .capability import SENSOR, Capability, is_duration
+from .capability import SENSOR, Capability, counts_down, is_duration
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
@@ -56,6 +58,8 @@ async def async_setup_entry(
             # The seconds are what the appliance says; the clock is what
             # anyone actually wants to read.
             readings.append(AegDuration(coordinator, appliance_id, capability))
+        if counts_down(capability):
+            readings.append(AegFinishesAt(coordinator, appliance_id, capability))
     add(readings)
 
 
@@ -122,3 +126,52 @@ class AegDuration(AegEntity, SensorEntity):
             return None
         whole = int(seconds)
         return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"
+
+
+class AegFinishesAt(AegEntity, SensorEntity):
+    """When the time left runs out.
+
+    A countdown written as a clock only moves when the cloud says something,
+    which is now and then rather than every second. The moment it finishes does
+    not move at all, and Home Assistant counts down to a timestamp on its own,
+    so this is the one that reads live without writing a state a second.
+    """
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
+    ) -> None:
+        super().__init__(coordinator, appliance_id, capability)
+        self._attr_unique_id = f"{appliance_id}-{capability.path}-at"
+        # Named for what it is rather than for the field it comes from, since
+        # an appliance has one thing it is counting down to.
+        self._attr_name = "Finishes at"
+        self._at: datetime | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._work_out_when()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._work_out_when()
+        super()._handle_coordinator_update()
+
+    def _work_out_when(self) -> None:
+        """Fix the finish to a moment, from the seconds left as they arrive."""
+        seconds = self.reported
+        usable = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
+        if not usable or seconds < 0:
+            self._at = None
+            return
+        # To the second: the appliance counts in seconds, and a finish that
+        # wandered by a fraction on every update would be written out again
+        # each time for no reason.
+        self._at = (dt_util.utcnow() + timedelta(seconds=int(seconds))).replace(
+            microsecond=0
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        return self._at

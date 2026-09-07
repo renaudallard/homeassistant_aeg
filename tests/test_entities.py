@@ -33,6 +33,7 @@ that description holds up against a real one.
 """
 
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -42,7 +43,10 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+)
 
 from custom_components.aeg.const import (
     CONF_ACCESS_TOKEN,
@@ -277,7 +281,58 @@ async def test_a_length_of_time_is_also_offered_as_a_clock(
 
     clock = hass.states.get("sensor.lave_linge_time_to_end_formatted")
     assert clock is not None
-    assert clock.state == "01:09:05"
+    hours, minutes, seconds_left = (int(part) for part in clock.state.split(":"))
+    # It counts down from the moment the appliance said it, so a moment can
+    # have gone by while the entity was being set up.
+    assert 4135 <= hours * 3600 + minutes * 60 + seconds_left <= 4145
+
+
+async def test_the_finish_is_fixed_to_a_moment(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Home Assistant counts down to a timestamp without being told to."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+
+    before = dt_util.utcnow()
+    await _setup(hass, entry, api)
+    after = dt_util.utcnow()
+
+    finishes = hass.states.get("sensor.lave_linge_finishes_at")
+    assert finishes is not None
+    assert finishes.attributes["device_class"] == "timestamp"
+    at = dt_util.parse_datetime(finishes.state)
+    assert at is not None
+    # An hour from when it was read, to the second.
+    assert (
+        abs((at - (before + timedelta(seconds=3600))).total_seconds())
+        <= (after - before).total_seconds() + 1
+    )
+
+
+async def test_a_machine_with_nothing_running_has_no_finish(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    assert _fixture("wm-appliances")[0]["properties"]["reported"]["timeToEnd"] == -1
+    finishes = hass.states.get("sensor.lave_linge_finishes_at")
+    assert finishes is not None
+    assert finishes.state == "unknown"
+
+
+async def test_only_the_time_left_gets_a_finish(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A time the machine was set to is not counting down to anything."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    ending = {
+        entity.unique_id.split("-", 1)[1]
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if entity.unique_id.endswith("-at")
+    }
+    assert ending == {"timeToEnd-at"}
 
 
 async def test_a_time_the_machine_does_not_have_reads_as_nothing(
