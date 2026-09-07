@@ -20,7 +20,7 @@ from PIL import Image, ImageChops
 
 RED = (229, 0, 47)
 
-BRANDS = Path("brands")
+BRANDS = Path("custom_components/aeg/brand")
 ASSETS = Path("assets")
 
 
