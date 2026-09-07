@@ -1,0 +1,12 @@
+# Work area for the decompiled app, several gigabytes and all reproducible.
+tmp/
+
+# The app package itself, too large for the repo.
+*.xapk
+*.apk
+
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

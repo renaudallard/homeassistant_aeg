@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+strict = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "."
