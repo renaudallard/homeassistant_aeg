@@ -131,6 +131,7 @@ class AegDuration(AegEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         self._remember()
+        self._shown = self._clock()
         if self._ticks:
             self.async_on_remove(
                 async_track_time_interval(self.hass, self._tick, timedelta(seconds=1))
@@ -141,12 +142,22 @@ class AegDuration(AegEntity, SensorEntity):
         # The appliance has spoken, so count from what it just said.
         self._remember()
         super()._handle_coordinator_update()
+        self._shown = self._clock()
 
     def _remember(self) -> None:
-        self._shown = None
+        """Take a new figure to count down from, when there is a new one.
+
+        Anything the appliance says brings every entity round, not only the
+        ones it said something about. Counting afresh from a figure that has
+        not moved would stand the clock still, and put it back where it was
+        every time anything else changed.
+        """
         value = self.reported
         usable = isinstance(value, (int, float)) and not isinstance(value, bool)
-        self._seen = float(value) if usable else None
+        fresh = float(value) if usable else None
+        if fresh == self._seen:
+            return
+        self._seen = fresh
         self._seen_at = time.monotonic()
 
     @callback
@@ -157,6 +168,15 @@ class AegDuration(AegEntity, SensorEntity):
             self._shown = current
             self.async_write_ha_state()
 
+    def _stale_after(self) -> float:
+        """How long a figure can be counted down from before it is guesswork.
+
+        Two turns of whatever the account is being looked at on. Anything
+        older than that has been overtaken by something not arriving.
+        """
+        interval = self.coordinator.update_interval
+        return 2 * interval.total_seconds() if interval else 120.0
+
     def _clock(self) -> str | None:
         seconds = self._seen
         # A washing machine says -1 for a time it does not have, such as the
@@ -164,7 +184,12 @@ class AegDuration(AegEntity, SensorEntity):
         if seconds is None or seconds < 0:
             return None
         if self._ticks:
-            seconds = max(0.0, seconds - (time.monotonic() - self._seen_at))
+            elapsed = time.monotonic() - self._seen_at
+            if elapsed > self._stale_after():
+                # Counting down from a figure this old would end at nothing
+                # left and say so as though it were a fact.
+                return None
+            seconds = max(0.0, seconds - elapsed)
         whole = int(seconds)
         return f"{whole // 3600:02d}:{whole % 3600 // 60:02d}:{whole % 60:02d}"
 

@@ -160,9 +160,10 @@ network settings after that.
 
 ## What is not done
 
-- **Nothing has been written to an appliance yet.** Reading is well covered
-  against a real machine; the switches, selects, numbers and buttons have never
-  been exercised against one. The shape a command is sent in matches what
+- **Writing is only half proven.** Pausing and resuming a wash from Home
+  Assistant works on a real machine, so commands and the rules about when they
+  are offered hold up. Settings have not been through the same: a switch, a
+  select or a number sends a shape that matches what
   [homeassistant_electrolux_status](https://github.com/albaintor/homeassistant_electrolux_status)
   sends, which does write to real appliances, but that is a second opinion
   rather than a demonstration.

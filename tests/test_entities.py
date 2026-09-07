@@ -449,7 +449,7 @@ async def test_the_clock_ticks_down_between_updates(
         assert started is not None
         assert started.state == "01:00:00"
 
-        for elapsed, expected in ((1.0, "00:59:59"), (61.0, "00:58:59")):
+        for elapsed, expected in ((1.0, "00:59:59"), (45.0, "00:59:15")):
             clock.monotonic.return_value = 1000.0 + elapsed
             async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
             await hass.async_block_till_done()
@@ -474,13 +474,13 @@ async def test_the_clock_does_not_drift_when_the_programme_changes(
         clock.monotonic.return_value = 1000.0
         await _setup(hass, entry, api)
 
-        # Ten minutes of counting down on the old programme.
-        clock.monotonic.return_value = 1600.0
+        # Half a minute of counting down on the old programme.
+        clock.monotonic.return_value = 1030.0
         async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
         await hass.async_block_till_done()
         counting = hass.states.get("sensor.lave_linge_time_to_end_formatted")
         assert counting is not None
-        assert counting.state == "00:50:00"
+        assert counting.state == "00:59:30"
 
         # A shorter programme, and the cloud says so.
         shorter = _fixture("wm-appliances")
@@ -497,12 +497,51 @@ async def test_the_clock_does_not_drift_when_the_programme_changes(
         assert moved.state == "00:20:00"
 
         # And it counts down from the new figure, not the old one.
-        clock.monotonic.return_value = 1660.0
+        clock.monotonic.return_value = 1060.0
         async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
         await hass.async_block_till_done()
         after = hass.states.get("sensor.lave_linge_time_to_end_formatted")
         assert after is not None
-        assert after.state == "00:19:00"
+        assert after.state == "00:19:30"
+
+
+async def test_a_word_about_something_else_does_not_stand_the_clock_still(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Anything pushed brings every entity round, not only what it was about.
+
+    Counting afresh from a figure that has not moved would put the clock back
+    where it was every time a door opened.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 600
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+
+        coordinator = entry.runtime_data.coordinator
+        appliance_id = next(iter(coordinator.data))
+        clock.monotonic.return_value = 1030.0
+        coordinator._pushed(
+            {
+                "Payload": {
+                    "Appliances": [
+                        {
+                            "ApplianceId": appliance_id,
+                            "Metrics": [{"Name": "doorState", "Value": "CLOSED"}],
+                        }
+                    ]
+                }
+            }
+        )
+        await hass.async_block_till_done()
+
+    # Half a minute has gone by, whatever the push was about.
+    ticking = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert ticking is not None
+    assert ticking.state == "00:09:30"
 
 
 async def test_the_clock_takes_a_pushed_time_as_the_new_truth(
@@ -548,13 +587,44 @@ async def test_the_clock_stops_at_nothing_left(
     with patch("custom_components.aeg.sensor.time") as clock:
         clock.monotonic.return_value = 1000.0
         await _setup(hass, entry, api)
-        clock.monotonic.return_value = 9000.0
+        clock.monotonic.return_value = 1045.0
         async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
         await hass.async_block_till_done()
 
     finished = hass.states.get("sensor.lave_linge_time_to_end_formatted")
     assert finished is not None
     assert finished.state == "00:00:00"
+
+
+async def test_the_clock_gives_up_rather_than_counting_down_to_a_guess(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A wash still running with nothing left on the clock is a lie.
+
+    The figure only counts down while it is fresh. Left long enough without a
+    word from the appliance it would reach nothing left and say so as though
+    it were a fact, so it says nothing instead.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 1800
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        # Long past when the next look should have brought a new figure.
+        clock.monotonic.return_value = 9000.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+
+    lost = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert lost is not None
+    assert lost.state == "unknown"
+
+    # The seconds the appliance last said are still there to be read.
+    seconds = hass.states.get("sensor.lave_linge_time_to_end")
+    assert seconds is not None
+    assert seconds.state == "1800"
 
 
 async def test_a_time_that_is_not_counting_down_stays_where_it_is(
