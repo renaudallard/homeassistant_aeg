@@ -1,0 +1,1392 @@
+{
+ "A code will be sent to this address.": {
+  "da": "Der sendes en kode til denne adresse.",
+  "de": "An diese Adresse wird ein Code gesendet.",
+  "es": "Se enviará un código a esta dirección.",
+  "fr": "Un code sera envoyé à cette adresse.",
+  "it": "Un codice sarà inviato a questo indirizzo.",
+  "nl": "Er wordt een code naar dit adres gestuurd.",
+  "pl": "Na ten adres zostanie wysłany kod.",
+  "sv": "En kod skickas till den här adressen."
+ },
+ "AEG account": {
+  "da": "AEG-konto",
+  "de": "AEG-Konto",
+  "es": "Cuenta AEG",
+  "fr": "Compte AEG",
+  "it": "Account AEG",
+  "nl": "AEG-account",
+  "pl": "Konto AEG",
+  "sv": "AEG-konto"
+ },
+ "Action": {
+  "da": "Handling",
+  "de": "Aktion",
+  "es": "Acción",
+  "fr": "Action",
+  "it": "Azione",
+  "nl": "Actie",
+  "pl": "Działanie",
+  "sv": "Åtgärd"
+ },
+ "Air drying time": {
+  "da": "Lufttørringstid",
+  "de": "Lufttrocknungszeit",
+  "es": "Tiempo de secado al aire",
+  "fr": "Temps de séchage à l'air",
+  "it": "Tempo di asciugatura all'aria",
+  "nl": "Luchtdroogtijd",
+  "pl": "Czas suszenia powietrzem",
+  "sv": "Lufttorkningstid"
+ },
+ "Air quality light": {
+  "da": "Luftkvalitetslys",
+  "de": "Luftqualitätsanzeige",
+  "es": "Luz de calidad del aire",
+  "fr": "Voyant qualité de l'air",
+  "it": "Spia qualità dell'aria",
+  "nl": "Luchtkwaliteitslampje",
+  "pl": "Wskaźnik jakości powietrza",
+  "sv": "Luftkvalitetslampa"
+ },
+ "Alert sounds": {
+  "da": "Alarmlyde",
+  "de": "Warntöne",
+  "es": "Sonidos de alerta",
+  "fr": "Sons d'alerte",
+  "it": "Suoni di avviso",
+  "nl": "Waarschuwingsgeluiden",
+  "pl": "Dźwięki alertów",
+  "sv": "Varningsljud"
+ },
+ "Alerts": {
+  "da": "Alarmer",
+  "de": "Warnungen",
+  "es": "Alertas",
+  "fr": "Alertes",
+  "it": "Avvisi",
+  "nl": "Waarschuwingen",
+  "pl": "Alerty",
+  "sv": "Varningar"
+ },
+ "Area cleaned": {
+  "da": "Rengjort areal",
+  "de": "Gereinigte Fläche",
+  "es": "Área limpiada",
+  "fr": "Surface nettoyée",
+  "it": "Area pulita",
+  "nl": "Gereinigd oppervlak",
+  "pl": "Wysprzątana powierzchnia",
+  "sv": "Rengjord yta"
+ },
+ "Avoid obstacles": {
+  "da": "Undgå forhindringer",
+  "de": "Hindernisse meiden",
+  "es": "Evitar obstáculos",
+  "fr": "Éviter les obstacles",
+  "it": "Evita ostacoli",
+  "nl": "Obstakels vermijden",
+  "pl": "Omijaj przeszkody",
+  "sv": "Undvik hinder"
+ },
+ "Avoid pets": {
+  "da": "Undgå kæledyr",
+  "de": "Haustiere meiden",
+  "es": "Evitar mascotas",
+  "fr": "Éviter les animaux",
+  "it": "Evita animali domestici",
+  "nl": "Huisdieren vermijden",
+  "pl": "Omijaj zwierzęta",
+  "sv": "Undvik husdjur"
+ },
+ "Battery": {
+  "da": "Batteri",
+  "de": "Batterie",
+  "es": "Batería",
+  "fr": "Batterie",
+  "it": "Batteria",
+  "nl": "Batterij",
+  "pl": "Bateria",
+  "sv": "Batteri"
+ },
+ "Board firmware": {
+  "da": "Printkortets firmware",
+  "de": "Firmware der Steuerplatine",
+  "es": "Firmware de la placa",
+  "fr": "Micrologiciel de la carte",
+  "it": "Firmware della scheda",
+  "nl": "Firmware van de printplaat",
+  "pl": "Oprogramowanie płyty",
+  "sv": "Kretskortets fastprogram"
+ },
+ "Brush runtime": {
+  "da": "Børstens driftstid",
+  "de": "Laufzeit Bürste",
+  "es": "Tiempo de uso del cepillo",
+  "fr": "Durée d'utilisation de la brosse",
+  "it": "Tempo di utilizzo della spazzola",
+  "nl": "Gebruiksduur borstel",
+  "pl": "Czas pracy szczotki",
+  "sv": "Borstens drifttid"
+ },
+ "Carpet boost": {
+  "da": "Tæppeboost",
+  "de": "Teppich-Boost",
+  "es": "Refuerzo en alfombras",
+  "fr": "Boost tapis",
+  "it": "Boost tappeti",
+  "nl": "Tapijtboost",
+  "pl": "Wzmocnienie na dywanie",
+  "sv": "Mattboost"
+ },
+ "Charge break": {
+  "da": "Opladningspause",
+  "de": "Ladepause",
+  "es": "Pausa de carga",
+  "fr": "Pause de charge",
+  "it": "Pausa di carica",
+  "nl": "Laadpauze",
+  "pl": "Przerwa w ładowaniu",
+  "sv": "Laddningspaus"
+ },
+ "Charging": {
+  "da": "Oplader",
+  "de": "Lädt",
+  "es": "Cargando",
+  "fr": "En charge",
+  "it": "In carica",
+  "nl": "Opladen",
+  "pl": "Ładowanie",
+  "sv": "Laddar"
+ },
+ "Child lock": {
+  "da": "Børnesikring",
+  "de": "Kindersicherung",
+  "es": "Bloqueo infantil",
+  "fr": "Sécurité enfants",
+  "it": "Sicurezza bambini",
+  "nl": "Kinderslot",
+  "pl": "Blokada rodzicielska",
+  "sv": "Barnlås"
+ },
+ "Clean air": {
+  "da": "Ren luft",
+  "de": "Reine Luft",
+  "es": "Aire limpio",
+  "fr": "Air pur",
+  "it": "Aria pulita",
+  "nl": "Schone lucht",
+  "pl": "Czyste powietrze",
+  "sv": "Ren luft"
+ },
+ "Cleaning mode": {
+  "da": "Rengøringstilstand",
+  "de": "Reinigungsmodus",
+  "es": "Modo de limpieza",
+  "fr": "Mode de nettoyage",
+  "it": "Modalità di pulizia",
+  "nl": "Reinigingsmodus",
+  "pl": "Tryb sprzątania",
+  "sv": "Rengöringsläge"
+ },
+ "Cleaning phase": {
+  "da": "Rengøringsfase",
+  "de": "Reinigungsphase",
+  "es": "Fase de limpieza",
+  "fr": "Phase de nettoyage",
+  "it": "Fase di pulizia",
+  "nl": "Reinigingsfase",
+  "pl": "Faza sprzątania",
+  "sv": "Rengöringsfas"
+ },
+ "Cleaning time": {
+  "da": "Rengøringstid",
+  "de": "Reinigungszeit",
+  "es": "Tiempo de limpieza",
+  "fr": "Temps de nettoyage",
+  "it": "Tempo di pulizia",
+  "nl": "Reinigingstijd",
+  "pl": "Czas sprzątania",
+  "sv": "Rengöringstid"
+ },
+ "Cleaning type": {
+  "da": "Rengøringstype",
+  "de": "Reinigungsart",
+  "es": "Tipo de limpieza",
+  "fr": "Type de nettoyage",
+  "it": "Tipo di pulizia",
+  "nl": "Reinigingstype",
+  "pl": "Typ sprzątania",
+  "sv": "Rengöringstyp"
+ },
+ "Code": {
+  "da": "Kode",
+  "de": "Code",
+  "es": "Código",
+  "fr": "Code",
+  "it": "Codice",
+  "nl": "Code",
+  "pl": "Kod",
+  "sv": "Kod"
+ },
+ "Comfort air": {
+  "da": "Komfortluft",
+  "de": "Komfortluft",
+  "es": "Aire confort",
+  "fr": "Air confort",
+  "it": "Aria comfort",
+  "nl": "Comfortlucht",
+  "pl": "Powietrze komfortowe",
+  "sv": "Komfortluft"
+ },
+ "Connectivity": {
+  "da": "Forbindelse",
+  "de": "Verbindung",
+  "es": "Conectividad",
+  "fr": "Connectivité",
+  "it": "Connettività",
+  "nl": "Verbinding",
+  "pl": "Łączność",
+  "sv": "Anslutning"
+ },
+ "Could not reach the AEG service. Check your connection and try again.": {
+  "da": "Kunne ikke nå AEG-tjenesten. Kontrollér din forbindelse og prøv igen.",
+  "de": "Der AEG-Dienst war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+  "es": "No se pudo conectar con el servicio de AEG. Compruebe su conexión e inténtelo de nuevo.",
+  "fr": "Impossible de joindre le service AEG. Vérifiez votre connexion et réessayez.",
+  "it": "Impossibile raggiungere il servizio AEG. Controlla la connessione e riprova.",
+  "nl": "Kan de AEG-service niet bereiken. Controleer uw verbinding en probeer het opnieuw.",
+  "pl": "Nie można połączyć się z usługą AEG. Sprawdź połączenie i spróbuj ponownie.",
+  "sv": "Kunde inte nå AEG-tjänsten. Kontrollera anslutningen och försök igen."
+ },
+ "Country": {
+  "da": "Land",
+  "de": "Land",
+  "es": "País",
+  "fr": "Pays",
+  "it": "Paese",
+  "nl": "Land",
+  "pl": "Kraj",
+  "sv": "Land"
+ },
+ "Crease guard": {
+  "da": "Krølbeskyttelse",
+  "de": "Knitterschutz",
+  "es": "Antiarrugas",
+  "fr": "Anti-froissage",
+  "it": "Antipiega",
+  "nl": "Kreukbeveiliging",
+  "pl": "Ochrona przed zagnieceniami",
+  "sv": "Skrynkelskydd"
+ },
+ "Crease guard with steam": {
+  "da": "Krølbeskyttelse med damp",
+  "de": "Knitterschutz mit Dampf",
+  "es": "Antiarrugas con vapor",
+  "fr": "Anti-froissage avec vapeur",
+  "it": "Antipiega con vapore",
+  "nl": "Kreukbeveiliging met stoom",
+  "pl": "Ochrona przed zagnieceniami z parą",
+  "sv": "Skrynkelskydd med ånga"
+ },
+ "Cycle phase": {
+  "da": "Programfase",
+  "de": "Programmphase",
+  "es": "Fase del ciclo",
+  "fr": "Phase du cycle",
+  "it": "Fase del ciclo",
+  "nl": "Programmafase",
+  "pl": "Faza cyklu",
+  "sv": "Programfas"
+ },
+ "Cycle step": {
+  "da": "Programtrin",
+  "de": "Programmschritt",
+  "es": "Paso del ciclo",
+  "fr": "Étape du cycle",
+  "it": "Fase secondaria",
+  "nl": "Programmastap",
+  "pl": "Krok cyklu",
+  "sv": "Programsteg"
+ },
+ "Cycles run": {
+  "da": "Kørte programmer",
+  "de": "Durchgeführte Programme",
+  "es": "Ciclos realizados",
+  "fr": "Cycles effectués",
+  "it": "Cicli eseguiti",
+  "nl": "Uitgevoerde programma's",
+  "pl": "Wykonane cykle",
+  "sv": "Körda program"
+ },
+ "Defrosting": {
+  "da": "Afrimning",
+  "de": "Abtauen",
+  "es": "Descongelación",
+  "fr": "Dégivrage",
+  "it": "Sbrinamento",
+  "nl": "Ontdooien",
+  "pl": "Rozmrażanie",
+  "sv": "Avfrostning"
+ },
+ "Detergent": {
+  "da": "Vaskemiddel",
+  "de": "Waschmittel",
+  "es": "Detergente",
+  "fr": "Lessive",
+  "it": "Detersivo",
+  "nl": "Wasmiddel",
+  "pl": "Detergent",
+  "sv": "Tvättmedel"
+ },
+ "Display brightness": {
+  "da": "Displaylysstyrke",
+  "de": "Displayhelligkeit",
+  "es": "Brillo de la pantalla",
+  "fr": "Luminosité de l'écran",
+  "it": "Luminosità del display",
+  "nl": "Helderheid display",
+  "pl": "Jasność wyświetlacza",
+  "sv": "Displayets ljusstyrka"
+ },
+ "Do not disturb": {
+  "da": "Forstyr ikke",
+  "de": "Nicht stören",
+  "es": "No molestar",
+  "fr": "Ne pas déranger",
+  "it": "Non disturbare",
+  "nl": "Niet storen",
+  "pl": "Nie przeszkadzać",
+  "sv": "Stör ej"
+ },
+ "Do not disturb from": {
+  "da": "Forstyr ikke fra",
+  "de": "Nicht stören ab",
+  "es": "No molestar desde",
+  "fr": "Ne pas déranger à partir de",
+  "it": "Non disturbare dalle",
+  "nl": "Niet storen vanaf",
+  "pl": "Nie przeszkadzać od",
+  "sv": "Stör ej från"
+ },
+ "Do not disturb until": {
+  "da": "Forstyr ikke til",
+  "de": "Nicht stören bis",
+  "es": "No molestar hasta",
+  "fr": "Ne pas déranger jusqu'à",
+  "it": "Non disturbare fino alle",
+  "nl": "Niet storen tot",
+  "pl": "Nie przeszkadzać do",
+  "sv": "Stör ej till"
+ },
+ "Door": {
+  "da": "Låge",
+  "de": "Tür",
+  "es": "Puerta",
+  "fr": "Hublot",
+  "it": "Oblò",
+  "nl": "Deur",
+  "pl": "Drzwi",
+  "sv": "Lucka"
+ },
+ "Door lock": {
+  "da": "Lågelås",
+  "de": "Türverriegelung",
+  "es": "Bloqueo de puerta",
+  "fr": "Verrouillage du hublot",
+  "it": "Blocco oblò",
+  "nl": "Deurvergrendeling",
+  "pl": "Blokada drzwi",
+  "sv": "Lucklås"
+ },
+ "Drying": {
+  "da": "Tørring",
+  "de": "Trocknen",
+  "es": "Secado",
+  "fr": "Séchage",
+  "it": "Asciugatura",
+  "nl": "Drogen",
+  "pl": "Suszenie",
+  "sv": "Torkning"
+ },
+ "Easy iron": {
+  "da": "Letstrygning",
+  "de": "Leichtbügeln",
+  "es": "Plancha fácil",
+  "fr": "Repassage facile",
+  "it": "Stiro facile",
+  "nl": "Gemakkelijk strijken",
+  "pl": "Łatwe prasowanie",
+  "sv": "Lättstruket"
+ },
+ "Economy": {
+  "da": "Økonomi",
+  "de": "Sparen",
+  "es": "Economía",
+  "fr": "Économie",
+  "it": "Economia",
+  "nl": "Zuinig",
+  "pl": "Ekonomiczny",
+  "sv": "Ekonomi"
+ },
+ "Edge cleaning": {
+  "da": "Kantrengøring",
+  "de": "Kantenreinigung",
+  "es": "Limpieza de bordes",
+  "fr": "Nettoyage des bords",
+  "it": "Pulizia dei bordi",
+  "nl": "Randreiniging",
+  "pl": "Sprzątanie krawędzi",
+  "sv": "Kantrengöring"
+ },
+ "Email address": {
+  "da": "E-mailadresse",
+  "de": "E-Mail-Adresse",
+  "es": "Dirección de correo electrónico",
+  "fr": "Adresse e-mail",
+  "it": "Indirizzo e-mail",
+  "nl": "E-mailadres",
+  "pl": "Adres e-mail",
+  "sv": "E-postadress"
+ },
+ "End of cycle sound": {
+  "da": "Lyd ved programslut",
+  "de": "Signal am Programmende",
+  "es": "Sonido de fin de ciclo",
+  "fr": "Signal de fin de cycle",
+  "it": "Suono di fine ciclo",
+  "nl": "Geluid bij programma-einde",
+  "pl": "Dźwięk końca cyklu",
+  "sv": "Ljud vid programslut"
+ },
+ "Energy saving": {
+  "da": "Energibesparelse",
+  "de": "Energiesparen",
+  "es": "Ahorro de energía",
+  "fr": "Économie d'énergie",
+  "it": "Risparmio energetico",
+  "nl": "Energiebesparing",
+  "pl": "Oszczędzanie energii",
+  "sv": "Energibesparing"
+ },
+ "Enter the code": {
+  "da": "Indtast koden",
+  "de": "Code eingeben",
+  "es": "Introduzca el código",
+  "fr": "Saisissez le code",
+  "it": "Inserisci il codice",
+  "nl": "Voer de code in",
+  "pl": "Wprowadź kod",
+  "sv": "Ange koden"
+ },
+ "Enter the code sent to {email}.": {
+  "da": "Indtast koden sendt til {email}.",
+  "de": "Geben Sie den an {email} gesendeten Code ein.",
+  "es": "Introduzca el código enviado a {email}.",
+  "fr": "Saisissez le code envoyé à {email}.",
+  "it": "Inserisci il codice inviato a {email}.",
+  "nl": "Voer de code in die naar {email} is gestuurd.",
+  "pl": "Wprowadź kod wysłany na adres {email}.",
+  "sv": "Ange koden som skickats till {email}."
+ },
+ "Error code": {
+  "da": "Fejlkode",
+  "de": "Fehlercode",
+  "es": "Código de error",
+  "fr": "Code d'erreur",
+  "it": "Codice di errore",
+  "nl": "Foutcode",
+  "pl": "Kod błędu",
+  "sv": "Felkod"
+ },
+ "Extra rinse": {
+  "da": "Ekstra skylning",
+  "de": "Extra Spülen",
+  "es": "Aclarado adicional",
+  "fr": "Rinçage supplémentaire",
+  "it": "Risciacquo extra",
+  "nl": "Extra spoelen",
+  "pl": "Dodatkowe płukanie",
+  "sv": "Extra sköljning"
+ },
+ "Extra rinse by default": {
+  "da": "Ekstra skylning som standard",
+  "de": "Extra Spülen standardmäßig",
+  "es": "Aclarado adicional por defecto",
+  "fr": "Rinçage supplémentaire par défaut",
+  "it": "Risciacquo extra predefinito",
+  "nl": "Extra spoelen standaard",
+  "pl": "Dodatkowe płukanie domyślnie",
+  "sv": "Extra sköljning som standard"
+ },
+ "Fan mode": {
+  "da": "Blæsertilstand",
+  "de": "Lüfterbetrieb",
+  "es": "Modo del ventilador",
+  "fr": "Mode ventilateur",
+  "it": "Modalità ventola",
+  "nl": "Ventilatorstand",
+  "pl": "Tryb wentylatora",
+  "sv": "Fläktläge"
+ },
+ "Fan speed": {
+  "da": "Blæserhastighed",
+  "de": "Lüftergeschwindigkeit",
+  "es": "Velocidad del ventilador",
+  "fr": "Vitesse du ventilateur",
+  "it": "Velocità della ventola",
+  "nl": "Ventilatorsnelheid",
+  "pl": "Prędkość wentylatora",
+  "sv": "Fläkthastighet"
+ },
+ "Filter": {
+  "da": "Filter",
+  "de": "Filter",
+  "es": "Filtro",
+  "fr": "Filtre",
+  "it": "Filtro",
+  "nl": "Filter",
+  "pl": "Filtr",
+  "sv": "Filter"
+ },
+ "Finish in": {
+  "da": "Færdig om",
+  "de": "Ende in",
+  "es": "Fin en",
+  "fr": "Fin dans",
+  "it": "Fine tra",
+  "nl": "Klaar over",
+  "pl": "Koniec za",
+  "sv": "Klar om"
+ },
+ "Food probe": {
+  "da": "Stegetermometer",
+  "de": "Bratenthermometer",
+  "es": "Sonda de cocción",
+  "fr": "Sonde de cuisson",
+  "it": "Sonda alimenti",
+  "nl": "Kernthermometer",
+  "pl": "Sonda do mięsa",
+  "sv": "Stektermometer"
+ },
+ "Food probe target": {
+  "da": "Måltemperatur for stegetermometer",
+  "de": "Zieltemperatur Bratenthermometer",
+  "es": "Objetivo de la sonda",
+  "fr": "Cible de la sonde",
+  "it": "Target sonda alimenti",
+  "nl": "Doeltemperatuur kernthermometer",
+  "pl": "Docelowa temperatura sondy",
+  "sv": "Måltemperatur stektermometer"
+ },
+ "How do you sign in to this account? An account with no password can only be reached with a code sent by email.": {
+  "da": "Hvordan logger du ind på denne konto? En konto uden adgangskode kan kun nås med en kode sendt på e-mail.",
+  "de": "Wie melden Sie sich bei diesem Konto an? Ein Konto ohne Passwort ist nur mit einem per E-Mail gesendeten Code erreichbar.",
+  "es": "¿Cómo inicia sesión en esta cuenta? A una cuenta sin contraseña solo se puede acceder con un código enviado por correo electrónico.",
+  "fr": "Comment vous connectez-vous à ce compte ? Un compte sans mot de passe n'est accessible qu'avec un code envoyé par e-mail.",
+  "it": "Come accedi a questo account? Un account senza password è raggiungibile solo con un codice inviato via e-mail.",
+  "nl": "Hoe meldt u zich aan bij dit account? Een account zonder wachtwoord is alleen bereikbaar met een code die per e-mail wordt verzonden.",
+  "pl": "Jak logujesz się do tego konta? Do konta bez hasła można dostać się tylko za pomocą kodu wysłanego e-mailem.",
+  "sv": "Hur loggar du in på det här kontot? Ett konto utan lösenord kan bara nås med en kod som skickas via e-post."
+ },
+ "I Clean": {
+  "da": "I Clean",
+  "de": "I Clean",
+  "es": "I Clean",
+  "fr": "I Clean",
+  "it": "I Clean",
+  "nl": "I Clean",
+  "pl": "I Clean",
+  "sv": "I Clean"
+ },
+ "I Feel": {
+  "da": "I Feel",
+  "de": "I Feel",
+  "es": "I Feel",
+  "fr": "I Feel",
+  "it": "I Feel",
+  "nl": "I Feel",
+  "pl": "I Feel",
+  "sv": "I Feel"
+ },
+ "Intensive": {
+  "da": "Intensiv",
+  "de": "Intensiv",
+  "es": "Intensivo",
+  "fr": "Intensif",
+  "it": "Intensivo",
+  "nl": "Intensief",
+  "pl": "Intensywny",
+  "sv": "Intensiv"
+ },
+ "Language": {
+  "da": "Sprog",
+  "de": "Sprache",
+  "es": "Idioma",
+  "fr": "Langue",
+  "it": "Lingua",
+  "nl": "Taal",
+  "pl": "Język",
+  "sv": "Språk"
+ },
+ "Life remaining": {
+  "da": "Resterende levetid",
+  "de": "Verbleibende Lebensdauer",
+  "es": "Vida restante",
+  "fr": "Durée de vie restante",
+  "it": "Durata residua",
+  "nl": "Resterende levensduur",
+  "pl": "Pozostała żywotność",
+  "sv": "Återstående livslängd"
+ },
+ "Load sensing": {
+  "da": "Vejeautomatik",
+  "de": "Beladungserkennung",
+  "es": "Detección de carga",
+  "fr": "Détection de charge",
+  "it": "Rilevamento del carico",
+  "nl": "Ladingdetectie",
+  "pl": "Wykrywanie wsadu",
+  "sv": "Lastavkänning"
+ },
+ "Louvre position": {
+  "da": "Lamelposition",
+  "de": "Lamellenstellung",
+  "es": "Posición de la lama",
+  "fr": "Position du volet",
+  "it": "Posizione del deflettore",
+  "nl": "Lamelstand",
+  "pl": "Pozycja żaluzji",
+  "sv": "Spjällposition"
+ },
+ "Louvre swing": {
+  "da": "Lamelsving",
+  "de": "Lamellenschwenkung",
+  "es": "Oscilación de la lama",
+  "fr": "Oscillation du volet",
+  "it": "Oscillazione deflettore",
+  "nl": "Lamelzwenking",
+  "pl": "Wahanie żaluzji",
+  "sv": "Spjällsvängning"
+ },
+ "Measured load": {
+  "da": "Målt vægt",
+  "de": "Gemessene Beladung",
+  "es": "Carga medida",
+  "fr": "Charge mesurée",
+  "it": "Carico misurato",
+  "nl": "Gemeten lading",
+  "pl": "Zmierzony wsad",
+  "sv": "Uppmätt last"
+ },
+ "Mode": {
+  "da": "Tilstand",
+  "de": "Betriebsart",
+  "es": "Modo",
+  "fr": "Mode",
+  "it": "Modalità",
+  "nl": "Modus",
+  "pl": "Tryb",
+  "sv": "Läge"
+ },
+ "Model": {
+  "da": "Model",
+  "de": "Modell",
+  "es": "Modelo",
+  "fr": "Modèle",
+  "it": "Modello",
+  "nl": "Model",
+  "pl": "Model",
+  "sv": "Modell"
+ },
+ "Mop": {
+  "da": "Moppe",
+  "de": "Wischmopp",
+  "es": "Mopa",
+  "fr": "Serpillière",
+  "it": "Mop",
+  "nl": "Dweil",
+  "pl": "Mop",
+  "sv": "Mopp"
+ },
+ "Mop attached": {
+  "da": "Moppe monteret",
+  "de": "Wischmopp angebracht",
+  "es": "Mopa colocada",
+  "fr": "Serpillière fixée",
+  "it": "Mop attaccato",
+  "nl": "Dweil bevestigd",
+  "pl": "Mop zamocowany",
+  "sv": "Mopp monterad"
+ },
+ "Mop runtime": {
+  "da": "Moppens driftstid",
+  "de": "Laufzeit Wischmopp",
+  "es": "Tiempo de uso de la mopa",
+  "fr": "Durée d'utilisation de la serpillière",
+  "it": "Tempo di utilizzo del mop",
+  "nl": "Gebruiksduur dweil",
+  "pl": "Czas pracy mopa",
+  "sv": "Moppens drifttid"
+ },
+ "Mopping pattern": {
+  "da": "Moppemønster",
+  "de": "Wischmuster",
+  "es": "Patrón de fregado",
+  "fr": "Motif de lavage",
+  "it": "Schema di lavaggio",
+  "nl": "Dweilpatroon",
+  "pl": "Wzór mopowania",
+  "sv": "Moppmönster"
+ },
+ "Name": {
+  "da": "Navn",
+  "de": "Name",
+  "es": "Nombre",
+  "fr": "Nom",
+  "it": "Nome",
+  "nl": "Naam",
+  "pl": "Nazwa",
+  "sv": "Namn"
+ },
+ "Night cycle": {
+  "da": "Natprogram",
+  "de": "Nachtprogramm",
+  "es": "Ciclo nocturno",
+  "fr": "Cycle nuit",
+  "it": "Ciclo notturno",
+  "nl": "Nachtprogramma",
+  "pl": "Cykl nocny",
+  "sv": "Nattprogram"
+ },
+ "Nominal load": {
+  "da": "Nominel vægt",
+  "de": "Nennbeladung",
+  "es": "Carga nominal",
+  "fr": "Charge nominale",
+  "it": "Carico nominale",
+  "nl": "Nominale lading",
+  "pl": "Wsad nominalny",
+  "sv": "Nominell last"
+ },
+ "PM2.5": {
+  "da": "PM2,5",
+  "de": "PM2,5",
+  "es": "PM2,5",
+  "fr": "PM2,5",
+  "it": "PM2,5",
+  "nl": "PM2,5",
+  "pl": "PM2,5",
+  "sv": "PM2,5"
+ },
+ "Panel firmware": {
+  "da": "Panelets firmware",
+  "de": "Firmware des Bedienfelds",
+  "es": "Firmware del panel",
+  "fr": "Micrologiciel du bandeau",
+  "it": "Firmware del pannello",
+  "nl": "Firmware van het paneel",
+  "pl": "Oprogramowanie panelu",
+  "sv": "Panelens fastprogram"
+ },
+ "Panel lock": {
+  "da": "Tastelås",
+  "de": "Tastensperre",
+  "es": "Bloqueo del panel",
+  "fr": "Verrouillage du bandeau",
+  "it": "Blocco pannello",
+  "nl": "Toetsvergrendeling",
+  "pl": "Blokada panelu",
+  "sv": "Knapplås"
+ },
+ "Passes": {
+  "da": "Gennemløb",
+  "de": "Durchgänge",
+  "es": "Pasadas",
+  "fr": "Passages",
+  "it": "Passaggi",
+  "nl": "Passages",
+  "pl": "Przejścia",
+  "sv": "Pass"
+ },
+ "Password": {
+  "da": "Adgangskode",
+  "de": "Passwort",
+  "es": "Contraseña",
+  "fr": "Mot de passe",
+  "it": "Password",
+  "nl": "Wachtwoord",
+  "pl": "Hasło",
+  "sv": "Lösenord"
+ },
+ "Prewash": {
+  "da": "Forvask",
+  "de": "Vorwäsche",
+  "es": "Prelavado",
+  "fr": "Prélavage",
+  "it": "Prelavaggio",
+  "nl": "Voorwas",
+  "pl": "Pranie wstępne",
+  "sv": "Förtvätt"
+ },
+ "Programme": {
+  "da": "Program",
+  "de": "Programm",
+  "es": "Programa",
+  "fr": "Programme",
+  "it": "Programma",
+  "nl": "Programma",
+  "pl": "Program",
+  "sv": "Program"
+ },
+ "Reason": {
+  "da": "Årsag",
+  "de": "Grund",
+  "es": "Motivo",
+  "fr": "Motif",
+  "it": "Motivo",
+  "nl": "Reden",
+  "pl": "Powód",
+  "sv": "Orsak"
+ },
+ "Remote control": {
+  "da": "Fjernbetjening",
+  "de": "Fernbedienung",
+  "es": "Control remoto",
+  "fr": "Commande à distance",
+  "it": "Controllo remoto",
+  "nl": "Afstandsbediening",
+  "pl": "Zdalne sterowanie",
+  "sv": "Fjärrstyrning"
+ },
+ "Remote notifications": {
+  "da": "Fjernnotifikationer",
+  "de": "Fernbenachrichtigungen",
+  "es": "Notificaciones remotas",
+  "fr": "Notifications à distance",
+  "it": "Notifiche remote",
+  "nl": "Meldingen op afstand",
+  "pl": "Powiadomienia zdalne",
+  "sv": "Fjärraviseringar"
+ },
+ "Rinse": {
+  "da": "Skylning",
+  "de": "Spülen",
+  "es": "Aclarado",
+  "fr": "Rinçage",
+  "it": "Risciacquo",
+  "nl": "Spoelen",
+  "pl": "Płukanie",
+  "sv": "Sköljning"
+ },
+ "Rinse hold": {
+  "da": "Skyllestop",
+  "de": "Spülstopp",
+  "es": "Parada de aclarado",
+  "fr": "Arrêt cuve pleine",
+  "it": "Fermo risciacquo",
+  "nl": "Spoelstop",
+  "pl": "Zatrzymanie płukania",
+  "sv": "Sköljstopp"
+ },
+ "Room temperature": {
+  "da": "Rumtemperatur",
+  "de": "Raumtemperatur",
+  "es": "Temperatura ambiente",
+  "fr": "Température ambiante",
+  "it": "Temperatura ambiente",
+  "nl": "Kamertemperatuur",
+  "pl": "Temperatura pokojowa",
+  "sv": "Rumstemperatur"
+ },
+ "Running time": {
+  "da": "Driftstid",
+  "de": "Laufzeit",
+  "es": "Tiempo en marcha",
+  "fr": "Temps de fonctionnement",
+  "it": "Tempo di funzionamento",
+  "nl": "Looptijd",
+  "pl": "Czas pracy",
+  "sv": "Drifttid"
+ },
+ "Saved cycle": {
+  "da": "Gemt program",
+  "de": "Gespeichertes Programm",
+  "es": "Ciclo guardado",
+  "fr": "Cycle enregistré",
+  "it": "Ciclo salvato",
+  "nl": "Opgeslagen programma",
+  "pl": "Zapisany cykl",
+  "sv": "Sparat program"
+ },
+ "Shortest finish in": {
+  "da": "Korteste tid til færdig",
+  "de": "Kürzeste Endezeit",
+  "es": "Fin más corta en",
+  "fr": "Fin au plus tôt dans",
+  "it": "Fine minima tra",
+  "nl": "Kortste tijd tot klaar",
+  "pl": "Najkrótszy czas do końca",
+  "sv": "Kortaste tid till klar"
+ },
+ "Side brush runtime": {
+  "da": "Sidebørstens driftstid",
+  "de": "Laufzeit Seitenbürste",
+  "es": "Tiempo de uso del cepillo lateral",
+  "fr": "Durée d'utilisation de la brosse latérale",
+  "it": "Tempo di utilizzo della spazzola laterale",
+  "nl": "Gebruiksduur zijborstel",
+  "pl": "Czas pracy szczotki bocznej",
+  "sv": "Sidoborstens drifttid"
+ },
+ "Sign in with a code": {
+  "da": "Log ind med en kode",
+  "de": "Mit Code anmelden",
+  "es": "Iniciar sesión con un código",
+  "fr": "Se connecter avec un code",
+  "it": "Accedi con un codice",
+  "nl": "Aanmelden met een code",
+  "pl": "Zaloguj się kodem",
+  "sv": "Logga in med en kod"
+ },
+ "Sign in with a password": {
+  "da": "Log ind med adgangskode",
+  "de": "Mit Passwort anmelden",
+  "es": "Iniciar sesión con contraseña",
+  "fr": "Se connecter avec un mot de passe",
+  "it": "Accedi con una password",
+  "nl": "Aanmelden met wachtwoord",
+  "pl": "Zaloguj się hasłem",
+  "sv": "Logga in med lösenord"
+ },
+ "Signed in again successfully.": {
+  "da": "Logget ind igen.",
+  "de": "Erneute Anmeldung erfolgreich.",
+  "es": "Sesión iniciada de nuevo correctamente.",
+  "fr": "Reconnexion réussie.",
+  "it": "Accesso effettuato di nuovo.",
+  "nl": "Opnieuw aangemeld.",
+  "pl": "Ponowne logowanie powiodło się.",
+  "sv": "Inloggad igen."
+ },
+ "Skip phase": {
+  "da": "Spring fase over",
+  "de": "Phase überspringen",
+  "es": "Saltar fase",
+  "fr": "Passer la phase",
+  "it": "Salta fase",
+  "nl": "Fase overslaan",
+  "pl": "Pomiń fazę",
+  "sv": "Hoppa över fas"
+ },
+ "Sleep mode": {
+  "da": "Sovetilstand",
+  "de": "Schlafmodus",
+  "es": "Modo reposo",
+  "fr": "Mode nuit",
+  "it": "Modalità notte",
+  "nl": "Slaapstand",
+  "pl": "Tryb nocny",
+  "sv": "Viloläge"
+ },
+ "Something unexpected went wrong. Check the log for details.": {
+  "da": "Noget uventet gik galt. Se loggen for detaljer.",
+  "de": "Etwas Unerwartetes ist schiefgelaufen. Einzelheiten finden Sie im Protokoll.",
+  "es": "Se produjo un error inesperado. Consulte el registro para más detalles.",
+  "fr": "Une erreur inattendue s'est produite. Consultez le journal pour plus de détails.",
+  "it": "Si è verificato un errore imprevisto. Controlla il registro per i dettagli.",
+  "nl": "Er is iets onverwachts misgegaan. Bekijk het logboek voor details.",
+  "pl": "Wystąpił nieoczekiwany błąd. Szczegóły znajdziesz w dzienniku.",
+  "sv": "Något oväntat gick fel. Se loggen för detaljer."
+ },
+ "Spin speed": {
+  "da": "Centrifugeringshastighed",
+  "de": "Schleuderdrehzahl",
+  "es": "Velocidad de centrifugado",
+  "fr": "Vitesse d'essorage",
+  "it": "Velocità di centrifuga",
+  "nl": "Centrifugesnelheid",
+  "pl": "Prędkość wirowania",
+  "sv": "Centrifugeringshastighet"
+ },
+ "Stain": {
+  "da": "Pletter",
+  "de": "Flecken",
+  "es": "Manchas",
+  "fr": "Taches",
+  "it": "Macchie",
+  "nl": "Vlekken",
+  "pl": "Plamy",
+  "sv": "Fläckar"
+ },
+ "Start in": {
+  "da": "Start om",
+  "de": "Start in",
+  "es": "Inicio en",
+  "fr": "Départ dans",
+  "it": "Avvio tra",
+  "nl": "Start over",
+  "pl": "Start za",
+  "sv": "Start om"
+ },
+ "State": {
+  "da": "Tilstand",
+  "de": "Status",
+  "es": "Estado",
+  "fr": "État",
+  "it": "Stato",
+  "nl": "Status",
+  "pl": "Stan",
+  "sv": "Status"
+ },
+ "Steam": {
+  "da": "Damp",
+  "de": "Dampf",
+  "es": "Vapor",
+  "fr": "Vapeur",
+  "it": "Vapore",
+  "nl": "Stoom",
+  "pl": "Para",
+  "sv": "Ånga"
+ },
+ "Suction": {
+  "da": "Sugestyrke",
+  "de": "Saugleistung",
+  "es": "Succión",
+  "fr": "Aspiration",
+  "it": "Aspirazione",
+  "nl": "Zuigkracht",
+  "pl": "Siła ssania",
+  "sv": "Sugeffekt"
+ },
+ "Target temperature": {
+  "da": "Måltemperatur",
+  "de": "Zieltemperatur",
+  "es": "Temperatura objetivo",
+  "fr": "Température cible",
+  "it": "Temperatura target",
+  "nl": "Doeltemperatuur",
+  "pl": "Temperatura docelowa",
+  "sv": "Måltemperatur"
+ },
+ "Temperature": {
+  "da": "Temperatur",
+  "de": "Temperatur",
+  "es": "Temperatura",
+  "fr": "Température",
+  "it": "Temperatura",
+  "nl": "Temperatuur",
+  "pl": "Temperatura",
+  "sv": "Temperatur"
+ },
+ "That code was not accepted. It may have expired, in which case request a new one.": {
+  "da": "Koden blev ikke accepteret. Den kan være udløbet; bed i så fald om en ny.",
+  "de": "Der Code wurde nicht akzeptiert. Möglicherweise ist er abgelaufen; fordern Sie dann einen neuen an.",
+  "es": "El código no se aceptó. Puede haber caducado; en ese caso, solicite uno nuevo.",
+  "fr": "Ce code n'a pas été accepté. Il a peut-être expiré ; dans ce cas, demandez-en un nouveau.",
+  "it": "Il codice non è stato accettato. Potrebbe essere scaduto; in tal caso richiedine uno nuovo.",
+  "nl": "Die code is niet geaccepteerd. Mogelijk is hij verlopen; vraag dan een nieuwe aan.",
+  "pl": "Kod nie został zaakceptowany. Mógł wygasnąć – w takim razie poproś o nowy.",
+  "sv": "Koden godtogs inte. Den kan ha gått ut; begär i så fall en ny."
+ },
+ "The account could not be signed in.": {
+  "da": "Kontoen kunne ikke logges ind.",
+  "de": "Das Konto konnte nicht angemeldet werden.",
+  "es": "No se pudo iniciar sesión en la cuenta.",
+  "fr": "La connexion au compte a échoué.",
+  "it": "Non è stato possibile accedere all'account.",
+  "nl": "Aanmelden bij het account is mislukt.",
+  "pl": "Nie udało się zalogować do konta.",
+  "sv": "Det gick inte att logga in på kontot."
+ },
+ "The country the account was registered in, which decides which server holds your appliances.": {
+  "da": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på.",
+  "de": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen.",
+  "es": "El país en el que se registró la cuenta, que determina en qué servidor están sus electrodomésticos.",
+  "fr": "Le pays d'enregistrement du compte, qui détermine le serveur où se trouvent vos appareils.",
+  "it": "Il paese in cui è stato registrato l'account, che determina su quale server si trovano i tuoi elettrodomestici.",
+  "nl": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan.",
+  "pl": "Kraj rejestracji konta, który określa, na którym serwerze znajdują się urządzenia.",
+  "sv": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på."
+ },
+ "This account is already set up.": {
+  "da": "Denne konto er allerede sat op.",
+  "de": "Dieses Konto ist bereits eingerichtet.",
+  "es": "Esta cuenta ya está configurada.",
+  "fr": "Ce compte est déjà configuré.",
+  "it": "Questo account è già configurato.",
+  "nl": "Dit account is al ingesteld.",
+  "pl": "To konto jest już skonfigurowane.",
+  "sv": "Det här kontot är redan konfigurerat."
+ },
+ "Time manager": {
+  "da": "Tidsstyring",
+  "de": "Zeitvorwahl",
+  "es": "Gestor de tiempo",
+  "fr": "Gestion du temps",
+  "it": "Gestione tempo",
+  "nl": "Tijdmanager",
+  "pl": "Menedżer czasu",
+  "sv": "Tidshantering"
+ },
+ "Time to end": {
+  "da": "Resterende tid",
+  "de": "Restzeit",
+  "es": "Tiempo restante",
+  "fr": "Temps restant",
+  "it": "Tempo rimanente",
+  "nl": "Resterende tijd",
+  "pl": "Pozostały czas",
+  "sv": "Återstående tid"
+ },
+ "Total running time": {
+  "da": "Samlet køretid",
+  "de": "Gesamtlaufzeit",
+  "es": "Tiempo total en marcha",
+  "fr": "Temps de marche total",
+  "it": "Tempo di funzionamento totale",
+  "nl": "Totale looptijd",
+  "pl": "Łączny czas działania",
+  "sv": "Total gångtid"
+ },
+ "Total washing time": {
+  "da": "Samlet vasketid",
+  "de": "Gesamtwaschzeit",
+  "es": "Tiempo total de lavado",
+  "fr": "Temps de lavage total",
+  "it": "Tempo di lavaggio totale",
+  "nl": "Totale wastijd",
+  "pl": "Łączny czas prania",
+  "sv": "Total tvättid"
+ },
+ "Total working time": {
+  "da": "Samlet driftstid",
+  "de": "Gesamtbetriebszeit",
+  "es": "Tiempo total de funcionamiento",
+  "fr": "Temps de fonctionnement total",
+  "it": "Tempo di esercizio totale",
+  "nl": "Totale bedrijfstijd",
+  "pl": "Łączny czas pracy",
+  "sv": "Total drifttid"
+ },
+ "Turbo agitation": {
+  "da": "Turboomrøring",
+  "de": "Turbo-Bewegung",
+  "es": "Agitación turbo",
+  "fr": "Agitation turbo",
+  "it": "Agitazione turbo",
+  "nl": "Turbobeweging",
+  "pl": "Turbo mieszanie",
+  "sv": "Turboomrörning"
+ },
+ "Turbo drying": {
+  "da": "Turbotørring",
+  "de": "Turbotrocknen",
+  "es": "Secado turbo",
+  "fr": "Séchage turbo",
+  "it": "Asciugatura turbo",
+  "nl": "Turbodrogen",
+  "pl": "Turbo suszenie",
+  "sv": "Turbotorkning"
+ },
+ "Ultra mix": {
+  "da": "Ultra mix",
+  "de": "Ultra Mix",
+  "es": "Ultra mix",
+  "fr": "Ultra mix",
+  "it": "Ultra mix",
+  "nl": "Ultra mix",
+  "pl": "Ultra mix",
+  "sv": "Ultra mix"
+ },
+ "Update state": {
+  "da": "Opdateringsstatus",
+  "de": "Aktualisierungsstatus",
+  "es": "Estado de la actualización",
+  "fr": "État de la mise à jour",
+  "it": "Stato dell'aggiornamento",
+  "nl": "Updatestatus",
+  "pl": "Stan aktualizacji",
+  "sv": "Uppdateringsstatus"
+ },
+ "Use the same address and password as the AEG app.": {
+  "da": "Brug samme adresse og adgangskode som i AEG-appen.",
+  "de": "Verwenden Sie dieselbe Adresse und dasselbe Passwort wie in der AEG-App.",
+  "es": "Use la misma dirección y contraseña que en la aplicación AEG.",
+  "fr": "Utilisez la même adresse et le même mot de passe que dans l'application AEG.",
+  "it": "Usa lo stesso indirizzo e la stessa password dell'app AEG.",
+  "nl": "Gebruik hetzelfde adres en wachtwoord als in de AEG-app.",
+  "pl": "Użyj tego samego adresu i hasła co w aplikacji AEG.",
+  "sv": "Använd samma adress och lösenord som i AEG-appen."
+ },
+ "Vertical swing": {
+  "da": "Lodret sving",
+  "de": "Vertikale Schwenkung",
+  "es": "Oscilación vertical",
+  "fr": "Oscillation verticale",
+  "it": "Oscillazione verticale",
+  "nl": "Verticale zwenking",
+  "pl": "Wahanie pionowe",
+  "sv": "Vertikal svängning"
+ },
+ "Voice language": {
+  "da": "Talesprog",
+  "de": "Sprachausgabe",
+  "es": "Idioma de voz",
+  "fr": "Langue vocale",
+  "it": "Lingua vocale",
+  "nl": "Spraaktaal",
+  "pl": "Język głosu",
+  "sv": "Röstspråk"
+ },
+ "Volume": {
+  "da": "Lydstyrke",
+  "de": "Lautstärke",
+  "es": "Volumen",
+  "fr": "Volume",
+  "it": "Volume",
+  "nl": "Volume",
+  "pl": "Głośność",
+  "sv": "Volym"
+ },
+ "Wash level": {
+  "da": "Vaskeniveau",
+  "de": "Waschstufe",
+  "es": "Nivel de lavado",
+  "fr": "Niveau de lavage",
+  "it": "Livello di lavaggio",
+  "nl": "Wasniveau",
+  "pl": "Poziom prania",
+  "sv": "Tvättnivå"
+ },
+ "Washes run": {
+  "da": "Kørte vaske",
+  "de": "Durchgeführte Waschgänge",
+  "es": "Lavados realizados",
+  "fr": "Lavages effectués",
+  "it": "Lavaggi eseguiti",
+  "nl": "Uitgevoerde wasbeurten",
+  "pl": "Wykonane prania",
+  "sv": "Körda tvättar"
+ },
+ "Water flow": {
+  "da": "Vandmængde",
+  "de": "Wassermenge",
+  "es": "Caudal de agua",
+  "fr": "Débit d'eau",
+  "it": "Flusso d'acqua",
+  "nl": "Waterdebiet",
+  "pl": "Przepływ wody",
+  "sv": "Vattenflöde"
+ },
+ "Water hardness": {
+  "da": "Vandets hårdhed",
+  "de": "Wasserhärte",
+  "es": "Dureza del agua",
+  "fr": "Dureté de l'eau",
+  "it": "Durezza dell'acqua",
+  "nl": "Waterhardheid",
+  "pl": "Twardość wody",
+  "sv": "Vattenhårdhet"
+ },
+ "Water level": {
+  "da": "Vandstand",
+  "de": "Wasserstand",
+  "es": "Nivel de agua",
+  "fr": "Niveau d'eau",
+  "it": "Livello dell'acqua",
+  "nl": "Waterniveau",
+  "pl": "Poziom wody",
+  "sv": "Vattennivå"
+ },
+ "Water reuse": {
+  "da": "Genbrug af vand",
+  "de": "Wasserwiederverwendung",
+  "es": "Reutilización de agua",
+  "fr": "Réutilisation de l'eau",
+  "it": "Riutilizzo dell'acqua",
+  "nl": "Waterhergebruik",
+  "pl": "Ponowne użycie wody",
+  "sv": "Återanvändning av vatten"
+ },
+ "Water softener": {
+  "da": "Blødgøringsmiddel",
+  "de": "Wasserenthärter",
+  "es": "Descalcificador",
+  "fr": "Adoucisseur d'eau",
+  "it": "Addolcitore",
+  "nl": "Waterontharder",
+  "pl": "Zmiękczacz wody",
+  "sv": "Vattenavhärdare"
+ },
+ "Water tank empty": {
+  "da": "Vandtank tom",
+  "de": "Wassertank leer",
+  "es": "Depósito de agua vacío",
+  "fr": "Réservoir d'eau vide",
+  "it": "Serbatoio dell'acqua vuoto",
+  "nl": "Waterreservoir leeg",
+  "pl": "Zbiornik wody pusty",
+  "sv": "Vattentank tom"
+ },
+ "Water tray": {
+  "da": "Vandbakke",
+  "de": "Wasserschale",
+  "es": "Bandeja de agua",
+  "fr": "Bac à eau",
+  "it": "Vaschetta dell'acqua",
+  "nl": "Waterbak",
+  "pl": "Tacka na wodę",
+  "sv": "Vattenbricka"
+ },
+ "Wet": {
+  "da": "Våd",
+  "de": "Nass",
+  "es": "Húmedo",
+  "fr": "Humide",
+  "it": "Umido",
+  "nl": "Nat",
+  "pl": "Mokre",
+  "sv": "Blöt"
+ },
+ "With a code sent by email": {
+  "da": "Med en kode sendt på e-mail",
+  "de": "Mit einem per E-Mail gesendeten Code",
+  "es": "Con un código enviado por correo",
+  "fr": "Avec un code envoyé par e-mail",
+  "it": "Con un codice inviato via e-mail",
+  "nl": "Met een code per e-mail",
+  "pl": "Za pomocą kodu wysłanego e-mailem",
+  "sv": "Med en kod skickad via e-post"
+ },
+ "With a password": {
+  "da": "Med en adgangskode",
+  "de": "Mit einem Passwort",
+  "es": "Con una contraseña",
+  "fr": "Avec un mot de passe",
+  "it": "Con una password",
+  "nl": "Met een wachtwoord",
+  "pl": "Za pomocą hasła",
+  "sv": "Med ett lösenord"
+ },
+ "Wrong email address or password. If this account has no password, go back and sign in with a code sent by email.": {
+  "da": "Forkert e-mailadresse eller adgangskode. Hvis kontoen ikke har en adgangskode, så gå tilbage og log ind med en kode sendt på e-mail.",
+  "de": "Falsche E-Mail-Adresse oder falsches Passwort. Wenn dieses Konto kein Passwort hat, gehen Sie zurück und melden Sie sich mit einem per E-Mail gesendeten Code an.",
+  "es": "Dirección de correo o contraseña incorrectas. Si esta cuenta no tiene contraseña, vuelva atrás e inicie sesión con un código enviado por correo.",
+  "fr": "Adresse e-mail ou mot de passe incorrect. Si ce compte n'a pas de mot de passe, revenez en arrière et connectez-vous avec un code envoyé par e-mail.",
+  "it": "Indirizzo e-mail o password errati. Se questo account non ha una password, torna indietro e accedi con un codice inviato via e-mail.",
+  "nl": "Verkeerd e-mailadres of wachtwoord. Als dit account geen wachtwoord heeft, ga terug en meld u aan met een code per e-mail.",
+  "pl": "Nieprawidłowy adres e-mail lub hasło. Jeśli konto nie ma hasła, wróć i zaloguj się kodem wysłanym e-mailem.",
+  "sv": "Fel e-postadress eller lösenord. Om kontot saknar lösenord, gå tillbaka och logga in med en kod som skickas via e-post."
+ },
+ "X Fan": {
+  "da": "X Fan",
+  "de": "X Fan",
+  "es": "X Fan",
+  "fr": "X Fan",
+  "it": "X Fan",
+  "nl": "X Fan",
+  "pl": "X Fan",
+  "sv": "X Fan"
+ }
+}

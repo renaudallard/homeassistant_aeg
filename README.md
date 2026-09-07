@@ -180,13 +180,12 @@ network settings after that.
   capability tree carries nothing to command it with, so a vacuum entity would
   be a read-only shell over entities that already exist. Neither has been tried
   against a real appliance.
-- **Only English.** The fields worth naming are named in
-  `custom_components/aeg/names.py` and the text lives in `strings.json`, so
-  another language is a matter of translating that file. A field with no name
-  written for it is named from what the appliance calls it, which is how an
-  appliance nobody has seen still gets entities with names on them. The icon
-  beside each one is guessed from that name too, and a wrong guess costs a
-  wrong picture rather than a wrong reading.
+- **Nine languages**: English, Danish, Dutch, French, German, Italian, Polish,
+  Spanish and Swedish. A field with no name written for it is named from what
+  the appliance calls it, in English, which is how an appliance nobody has seen
+  still gets entities with names on them. The icon beside each one is guessed
+  from that name too, and a wrong guess costs a wrong picture rather than a
+  wrong reading.
 
 ## How the login works
 
@@ -278,6 +277,12 @@ problem.
 `tools/make_names.py` works out which platforms each named field turns up on,
 from every capability tree to hand, and writes both the table at the bottom of
 `names.py` and the entity text in `strings.json`. Run it after adding a name.
+
+`tools/make_translations.py` writes every language file from
+`tools/translations.json`, which holds what each English string says in each
+language. The words are data rather than code, so translating does not mean
+reading Python. It reports anything it had no words for and leaves that in
+English.
 
 `tools/check_login.py` walks the whole login against a real account, from the
 provider lookup through to reading an appliance capability tree, and says which

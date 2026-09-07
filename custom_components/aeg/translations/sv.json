@@ -1,0 +1,451 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "AEG-konto",
+        "description": "Hur loggar du in på det här kontot? Ett konto utan lösenord kan bara nås med en kod som skickas via e-post.",
+        "menu_options": {
+          "password": "Med ett lösenord",
+          "email_code": "Med en kod skickad via e-post"
+        }
+      },
+      "password": {
+        "title": "Logga in med lösenord",
+        "description": "Använd samma adress och lösenord som i AEG-appen.",
+        "data": {
+          "email": "E-postadress",
+          "country": "Land",
+          "password": "Lösenord"
+        },
+        "data_description": {
+          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på."
+        }
+      },
+      "email_code": {
+        "title": "Logga in med en kod",
+        "description": "En kod skickas till den här adressen.",
+        "data": {
+          "email": "E-postadress",
+          "country": "Land"
+        },
+        "data_description": {
+          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på."
+        }
+      },
+      "code": {
+        "title": "Ange koden",
+        "description": "Ange koden som skickats till {email}.",
+        "data": {
+          "code": "Kod"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kunde inte nå AEG-tjänsten. Kontrollera anslutningen och försök igen.",
+      "invalid_auth": "Det gick inte att logga in på kontot.",
+      "invalid_password": "Fel e-postadress eller lösenord. Om kontot saknar lösenord, gå tillbaka och logga in med en kod som skickas via e-post.",
+      "invalid_code": "Koden godtogs inte. Den kan ha gått ut; begär i så fall en ny.",
+      "unknown": "Något oväntat gick fel. Se loggen för detaljer."
+    },
+    "abort": {
+      "already_configured": "Det här kontot är redan konfigurerat.",
+      "reauth_successful": "Inloggad igen."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alerts": {
+        "name": "Varningar"
+      },
+      "charge_break": {
+        "name": "Laddningspaus"
+      },
+      "charge_state": {
+        "name": "Laddar"
+      },
+      "mop_attach_state": {
+        "name": "Mopp monterad"
+      },
+      "wm_economy": {
+        "name": "Ekonomi"
+      }
+    },
+    "number": {
+      "flap_position": {
+        "name": "Spjällposition"
+      },
+      "start_time": {
+        "name": "Start om"
+      },
+      "stop_time": {
+        "name": "Klar om"
+      },
+      "target_food_probe_temperature_c": {
+        "name": "Måltemperatur stektermometer"
+      },
+      "target_temperature_c": {
+        "name": "Måltemperatur"
+      }
+    },
+    "select": {
+      "air_quality_light": {
+        "name": "Luftkvalitetslampa"
+      },
+      "analog_spin_speed": {
+        "name": "Centrifugeringshastighet"
+      },
+      "analog_temperature": {
+        "name": "Temperatur"
+      },
+      "appliance_mode": {
+        "name": "Läge"
+      },
+      "clean_air_mode": {
+        "name": "Ren luft"
+      },
+      "cleaning_mode": {
+        "name": "Rengöringsläge"
+      },
+      "comfort_air": {
+        "name": "Komfortluft"
+      },
+      "default_extra_rinse": {
+        "name": "Extra sköljning som standard"
+      },
+      "detergent_type": {
+        "name": "Tvättmedel"
+      },
+      "display_light": {
+        "name": "Displayets ljusstyrka"
+      },
+      "end_of_cycle_sound": {
+        "name": "Ljud vid programslut"
+      },
+      "energy_saving_mode": {
+        "name": "Energibesparing"
+      },
+      "extra_rinse_number": {
+        "name": "Extra sköljning"
+      },
+      "fan_mode": {
+        "name": "Fläktläge"
+      },
+      "fan_speed_setting": {
+        "name": "Fläkthastighet"
+      },
+      "flap_oscillate": {
+        "name": "Spjällsvängning"
+      },
+      "flap_position": {
+        "name": "Spjällposition"
+      },
+      "i_clean": {
+        "name": "I Clean"
+      },
+      "memory_id": {
+        "name": "Sparat program"
+      },
+      "mop_water_rate": {
+        "name": "Vattenflöde"
+      },
+      "mopping_pattern": {
+        "name": "Moppmönster"
+      },
+      "phase_advance": {
+        "name": "Hoppa över fas"
+      },
+      "program": {
+        "name": "Program"
+      },
+      "program_uid": {
+        "name": "Program"
+      },
+      "remote_notification_pending": {
+        "name": "Fjärraviseringar"
+      },
+      "sleep_mode": {
+        "name": "Viloläge"
+      },
+      "sound_volume": {
+        "name": "Volym"
+      },
+      "steam_value": {
+        "name": "Ånga"
+      },
+      "time_manager_level": {
+        "name": "Tidshantering"
+      },
+      "vacuum_power": {
+        "name": "Sugeffekt"
+      },
+      "vertical_swing": {
+        "name": "Vertikal svängning"
+      },
+      "wash_level": {
+        "name": "Tvättnivå"
+      },
+      "water_hardness": {
+        "name": "Vattenhårdhet"
+      },
+      "water_softener_mode": {
+        "name": "Vattenavhärdare"
+      },
+      "x_fan": {
+        "name": "X Fan"
+      }
+    },
+    "sensor": {
+      "action_state": {
+        "name": "Åtgärd"
+      },
+      "air_dry_duration": {
+        "name": "Lufttorkningstid"
+      },
+      "alerts": {
+        "name": "Varningar"
+      },
+      "ambient_temperature_c": {
+        "name": "Rumstemperatur"
+      },
+      "ambient_temperature_f": {
+        "name": "Rumstemperatur"
+      },
+      "appliance_main_board_sw_version": {
+        "name": "Kretskortets fastprogram"
+      },
+      "appliance_state": {
+        "name": "Status"
+      },
+      "appliance_total_working_time": {
+        "name": "Total drifttid"
+      },
+      "appliance_ui_sw_version": {
+        "name": "Panelens fastprogram"
+      },
+      "battery_level": {
+        "name": "Batteri"
+      },
+      "brush_runtime": {
+        "name": "Borstens drifttid"
+      },
+      "clean_air_mode": {
+        "name": "Ren luft"
+      },
+      "clean_repetitions": {
+        "name": "Pass"
+      },
+      "clean_time": {
+        "name": "Rengöringstid"
+      },
+      "cleaned_area": {
+        "name": "Rengjord yta"
+      },
+      "cleaning_phase": {
+        "name": "Rengöringsfas"
+      },
+      "cleaning_type": {
+        "name": "Rengöringstyp"
+      },
+      "connectivity_state": {
+        "name": "Anslutning"
+      },
+      "cycle_phase": {
+        "name": "Programfas"
+      },
+      "cycle_sub_phase": {
+        "name": "Programsteg"
+      },
+      "display_light": {
+        "name": "Displayets ljusstyrka"
+      },
+      "do_not_disturb_end_time": {
+        "name": "Stör ej till"
+      },
+      "do_not_disturb_start_time": {
+        "name": "Stör ej från"
+      },
+      "door_lock": {
+        "name": "Lucklås"
+      },
+      "door_state": {
+        "name": "Lucka"
+      },
+      "error_code": {
+        "name": "Felkod"
+      },
+      "evaporator_defrost_state": {
+        "name": "Avfrostning"
+      },
+      "fan_speed": {
+        "name": "Fläkthastighet"
+      },
+      "fan_speed_state": {
+        "name": "Fläkthastighet"
+      },
+      "fc_optisense_load_weight": {
+        "name": "Uppmätt last"
+      },
+      "filter_state": {
+        "name": "Filter"
+      },
+      "food_probe_insertion_state": {
+        "name": "Stektermometer"
+      },
+      "i_feel": {
+        "name": "I Feel"
+      },
+      "language": {
+        "name": "Språk"
+      },
+      "life_remaining": {
+        "name": "Återstående livslängd"
+      },
+      "min_finish_in_time": {
+        "name": "Kortaste tid till klar"
+      },
+      "model": {
+        "name": "Modell"
+      },
+      "mop_location": {
+        "name": "Mopp"
+      },
+      "mop_runtime": {
+        "name": "Moppens drifttid"
+      },
+      "nickname": {
+        "name": "Namn"
+      },
+      "pm25_approximate": {
+        "name": "PM2,5"
+      },
+      "reason": {
+        "name": "Orsak"
+      },
+      "remote_control": {
+        "name": "Fjärrstyrning"
+      },
+      "running_time": {
+        "name": "Drifttid"
+      },
+      "side_brush_runtime": {
+        "name": "Sidoborstens drifttid"
+      },
+      "sound_volume": {
+        "name": "Volym"
+      },
+      "start_time": {
+        "name": "Start om"
+      },
+      "stop_time": {
+        "name": "Klar om"
+      },
+      "sw_update_state": {
+        "name": "Uppdateringsstatus"
+      },
+      "target_temperature": {
+        "name": "Måltemperatur"
+      },
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "time_to_end": {
+        "name": "Återstående tid"
+      },
+      "total_cycle_counter": {
+        "name": "Körda program"
+      },
+      "total_runtime": {
+        "name": "Total gångtid"
+      },
+      "total_wash_cycles_count": {
+        "name": "Körda tvättar"
+      },
+      "total_washing_time": {
+        "name": "Total tvättid"
+      },
+      "voice_language": {
+        "name": "Röstspråk"
+      },
+      "washing_nominal_load_weight": {
+        "name": "Nominell last"
+      },
+      "water_level": {
+        "name": "Vattennivå"
+      },
+      "water_tank_empty": {
+        "name": "Vattentank tom"
+      },
+      "water_tray_insertion_state": {
+        "name": "Vattenbricka"
+      }
+    },
+    "switch": {
+      "alert_sounds_enabled": {
+        "name": "Varningsljud"
+      },
+      "anticrease_no_steam": {
+        "name": "Skrynkelskydd"
+      },
+      "anticrease_wsteam": {
+        "name": "Skrynkelskydd med ånga"
+      },
+      "avoid_collision": {
+        "name": "Undvik hinder"
+      },
+      "carpet_turbo": {
+        "name": "Mattboost"
+      },
+      "child_lock": {
+        "name": "Barnlås"
+      },
+      "do_not_disturb_enabled": {
+        "name": "Stör ej"
+      },
+      "edge_clean_active": {
+        "name": "Kantrengöring"
+      },
+      "night_cycle": {
+        "name": "Nattprogram"
+      },
+      "pet_avoidance": {
+        "name": "Undvik husdjur"
+      },
+      "pre_wash_phase": {
+        "name": "Förtvätt"
+      },
+      "rinse": {
+        "name": "Sköljning"
+      },
+      "rinse_hold": {
+        "name": "Sköljstopp"
+      },
+      "sleep_mode": {
+        "name": "Viloläge"
+      },
+      "stain": {
+        "name": "Fläckar"
+      },
+      "tc_sensor": {
+        "name": "Lastavkänning"
+      },
+      "turbo_agitation": {
+        "name": "Turboomrörning"
+      },
+      "turbo_drying": {
+        "name": "Turbotorkning"
+      },
+      "ui_lock": {
+        "name": "Knapplås"
+      },
+      "ui_lock_mode": {
+        "name": "Knapplås"
+      },
+      "ui_locked": {
+        "name": "Knapplås"
+      },
+      "water_reuse": {
+        "name": "Återanvändning av vatten"
+      }
+    }
+  }
+}

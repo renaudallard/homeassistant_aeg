@@ -1,0 +1,451 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Account AEG",
+        "description": "Come accedi a questo account? Un account senza password è raggiungibile solo con un codice inviato via e-mail.",
+        "menu_options": {
+          "password": "Con una password",
+          "email_code": "Con un codice inviato via e-mail"
+        }
+      },
+      "password": {
+        "title": "Accedi con una password",
+        "description": "Usa lo stesso indirizzo e la stessa password dell'app AEG.",
+        "data": {
+          "email": "Indirizzo e-mail",
+          "country": "Paese",
+          "password": "Password"
+        },
+        "data_description": {
+          "country": "Il paese in cui è stato registrato l'account, che determina su quale server si trovano i tuoi elettrodomestici."
+        }
+      },
+      "email_code": {
+        "title": "Accedi con un codice",
+        "description": "Un codice sarà inviato a questo indirizzo.",
+        "data": {
+          "email": "Indirizzo e-mail",
+          "country": "Paese"
+        },
+        "data_description": {
+          "country": "Il paese in cui è stato registrato l'account, che determina su quale server si trovano i tuoi elettrodomestici."
+        }
+      },
+      "code": {
+        "title": "Inserisci il codice",
+        "description": "Inserisci il codice inviato a {email}.",
+        "data": {
+          "code": "Codice"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile raggiungere il servizio AEG. Controlla la connessione e riprova.",
+      "invalid_auth": "Non è stato possibile accedere all'account.",
+      "invalid_password": "Indirizzo e-mail o password errati. Se questo account non ha una password, torna indietro e accedi con un codice inviato via e-mail.",
+      "invalid_code": "Il codice non è stato accettato. Potrebbe essere scaduto; in tal caso richiedine uno nuovo.",
+      "unknown": "Si è verificato un errore imprevisto. Controlla il registro per i dettagli."
+    },
+    "abort": {
+      "already_configured": "Questo account è già configurato.",
+      "reauth_successful": "Accesso effettuato di nuovo."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alerts": {
+        "name": "Avvisi"
+      },
+      "charge_break": {
+        "name": "Pausa di carica"
+      },
+      "charge_state": {
+        "name": "In carica"
+      },
+      "mop_attach_state": {
+        "name": "Mop attaccato"
+      },
+      "wm_economy": {
+        "name": "Economia"
+      }
+    },
+    "number": {
+      "flap_position": {
+        "name": "Posizione del deflettore"
+      },
+      "start_time": {
+        "name": "Avvio tra"
+      },
+      "stop_time": {
+        "name": "Fine tra"
+      },
+      "target_food_probe_temperature_c": {
+        "name": "Target sonda alimenti"
+      },
+      "target_temperature_c": {
+        "name": "Temperatura target"
+      }
+    },
+    "select": {
+      "air_quality_light": {
+        "name": "Spia qualità dell'aria"
+      },
+      "analog_spin_speed": {
+        "name": "Velocità di centrifuga"
+      },
+      "analog_temperature": {
+        "name": "Temperatura"
+      },
+      "appliance_mode": {
+        "name": "Modalità"
+      },
+      "clean_air_mode": {
+        "name": "Aria pulita"
+      },
+      "cleaning_mode": {
+        "name": "Modalità di pulizia"
+      },
+      "comfort_air": {
+        "name": "Aria comfort"
+      },
+      "default_extra_rinse": {
+        "name": "Risciacquo extra predefinito"
+      },
+      "detergent_type": {
+        "name": "Detersivo"
+      },
+      "display_light": {
+        "name": "Luminosità del display"
+      },
+      "end_of_cycle_sound": {
+        "name": "Suono di fine ciclo"
+      },
+      "energy_saving_mode": {
+        "name": "Risparmio energetico"
+      },
+      "extra_rinse_number": {
+        "name": "Risciacquo extra"
+      },
+      "fan_mode": {
+        "name": "Modalità ventola"
+      },
+      "fan_speed_setting": {
+        "name": "Velocità della ventola"
+      },
+      "flap_oscillate": {
+        "name": "Oscillazione deflettore"
+      },
+      "flap_position": {
+        "name": "Posizione del deflettore"
+      },
+      "i_clean": {
+        "name": "I Clean"
+      },
+      "memory_id": {
+        "name": "Ciclo salvato"
+      },
+      "mop_water_rate": {
+        "name": "Flusso d'acqua"
+      },
+      "mopping_pattern": {
+        "name": "Schema di lavaggio"
+      },
+      "phase_advance": {
+        "name": "Salta fase"
+      },
+      "program": {
+        "name": "Programma"
+      },
+      "program_uid": {
+        "name": "Programma"
+      },
+      "remote_notification_pending": {
+        "name": "Notifiche remote"
+      },
+      "sleep_mode": {
+        "name": "Modalità notte"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "steam_value": {
+        "name": "Vapore"
+      },
+      "time_manager_level": {
+        "name": "Gestione tempo"
+      },
+      "vacuum_power": {
+        "name": "Aspirazione"
+      },
+      "vertical_swing": {
+        "name": "Oscillazione verticale"
+      },
+      "wash_level": {
+        "name": "Livello di lavaggio"
+      },
+      "water_hardness": {
+        "name": "Durezza dell'acqua"
+      },
+      "water_softener_mode": {
+        "name": "Addolcitore"
+      },
+      "x_fan": {
+        "name": "X Fan"
+      }
+    },
+    "sensor": {
+      "action_state": {
+        "name": "Azione"
+      },
+      "air_dry_duration": {
+        "name": "Tempo di asciugatura all'aria"
+      },
+      "alerts": {
+        "name": "Avvisi"
+      },
+      "ambient_temperature_c": {
+        "name": "Temperatura ambiente"
+      },
+      "ambient_temperature_f": {
+        "name": "Temperatura ambiente"
+      },
+      "appliance_main_board_sw_version": {
+        "name": "Firmware della scheda"
+      },
+      "appliance_state": {
+        "name": "Stato"
+      },
+      "appliance_total_working_time": {
+        "name": "Tempo di esercizio totale"
+      },
+      "appliance_ui_sw_version": {
+        "name": "Firmware del pannello"
+      },
+      "battery_level": {
+        "name": "Batteria"
+      },
+      "brush_runtime": {
+        "name": "Tempo di utilizzo della spazzola"
+      },
+      "clean_air_mode": {
+        "name": "Aria pulita"
+      },
+      "clean_repetitions": {
+        "name": "Passaggi"
+      },
+      "clean_time": {
+        "name": "Tempo di pulizia"
+      },
+      "cleaned_area": {
+        "name": "Area pulita"
+      },
+      "cleaning_phase": {
+        "name": "Fase di pulizia"
+      },
+      "cleaning_type": {
+        "name": "Tipo di pulizia"
+      },
+      "connectivity_state": {
+        "name": "Connettività"
+      },
+      "cycle_phase": {
+        "name": "Fase del ciclo"
+      },
+      "cycle_sub_phase": {
+        "name": "Fase secondaria"
+      },
+      "display_light": {
+        "name": "Luminosità del display"
+      },
+      "do_not_disturb_end_time": {
+        "name": "Non disturbare fino alle"
+      },
+      "do_not_disturb_start_time": {
+        "name": "Non disturbare dalle"
+      },
+      "door_lock": {
+        "name": "Blocco oblò"
+      },
+      "door_state": {
+        "name": "Oblò"
+      },
+      "error_code": {
+        "name": "Codice di errore"
+      },
+      "evaporator_defrost_state": {
+        "name": "Sbrinamento"
+      },
+      "fan_speed": {
+        "name": "Velocità della ventola"
+      },
+      "fan_speed_state": {
+        "name": "Velocità della ventola"
+      },
+      "fc_optisense_load_weight": {
+        "name": "Carico misurato"
+      },
+      "filter_state": {
+        "name": "Filtro"
+      },
+      "food_probe_insertion_state": {
+        "name": "Sonda alimenti"
+      },
+      "i_feel": {
+        "name": "I Feel"
+      },
+      "language": {
+        "name": "Lingua"
+      },
+      "life_remaining": {
+        "name": "Durata residua"
+      },
+      "min_finish_in_time": {
+        "name": "Fine minima tra"
+      },
+      "model": {
+        "name": "Modello"
+      },
+      "mop_location": {
+        "name": "Mop"
+      },
+      "mop_runtime": {
+        "name": "Tempo di utilizzo del mop"
+      },
+      "nickname": {
+        "name": "Nome"
+      },
+      "pm25_approximate": {
+        "name": "PM2,5"
+      },
+      "reason": {
+        "name": "Motivo"
+      },
+      "remote_control": {
+        "name": "Controllo remoto"
+      },
+      "running_time": {
+        "name": "Tempo di funzionamento"
+      },
+      "side_brush_runtime": {
+        "name": "Tempo di utilizzo della spazzola laterale"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "start_time": {
+        "name": "Avvio tra"
+      },
+      "stop_time": {
+        "name": "Fine tra"
+      },
+      "sw_update_state": {
+        "name": "Stato dell'aggiornamento"
+      },
+      "target_temperature": {
+        "name": "Temperatura target"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "time_to_end": {
+        "name": "Tempo rimanente"
+      },
+      "total_cycle_counter": {
+        "name": "Cicli eseguiti"
+      },
+      "total_runtime": {
+        "name": "Tempo di funzionamento totale"
+      },
+      "total_wash_cycles_count": {
+        "name": "Lavaggi eseguiti"
+      },
+      "total_washing_time": {
+        "name": "Tempo di lavaggio totale"
+      },
+      "voice_language": {
+        "name": "Lingua vocale"
+      },
+      "washing_nominal_load_weight": {
+        "name": "Carico nominale"
+      },
+      "water_level": {
+        "name": "Livello dell'acqua"
+      },
+      "water_tank_empty": {
+        "name": "Serbatoio dell'acqua vuoto"
+      },
+      "water_tray_insertion_state": {
+        "name": "Vaschetta dell'acqua"
+      }
+    },
+    "switch": {
+      "alert_sounds_enabled": {
+        "name": "Suoni di avviso"
+      },
+      "anticrease_no_steam": {
+        "name": "Antipiega"
+      },
+      "anticrease_wsteam": {
+        "name": "Antipiega con vapore"
+      },
+      "avoid_collision": {
+        "name": "Evita ostacoli"
+      },
+      "carpet_turbo": {
+        "name": "Boost tappeti"
+      },
+      "child_lock": {
+        "name": "Sicurezza bambini"
+      },
+      "do_not_disturb_enabled": {
+        "name": "Non disturbare"
+      },
+      "edge_clean_active": {
+        "name": "Pulizia dei bordi"
+      },
+      "night_cycle": {
+        "name": "Ciclo notturno"
+      },
+      "pet_avoidance": {
+        "name": "Evita animali domestici"
+      },
+      "pre_wash_phase": {
+        "name": "Prelavaggio"
+      },
+      "rinse": {
+        "name": "Risciacquo"
+      },
+      "rinse_hold": {
+        "name": "Fermo risciacquo"
+      },
+      "sleep_mode": {
+        "name": "Modalità notte"
+      },
+      "stain": {
+        "name": "Macchie"
+      },
+      "tc_sensor": {
+        "name": "Rilevamento del carico"
+      },
+      "turbo_agitation": {
+        "name": "Agitazione turbo"
+      },
+      "turbo_drying": {
+        "name": "Asciugatura turbo"
+      },
+      "ui_lock": {
+        "name": "Blocco pannello"
+      },
+      "ui_lock_mode": {
+        "name": "Blocco pannello"
+      },
+      "ui_locked": {
+        "name": "Blocco pannello"
+      },
+      "water_reuse": {
+        "name": "Riutilizzo dell'acqua"
+      }
+    }
+  }
+}

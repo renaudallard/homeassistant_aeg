@@ -1,0 +1,451 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "AEG-account",
+        "description": "Hoe meldt u zich aan bij dit account? Een account zonder wachtwoord is alleen bereikbaar met een code die per e-mail wordt verzonden.",
+        "menu_options": {
+          "password": "Met een wachtwoord",
+          "email_code": "Met een code per e-mail"
+        }
+      },
+      "password": {
+        "title": "Aanmelden met wachtwoord",
+        "description": "Gebruik hetzelfde adres en wachtwoord als in de AEG-app.",
+        "data": {
+          "email": "E-mailadres",
+          "country": "Land",
+          "password": "Wachtwoord"
+        },
+        "data_description": {
+          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan."
+        }
+      },
+      "email_code": {
+        "title": "Aanmelden met een code",
+        "description": "Er wordt een code naar dit adres gestuurd.",
+        "data": {
+          "email": "E-mailadres",
+          "country": "Land"
+        },
+        "data_description": {
+          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan."
+        }
+      },
+      "code": {
+        "title": "Voer de code in",
+        "description": "Voer de code in die naar {email} is gestuurd.",
+        "data": {
+          "code": "Code"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan de AEG-service niet bereiken. Controleer uw verbinding en probeer het opnieuw.",
+      "invalid_auth": "Aanmelden bij het account is mislukt.",
+      "invalid_password": "Verkeerd e-mailadres of wachtwoord. Als dit account geen wachtwoord heeft, ga terug en meld u aan met een code per e-mail.",
+      "invalid_code": "Die code is niet geaccepteerd. Mogelijk is hij verlopen; vraag dan een nieuwe aan.",
+      "unknown": "Er is iets onverwachts misgegaan. Bekijk het logboek voor details."
+    },
+    "abort": {
+      "already_configured": "Dit account is al ingesteld.",
+      "reauth_successful": "Opnieuw aangemeld."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alerts": {
+        "name": "Waarschuwingen"
+      },
+      "charge_break": {
+        "name": "Laadpauze"
+      },
+      "charge_state": {
+        "name": "Opladen"
+      },
+      "mop_attach_state": {
+        "name": "Dweil bevestigd"
+      },
+      "wm_economy": {
+        "name": "Zuinig"
+      }
+    },
+    "number": {
+      "flap_position": {
+        "name": "Lamelstand"
+      },
+      "start_time": {
+        "name": "Start over"
+      },
+      "stop_time": {
+        "name": "Klaar over"
+      },
+      "target_food_probe_temperature_c": {
+        "name": "Doeltemperatuur kernthermometer"
+      },
+      "target_temperature_c": {
+        "name": "Doeltemperatuur"
+      }
+    },
+    "select": {
+      "air_quality_light": {
+        "name": "Luchtkwaliteitslampje"
+      },
+      "analog_spin_speed": {
+        "name": "Centrifugesnelheid"
+      },
+      "analog_temperature": {
+        "name": "Temperatuur"
+      },
+      "appliance_mode": {
+        "name": "Modus"
+      },
+      "clean_air_mode": {
+        "name": "Schone lucht"
+      },
+      "cleaning_mode": {
+        "name": "Reinigingsmodus"
+      },
+      "comfort_air": {
+        "name": "Comfortlucht"
+      },
+      "default_extra_rinse": {
+        "name": "Extra spoelen standaard"
+      },
+      "detergent_type": {
+        "name": "Wasmiddel"
+      },
+      "display_light": {
+        "name": "Helderheid display"
+      },
+      "end_of_cycle_sound": {
+        "name": "Geluid bij programma-einde"
+      },
+      "energy_saving_mode": {
+        "name": "Energiebesparing"
+      },
+      "extra_rinse_number": {
+        "name": "Extra spoelen"
+      },
+      "fan_mode": {
+        "name": "Ventilatorstand"
+      },
+      "fan_speed_setting": {
+        "name": "Ventilatorsnelheid"
+      },
+      "flap_oscillate": {
+        "name": "Lamelzwenking"
+      },
+      "flap_position": {
+        "name": "Lamelstand"
+      },
+      "i_clean": {
+        "name": "I Clean"
+      },
+      "memory_id": {
+        "name": "Opgeslagen programma"
+      },
+      "mop_water_rate": {
+        "name": "Waterdebiet"
+      },
+      "mopping_pattern": {
+        "name": "Dweilpatroon"
+      },
+      "phase_advance": {
+        "name": "Fase overslaan"
+      },
+      "program": {
+        "name": "Programma"
+      },
+      "program_uid": {
+        "name": "Programma"
+      },
+      "remote_notification_pending": {
+        "name": "Meldingen op afstand"
+      },
+      "sleep_mode": {
+        "name": "Slaapstand"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "steam_value": {
+        "name": "Stoom"
+      },
+      "time_manager_level": {
+        "name": "Tijdmanager"
+      },
+      "vacuum_power": {
+        "name": "Zuigkracht"
+      },
+      "vertical_swing": {
+        "name": "Verticale zwenking"
+      },
+      "wash_level": {
+        "name": "Wasniveau"
+      },
+      "water_hardness": {
+        "name": "Waterhardheid"
+      },
+      "water_softener_mode": {
+        "name": "Waterontharder"
+      },
+      "x_fan": {
+        "name": "X Fan"
+      }
+    },
+    "sensor": {
+      "action_state": {
+        "name": "Actie"
+      },
+      "air_dry_duration": {
+        "name": "Luchtdroogtijd"
+      },
+      "alerts": {
+        "name": "Waarschuwingen"
+      },
+      "ambient_temperature_c": {
+        "name": "Kamertemperatuur"
+      },
+      "ambient_temperature_f": {
+        "name": "Kamertemperatuur"
+      },
+      "appliance_main_board_sw_version": {
+        "name": "Firmware van de printplaat"
+      },
+      "appliance_state": {
+        "name": "Status"
+      },
+      "appliance_total_working_time": {
+        "name": "Totale bedrijfstijd"
+      },
+      "appliance_ui_sw_version": {
+        "name": "Firmware van het paneel"
+      },
+      "battery_level": {
+        "name": "Batterij"
+      },
+      "brush_runtime": {
+        "name": "Gebruiksduur borstel"
+      },
+      "clean_air_mode": {
+        "name": "Schone lucht"
+      },
+      "clean_repetitions": {
+        "name": "Passages"
+      },
+      "clean_time": {
+        "name": "Reinigingstijd"
+      },
+      "cleaned_area": {
+        "name": "Gereinigd oppervlak"
+      },
+      "cleaning_phase": {
+        "name": "Reinigingsfase"
+      },
+      "cleaning_type": {
+        "name": "Reinigingstype"
+      },
+      "connectivity_state": {
+        "name": "Verbinding"
+      },
+      "cycle_phase": {
+        "name": "Programmafase"
+      },
+      "cycle_sub_phase": {
+        "name": "Programmastap"
+      },
+      "display_light": {
+        "name": "Helderheid display"
+      },
+      "do_not_disturb_end_time": {
+        "name": "Niet storen tot"
+      },
+      "do_not_disturb_start_time": {
+        "name": "Niet storen vanaf"
+      },
+      "door_lock": {
+        "name": "Deurvergrendeling"
+      },
+      "door_state": {
+        "name": "Deur"
+      },
+      "error_code": {
+        "name": "Foutcode"
+      },
+      "evaporator_defrost_state": {
+        "name": "Ontdooien"
+      },
+      "fan_speed": {
+        "name": "Ventilatorsnelheid"
+      },
+      "fan_speed_state": {
+        "name": "Ventilatorsnelheid"
+      },
+      "fc_optisense_load_weight": {
+        "name": "Gemeten lading"
+      },
+      "filter_state": {
+        "name": "Filter"
+      },
+      "food_probe_insertion_state": {
+        "name": "Kernthermometer"
+      },
+      "i_feel": {
+        "name": "I Feel"
+      },
+      "language": {
+        "name": "Taal"
+      },
+      "life_remaining": {
+        "name": "Resterende levensduur"
+      },
+      "min_finish_in_time": {
+        "name": "Kortste tijd tot klaar"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "mop_location": {
+        "name": "Dweil"
+      },
+      "mop_runtime": {
+        "name": "Gebruiksduur dweil"
+      },
+      "nickname": {
+        "name": "Naam"
+      },
+      "pm25_approximate": {
+        "name": "PM2,5"
+      },
+      "reason": {
+        "name": "Reden"
+      },
+      "remote_control": {
+        "name": "Afstandsbediening"
+      },
+      "running_time": {
+        "name": "Looptijd"
+      },
+      "side_brush_runtime": {
+        "name": "Gebruiksduur zijborstel"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "start_time": {
+        "name": "Start over"
+      },
+      "stop_time": {
+        "name": "Klaar over"
+      },
+      "sw_update_state": {
+        "name": "Updatestatus"
+      },
+      "target_temperature": {
+        "name": "Doeltemperatuur"
+      },
+      "temperature": {
+        "name": "Temperatuur"
+      },
+      "time_to_end": {
+        "name": "Resterende tijd"
+      },
+      "total_cycle_counter": {
+        "name": "Uitgevoerde programma's"
+      },
+      "total_runtime": {
+        "name": "Totale looptijd"
+      },
+      "total_wash_cycles_count": {
+        "name": "Uitgevoerde wasbeurten"
+      },
+      "total_washing_time": {
+        "name": "Totale wastijd"
+      },
+      "voice_language": {
+        "name": "Spraaktaal"
+      },
+      "washing_nominal_load_weight": {
+        "name": "Nominale lading"
+      },
+      "water_level": {
+        "name": "Waterniveau"
+      },
+      "water_tank_empty": {
+        "name": "Waterreservoir leeg"
+      },
+      "water_tray_insertion_state": {
+        "name": "Waterbak"
+      }
+    },
+    "switch": {
+      "alert_sounds_enabled": {
+        "name": "Waarschuwingsgeluiden"
+      },
+      "anticrease_no_steam": {
+        "name": "Kreukbeveiliging"
+      },
+      "anticrease_wsteam": {
+        "name": "Kreukbeveiliging met stoom"
+      },
+      "avoid_collision": {
+        "name": "Obstakels vermijden"
+      },
+      "carpet_turbo": {
+        "name": "Tapijtboost"
+      },
+      "child_lock": {
+        "name": "Kinderslot"
+      },
+      "do_not_disturb_enabled": {
+        "name": "Niet storen"
+      },
+      "edge_clean_active": {
+        "name": "Randreiniging"
+      },
+      "night_cycle": {
+        "name": "Nachtprogramma"
+      },
+      "pet_avoidance": {
+        "name": "Huisdieren vermijden"
+      },
+      "pre_wash_phase": {
+        "name": "Voorwas"
+      },
+      "rinse": {
+        "name": "Spoelen"
+      },
+      "rinse_hold": {
+        "name": "Spoelstop"
+      },
+      "sleep_mode": {
+        "name": "Slaapstand"
+      },
+      "stain": {
+        "name": "Vlekken"
+      },
+      "tc_sensor": {
+        "name": "Ladingdetectie"
+      },
+      "turbo_agitation": {
+        "name": "Turbobeweging"
+      },
+      "turbo_drying": {
+        "name": "Turbodrogen"
+      },
+      "ui_lock": {
+        "name": "Toetsvergrendeling"
+      },
+      "ui_lock_mode": {
+        "name": "Toetsvergrendeling"
+      },
+      "ui_locked": {
+        "name": "Toetsvergrendeling"
+      },
+      "water_reuse": {
+        "name": "Waterhergebruik"
+      }
+    }
+  }
+}

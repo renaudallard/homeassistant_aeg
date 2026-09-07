@@ -1,0 +1,451 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "AEG-Konto",
+        "description": "Wie melden Sie sich bei diesem Konto an? Ein Konto ohne Passwort ist nur mit einem per E-Mail gesendeten Code erreichbar.",
+        "menu_options": {
+          "password": "Mit einem Passwort",
+          "email_code": "Mit einem per E-Mail gesendeten Code"
+        }
+      },
+      "password": {
+        "title": "Mit Passwort anmelden",
+        "description": "Verwenden Sie dieselbe Adresse und dasselbe Passwort wie in der AEG-App.",
+        "data": {
+          "email": "E-Mail-Adresse",
+          "country": "Land",
+          "password": "Passwort"
+        },
+        "data_description": {
+          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen."
+        }
+      },
+      "email_code": {
+        "title": "Mit Code anmelden",
+        "description": "An diese Adresse wird ein Code gesendet.",
+        "data": {
+          "email": "E-Mail-Adresse",
+          "country": "Land"
+        },
+        "data_description": {
+          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen."
+        }
+      },
+      "code": {
+        "title": "Code eingeben",
+        "description": "Geben Sie den an {email} gesendeten Code ein.",
+        "data": {
+          "code": "Code"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Der AEG-Dienst war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "invalid_auth": "Das Konto konnte nicht angemeldet werden.",
+      "invalid_password": "Falsche E-Mail-Adresse oder falsches Passwort. Wenn dieses Konto kein Passwort hat, gehen Sie zurück und melden Sie sich mit einem per E-Mail gesendeten Code an.",
+      "invalid_code": "Der Code wurde nicht akzeptiert. Möglicherweise ist er abgelaufen; fordern Sie dann einen neuen an.",
+      "unknown": "Etwas Unerwartetes ist schiefgelaufen. Einzelheiten finden Sie im Protokoll."
+    },
+    "abort": {
+      "already_configured": "Dieses Konto ist bereits eingerichtet.",
+      "reauth_successful": "Erneute Anmeldung erfolgreich."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alerts": {
+        "name": "Warnungen"
+      },
+      "charge_break": {
+        "name": "Ladepause"
+      },
+      "charge_state": {
+        "name": "Lädt"
+      },
+      "mop_attach_state": {
+        "name": "Wischmopp angebracht"
+      },
+      "wm_economy": {
+        "name": "Sparen"
+      }
+    },
+    "number": {
+      "flap_position": {
+        "name": "Lamellenstellung"
+      },
+      "start_time": {
+        "name": "Start in"
+      },
+      "stop_time": {
+        "name": "Ende in"
+      },
+      "target_food_probe_temperature_c": {
+        "name": "Zieltemperatur Bratenthermometer"
+      },
+      "target_temperature_c": {
+        "name": "Zieltemperatur"
+      }
+    },
+    "select": {
+      "air_quality_light": {
+        "name": "Luftqualitätsanzeige"
+      },
+      "analog_spin_speed": {
+        "name": "Schleuderdrehzahl"
+      },
+      "analog_temperature": {
+        "name": "Temperatur"
+      },
+      "appliance_mode": {
+        "name": "Betriebsart"
+      },
+      "clean_air_mode": {
+        "name": "Reine Luft"
+      },
+      "cleaning_mode": {
+        "name": "Reinigungsmodus"
+      },
+      "comfort_air": {
+        "name": "Komfortluft"
+      },
+      "default_extra_rinse": {
+        "name": "Extra Spülen standardmäßig"
+      },
+      "detergent_type": {
+        "name": "Waschmittel"
+      },
+      "display_light": {
+        "name": "Displayhelligkeit"
+      },
+      "end_of_cycle_sound": {
+        "name": "Signal am Programmende"
+      },
+      "energy_saving_mode": {
+        "name": "Energiesparen"
+      },
+      "extra_rinse_number": {
+        "name": "Extra Spülen"
+      },
+      "fan_mode": {
+        "name": "Lüfterbetrieb"
+      },
+      "fan_speed_setting": {
+        "name": "Lüftergeschwindigkeit"
+      },
+      "flap_oscillate": {
+        "name": "Lamellenschwenkung"
+      },
+      "flap_position": {
+        "name": "Lamellenstellung"
+      },
+      "i_clean": {
+        "name": "I Clean"
+      },
+      "memory_id": {
+        "name": "Gespeichertes Programm"
+      },
+      "mop_water_rate": {
+        "name": "Wassermenge"
+      },
+      "mopping_pattern": {
+        "name": "Wischmuster"
+      },
+      "phase_advance": {
+        "name": "Phase überspringen"
+      },
+      "program": {
+        "name": "Programm"
+      },
+      "program_uid": {
+        "name": "Programm"
+      },
+      "remote_notification_pending": {
+        "name": "Fernbenachrichtigungen"
+      },
+      "sleep_mode": {
+        "name": "Schlafmodus"
+      },
+      "sound_volume": {
+        "name": "Lautstärke"
+      },
+      "steam_value": {
+        "name": "Dampf"
+      },
+      "time_manager_level": {
+        "name": "Zeitvorwahl"
+      },
+      "vacuum_power": {
+        "name": "Saugleistung"
+      },
+      "vertical_swing": {
+        "name": "Vertikale Schwenkung"
+      },
+      "wash_level": {
+        "name": "Waschstufe"
+      },
+      "water_hardness": {
+        "name": "Wasserhärte"
+      },
+      "water_softener_mode": {
+        "name": "Wasserenthärter"
+      },
+      "x_fan": {
+        "name": "X Fan"
+      }
+    },
+    "sensor": {
+      "action_state": {
+        "name": "Aktion"
+      },
+      "air_dry_duration": {
+        "name": "Lufttrocknungszeit"
+      },
+      "alerts": {
+        "name": "Warnungen"
+      },
+      "ambient_temperature_c": {
+        "name": "Raumtemperatur"
+      },
+      "ambient_temperature_f": {
+        "name": "Raumtemperatur"
+      },
+      "appliance_main_board_sw_version": {
+        "name": "Firmware der Steuerplatine"
+      },
+      "appliance_state": {
+        "name": "Status"
+      },
+      "appliance_total_working_time": {
+        "name": "Gesamtbetriebszeit"
+      },
+      "appliance_ui_sw_version": {
+        "name": "Firmware des Bedienfelds"
+      },
+      "battery_level": {
+        "name": "Batterie"
+      },
+      "brush_runtime": {
+        "name": "Laufzeit Bürste"
+      },
+      "clean_air_mode": {
+        "name": "Reine Luft"
+      },
+      "clean_repetitions": {
+        "name": "Durchgänge"
+      },
+      "clean_time": {
+        "name": "Reinigungszeit"
+      },
+      "cleaned_area": {
+        "name": "Gereinigte Fläche"
+      },
+      "cleaning_phase": {
+        "name": "Reinigungsphase"
+      },
+      "cleaning_type": {
+        "name": "Reinigungsart"
+      },
+      "connectivity_state": {
+        "name": "Verbindung"
+      },
+      "cycle_phase": {
+        "name": "Programmphase"
+      },
+      "cycle_sub_phase": {
+        "name": "Programmschritt"
+      },
+      "display_light": {
+        "name": "Displayhelligkeit"
+      },
+      "do_not_disturb_end_time": {
+        "name": "Nicht stören bis"
+      },
+      "do_not_disturb_start_time": {
+        "name": "Nicht stören ab"
+      },
+      "door_lock": {
+        "name": "Türverriegelung"
+      },
+      "door_state": {
+        "name": "Tür"
+      },
+      "error_code": {
+        "name": "Fehlercode"
+      },
+      "evaporator_defrost_state": {
+        "name": "Abtauen"
+      },
+      "fan_speed": {
+        "name": "Lüftergeschwindigkeit"
+      },
+      "fan_speed_state": {
+        "name": "Lüftergeschwindigkeit"
+      },
+      "fc_optisense_load_weight": {
+        "name": "Gemessene Beladung"
+      },
+      "filter_state": {
+        "name": "Filter"
+      },
+      "food_probe_insertion_state": {
+        "name": "Bratenthermometer"
+      },
+      "i_feel": {
+        "name": "I Feel"
+      },
+      "language": {
+        "name": "Sprache"
+      },
+      "life_remaining": {
+        "name": "Verbleibende Lebensdauer"
+      },
+      "min_finish_in_time": {
+        "name": "Kürzeste Endezeit"
+      },
+      "model": {
+        "name": "Modell"
+      },
+      "mop_location": {
+        "name": "Wischmopp"
+      },
+      "mop_runtime": {
+        "name": "Laufzeit Wischmopp"
+      },
+      "nickname": {
+        "name": "Name"
+      },
+      "pm25_approximate": {
+        "name": "PM2,5"
+      },
+      "reason": {
+        "name": "Grund"
+      },
+      "remote_control": {
+        "name": "Fernbedienung"
+      },
+      "running_time": {
+        "name": "Laufzeit"
+      },
+      "side_brush_runtime": {
+        "name": "Laufzeit Seitenbürste"
+      },
+      "sound_volume": {
+        "name": "Lautstärke"
+      },
+      "start_time": {
+        "name": "Start in"
+      },
+      "stop_time": {
+        "name": "Ende in"
+      },
+      "sw_update_state": {
+        "name": "Aktualisierungsstatus"
+      },
+      "target_temperature": {
+        "name": "Zieltemperatur"
+      },
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "time_to_end": {
+        "name": "Restzeit"
+      },
+      "total_cycle_counter": {
+        "name": "Durchgeführte Programme"
+      },
+      "total_runtime": {
+        "name": "Gesamtlaufzeit"
+      },
+      "total_wash_cycles_count": {
+        "name": "Durchgeführte Waschgänge"
+      },
+      "total_washing_time": {
+        "name": "Gesamtwaschzeit"
+      },
+      "voice_language": {
+        "name": "Sprachausgabe"
+      },
+      "washing_nominal_load_weight": {
+        "name": "Nennbeladung"
+      },
+      "water_level": {
+        "name": "Wasserstand"
+      },
+      "water_tank_empty": {
+        "name": "Wassertank leer"
+      },
+      "water_tray_insertion_state": {
+        "name": "Wasserschale"
+      }
+    },
+    "switch": {
+      "alert_sounds_enabled": {
+        "name": "Warntöne"
+      },
+      "anticrease_no_steam": {
+        "name": "Knitterschutz"
+      },
+      "anticrease_wsteam": {
+        "name": "Knitterschutz mit Dampf"
+      },
+      "avoid_collision": {
+        "name": "Hindernisse meiden"
+      },
+      "carpet_turbo": {
+        "name": "Teppich-Boost"
+      },
+      "child_lock": {
+        "name": "Kindersicherung"
+      },
+      "do_not_disturb_enabled": {
+        "name": "Nicht stören"
+      },
+      "edge_clean_active": {
+        "name": "Kantenreinigung"
+      },
+      "night_cycle": {
+        "name": "Nachtprogramm"
+      },
+      "pet_avoidance": {
+        "name": "Haustiere meiden"
+      },
+      "pre_wash_phase": {
+        "name": "Vorwäsche"
+      },
+      "rinse": {
+        "name": "Spülen"
+      },
+      "rinse_hold": {
+        "name": "Spülstopp"
+      },
+      "sleep_mode": {
+        "name": "Schlafmodus"
+      },
+      "stain": {
+        "name": "Flecken"
+      },
+      "tc_sensor": {
+        "name": "Beladungserkennung"
+      },
+      "turbo_agitation": {
+        "name": "Turbo-Bewegung"
+      },
+      "turbo_drying": {
+        "name": "Turbotrocknen"
+      },
+      "ui_lock": {
+        "name": "Tastensperre"
+      },
+      "ui_lock_mode": {
+        "name": "Tastensperre"
+      },
+      "ui_locked": {
+        "name": "Tastensperre"
+      },
+      "water_reuse": {
+        "name": "Wasserwiederverwendung"
+      }
+    }
+  }
+}
