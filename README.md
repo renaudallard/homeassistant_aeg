@@ -62,6 +62,10 @@ model nobody has tried works the same way as the one this was written against.
   as one problem sensor with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
+- **Kept between starts** — a capability tree is fifty kilobytes and describes
+  the model rather than what it is doing. An appliance publishes a hash of its
+  own capabilities, so the tree is fetched again only when that says it is
+  worth fetching.
 - **Quiet by default** — a washing machine describes about 120 fields and most
   of them are the machine talking to itself. The maintenance counters, stored
   cycles and network stack arrive as diagnostics and start disabled; fields the
@@ -162,7 +166,10 @@ network settings after that.
   from the shape state comes back in.
 - **Onboarding is out of scope.** Pair new hardware with the vendor app.
 - **Nothing is translated.** Entity names come from the appliance's own field
-  names, so some of them read awkwardly.
+  names, so some of them read awkwardly. The icon beside each one is guessed
+  from that name, so a field nobody has seen gets the same treatment as a
+  familiar one, and a wrong guess costs a wrong picture rather than a wrong
+  reading.
 
 ## How the login works
 

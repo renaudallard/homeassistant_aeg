@@ -51,7 +51,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
 )
-from .coordinator import AegCoordinator
+from .coordinator import AegCoordinator, capability_store
 from .entity import provided
 from .errors import AegError
 
@@ -164,6 +164,11 @@ async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth)
         return ""
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_WS_URL: url})
     return url
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: AegConfigEntry) -> None:
+    """Leave nothing behind when an account is removed."""
+    await capability_store(hass, entry).async_remove()
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:

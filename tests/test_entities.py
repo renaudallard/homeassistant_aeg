@@ -107,6 +107,46 @@ async def _again(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) ->
         await hass.async_block_till_done()
 
 
+async def test_it_asks_for_the_capabilities_once_and_keeps_them(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Fifty kilobytes describing a model that has not changed."""
+    await _setup(hass, entry, api)
+    assert api.capabilities.await_count == 1
+
+    await _again(hass, entry, api)
+    # The appliance published the same hash, so there was nothing to fetch.
+    assert api.capabilities.await_count == 1
+
+
+async def test_it_asks_again_when_the_appliance_says_it_has_changed(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    assert api.capabilities.await_count == 1
+
+    changed = _fixture("wm-appliances")
+    changed[0]["properties"]["reported"]["applianceInfo"]["capabilityHash"] = (
+        "a-new-one"
+    )
+    api.appliances.return_value = changed
+    await _again(hass, entry, api)
+    assert api.capabilities.await_count == 2
+
+
+async def test_an_appliance_that_says_nothing_about_its_capabilities_is_asked(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """No hash is no promise, so there is nothing to trust."""
+    quiet = _fixture("wm-appliances")
+    del quiet[0]["properties"]["reported"]["applianceInfo"]["capabilityHash"]
+    api.appliances.return_value = quiet
+
+    await _setup(hass, entry, api)
+    await _again(hass, entry, api)
+    assert api.capabilities.await_count == 2
+
+
 async def test_the_appliance_loads(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

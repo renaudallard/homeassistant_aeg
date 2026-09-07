@@ -42,20 +42,31 @@ import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import AegApi
-from .capability import Capability, parse
+from .capability import Capability, parse, value_at
+from .const import DOMAIN
 from .errors import AegAuthError, AegError
 from .triggers import Override, evaluate
 from .websocket import AegStream, apply
 
 _LOGGER = logging.getLogger(__name__)
 
+# Bump when a capability tree read from the store would no longer be
+# understood, so the next start fetches instead of trusting it.
+STORE_VERSION = 1
+
 SCAN_INTERVAL = timedelta(seconds=30)
 # Once the cloud is really pushing, polling is only there to catch what a
 # dropped connection missed.
 SCAN_INTERVAL_STREAMING = timedelta(minutes=10)
+
+
+def capability_store(hass: HomeAssistant, entry: ConfigEntry) -> Store[dict[str, Any]]:
+    """Where an account's capability trees are kept between starts."""
+    return Store(hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}.capabilities")
 
 
 @dataclass
@@ -90,23 +101,46 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         )
         self.api = api
         self._session = session
+        # A capability tree is fifty kilobytes and describes the model rather
+        # than what it is doing, so it is kept between starts and fetched only
+        # when the appliance says it has changed.
+        self._store = capability_store(hass, entry)
         self._stream: AegStream | None = None
         self._capabilities: dict[str, list[Capability]] = {}
 
     async def _async_setup(self) -> None:
-        """Read what each appliance can do, once."""
+        """Read what each appliance can do, once.
+
+        An appliance publishes a hash of its own capabilities alongside them,
+        which is what makes keeping the last one worth anything: the tree is
+        fetched again only when that hash says it is worth fetching.
+        """
+        held = await self._store.async_load() or {}
+        keeping: dict[str, Any] = {}
         try:
             for entry in await self.api.appliances():
                 appliance_id = str(entry.get("applianceId", ""))
                 if not appliance_id:
                     continue
-                tree = await self.api.capabilities(appliance_id)
+                reported = (entry.get("properties") or {}).get("reported") or {}
+                fingerprint = value_at(reported, "applianceInfo/capabilityHash")
+                known = held.get(appliance_id)
+                if fingerprint and known and known.get("hash") == fingerprint:
+                    tree = known["tree"]
+                    _LOGGER.debug("%s describes what it did last time", appliance_id)
+                else:
+                    tree = await self.api.capabilities(appliance_id)
+                    _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
+                keeping[appliance_id] = {"hash": fingerprint, "tree": tree}
                 self._capabilities[appliance_id] = parse(tree)
-                _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
         except AegAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except AegError as err:
             raise UpdateFailed(str(err)) from err
+
+        if keeping != held:
+            # Also drops whatever belonged to an appliance that has gone.
+            await self._store.async_save(keeping)
 
     async def _async_update_data(self) -> dict[str, Appliance]:
         try:
