@@ -43,6 +43,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .capability import Capability, is_housekeeping, platform_for, value_at
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
+from .triggers import Override
 
 # A model code stuck on the front of a field name, as in EWX1493A_easyIron.
 MODEL_PREFIX = re.compile(r"^[A-Z]{2,}[0-9A-Z]*_")
@@ -101,7 +102,6 @@ class AegEntity(CoordinatorEntity[AegCoordinator]):
             self._attr_entity_registry_enabled_default = False
         elif capability.readable and self.reported is None:
             # Described but never reported, so this model does not have it.
-            # Left in place in case it appears, but not in the way.
             self._attr_entity_registry_enabled_default = False
 
     @property
@@ -132,6 +132,14 @@ class AegEntity(CoordinatorEntity[AegCoordinator]):
             and appliance.connected
             and self.reported is not None
         )
+
+    @property
+    def override(self) -> Override:
+        """What the appliance says about this field in the state it is in."""
+        appliance = self.appliance
+        if appliance is None:
+            return Override()
+        return appliance.overrides.get(self.capability.path, Override())
 
     @property
     def reported(self) -> Any:

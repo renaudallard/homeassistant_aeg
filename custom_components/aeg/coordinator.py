@@ -47,6 +47,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import AegApi
 from .capability import Capability, parse
 from .errors import AegAuthError, AegError
+from .triggers import Override, evaluate
 from .websocket import AegStream, apply
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ class Appliance:
     capabilities: list[Capability]
     reported: dict[str, Any]
     connected: bool
+    overrides: dict[str, Override]
 
 
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
@@ -128,8 +130,15 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 capabilities=self._capabilities.get(appliance_id, []),
                 reported=properties.get("reported") or {},
                 connected=entry.get("connectionState") == "connected",
+                overrides={},
             )
+        self._refresh_overrides(appliances)
         return appliances
+
+    def _refresh_overrides(self, appliances: dict[str, Appliance]) -> None:
+        """Work out what each appliance will accept in the state it is in."""
+        for appliance in appliances.values():
+            appliance.overrides = evaluate(appliance.capabilities, appliance.reported)
 
     def start_stream(self, url: str) -> None:
         """Ask the cloud to push changes rather than waiting to be asked."""
@@ -156,6 +165,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             message, {key: value.reported for key, value in self.data.items()}
         )
         if touched:
+            # What the appliance will accept moves with its state.
+            self._refresh_overrides(self.data)
             self.async_set_updated_data(self.data)
 
     def _streaming(self, connected: bool) -> None:

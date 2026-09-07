@@ -53,6 +53,11 @@ class AegSwitch(AegEntity, SwitchEntity):
     """A flag that can be set."""
 
     @property
+    def available(self) -> bool:
+        # A field the appliance will not take right now is not offered.
+        return super().available and self.override.writable
+
+    @property
     def is_on(self) -> bool | None:
         value = self.reported
         return None if value is None else bool(value)

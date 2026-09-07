@@ -58,6 +58,11 @@ class AegSelect(AegEntity, SelectEntity):
         self._attr_options = list(capability.values)
 
     @property
+    def available(self) -> bool:
+        # A field the appliance will not take right now is not offered.
+        return super().available and self.override.writable
+
+    @property
     def current_option(self) -> str | None:
         value = self.reported
         return str(value) if value in self.capability.values else None

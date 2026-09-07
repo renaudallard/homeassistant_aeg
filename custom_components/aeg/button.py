@@ -76,6 +76,9 @@ class AegButton(AegEntity, ButtonEntity):
             self.coordinator.last_update_success
             and appliance is not None
             and appliance.connected
+            # A washing machine takes START when it is ready to start, and not
+            # while it is running.
+            and self.override.allows(self._command)
         )
 
     async def async_press(self) -> None:

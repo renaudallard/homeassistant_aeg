@@ -84,6 +84,7 @@ class Capability:
     step: float | None = None
     default: Any = None
     disabled: bool = False
+    triggers: tuple[Any, ...] = ()
 
     @property
     def readable(self) -> bool:
@@ -117,6 +118,7 @@ def _capability(path: str, node: Mapping[str, Any]) -> Capability:
         step=_number(node.get("step")),
         default=node.get("default"),
         disabled=bool(node.get("disabled", False)),
+        triggers=tuple(node.get("triggers") or ()),
     )
 
 

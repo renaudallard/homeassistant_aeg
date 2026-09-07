@@ -66,6 +66,11 @@ class AegNumber(AegEntity, NumberEntity):
             self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
     @property
+    def available(self) -> bool:
+        # A field the appliance will not take right now is not offered.
+        return super().available and self.override.writable
+
+    @property
     def native_value(self) -> float | None:
         value = self.reported
         return float(value) if isinstance(value, (int, float)) else None
