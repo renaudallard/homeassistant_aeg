@@ -1,0 +1,397 @@
+{
+    "ambientTemperatureC": {
+        "access": "read",
+        "type": "temperature"
+    },
+    "ambientTemperatureF": {
+        "access": "read",
+        "type": "temperature"
+    },
+    "applianceState": {
+        "access": "read",
+        "type": "string",
+        "values": {
+            "DELAYED_START": {},
+            "OFF": {},
+            "RUNNING": {}
+        }
+    },
+    "applianceUiSwVersion": {
+        "access": "read",
+        "type": "string"
+    },
+    "cleanAirMode": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "displayLight": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "DISPLAY_LIGHT_0": {},
+            "DISPLAY_LIGHT_1": {}
+        }
+    },
+    "executeCommand": {
+        "access": "write",
+        "schedulable": true,
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "fanSpeedSetting": {
+        "access": "readwrite",
+        "schedulable": true,
+        "type": "string",
+        "values": {
+            "AUTO": {},
+            "HIGH": {},
+            "LOW": {},
+            "MIDDLE": {},
+            "QUIET": {},
+            "TURBO": {}
+        }
+    },
+    "fanSpeedState": {
+        "access": "read",
+        "type": "string",
+        "values": {
+            "HIGH": {},
+            "LOW": {},
+            "MIDDLE": {},
+            "QUIET": {},
+            "TURBO": {}
+        }
+    },
+    "iClean": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "iFeel": {
+        "access": "read",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "mode": {
+        "access": "readwrite",
+        "schedulable": true,
+        "triggers": [
+            {
+                "action": {
+                    "fanSpeedSetting": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "DRY",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "fanSpeedSetting": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "SMART",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "fanSpeedSetting": {
+                        "access": "readwrite",
+                        "values": {
+                            "AUTO": {},
+                            "HIGH": {},
+                            "LOW": {},
+                            "MIDDLE": {},
+                            "QUIET": {}
+                        }
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "FANONLY",
+                    "operator": "eq"
+                }
+            },
+
+            {
+                "action": {
+                    "fanSpeedSetting": {
+                        "access": "readwrite",
+                        "values": {
+                            "AUTO": {},
+                            "HIGH": {},
+                            "LOW": {},
+                            "MIDDLE": {},
+                            "QUIET": {}
+                        }
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "AUTO",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "sleepMode": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": {
+                        "operand_1": "value",
+                        "operand_2": "SMART",
+                        "operator": "eq"
+                    },
+                    "operand_2": {
+                        "operand_1": "value",
+                        "operand_2": "AUTO",
+                        "operator": "eq"
+                    },
+                    "operator": "or"
+                }
+            },
+            {
+                "action": {
+                    "sleepMode": {
+                        "access": "readwrite"
+                    }
+                },
+                "condition": {
+                    "operand_1": {
+                        "operand_1": "value",
+                        "operand_2": "SMART",
+                        "operator": "ne"
+                    },
+                    "operand_2": {
+                        "operand_1": "value",
+                        "operand_2": "AUTO",
+                        "operator": "ne"
+                    },
+                    "operator": "and"
+                }
+            },
+            {
+                "action": {
+                    "xFan": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "FANONLY",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "xFan": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "SMART",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "xFan": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "AUTO",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "sleepMode": {
+                        "access": "readwrite"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "COOL",
+                    "operator": "eq"
+                }
+            },
+            {
+                "action": {
+                    "sleepMode": {
+                        "access": "read"
+                    }
+                },
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "COOL",
+                    "operator": "ne"
+                }
+            }
+        ],
+        "type": "string",
+        "values": {
+            "AUTO": {},
+            "AUTOCLEAN": {
+                "disabled": true
+            },
+            "COOL": {},
+            "DRY": {},
+            "FANONLY": {},
+            "OFF": {
+                "disabled": true
+            },
+            "SMART": {}
+        }
+    },
+    "networkInterface": {
+        "command": {
+            "access": "write",
+            "type": "string",
+            "values": {
+                "APPLIANCE_AUTHORIZE": {},
+                "START": {},
+                "USER_AUTHORIZE": {},
+                "USER_NOT_AUTHORIZE": {}
+            }
+        },
+        "linkQualityIndicator": {
+            "access": "read",
+            "type": "string",
+            "values": {
+                "EXCELLENT": {},
+                "GOOD": {},
+                "POOR": {},
+                "UNDEFINED": {},
+                "VERY_GOOD": {},
+                "VERY_POOR": {}
+            }
+        },
+        "niuSwUpdateCurrentDescription": {
+            "access": "read",
+            "type": "string"
+        },
+        "otaState": {
+            "access": "read",
+            "type": "string",
+            "values": {
+                "DESCRIPTION_AVAILABLE": {},
+                "DESCRIPTION_DOWNLOADING": {},
+                "DESCRIPTION_READY": {},
+                "FW_DOWNLOADING": {},
+                "FW_DOWNLOAD_START": {},
+                "FW_SIGNATURE_CHECK": {},
+                "FW_UPDATE_IN_PROGRESS": {},
+                "IDLE": {},
+                "READY_TO_UPDATE": {},
+                "UPDATE_ABORT": {},
+                "UPDATE_CHECK": {},
+                "UPDATE_ERROR": {},
+                "UPDATE_OK": {},
+                "WAITINGFORAUTHORIZATION": {}
+            }
+        },
+        "startUpCommand": {
+            "access": "write",
+            "type": "string",
+            "values": {
+                "UNINSTALL": {}
+            }
+        },
+        "swAncAndRevision": {
+            "access": "read",
+            "type": "string"
+        },
+        "swVersion": {
+            "access": "read",
+            "type": "string"
+        }
+    },
+    "sleepMode": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "soundVolume": {
+        "access": "readwrite",
+        "type": "number",
+        "values": {
+            "0": {},
+            "1": {}
+        }
+    },
+    "startTime": {
+        "access": "readwrite",
+        "default": 0,
+        "max": 86400,
+        "min": 0,
+        "step": 3600,
+        "type": "number",
+        "values": {
+            "INVALID_OR_NOT_SET_TIME": {}
+        }
+    },
+    "stopTime": {
+        "access": "readwrite",
+        "default": 0,
+        "max": 86400,
+        "min": 0,
+        "step": 3600,
+        "type": "number",
+        "values": {
+            "-1": {}
+        }
+    },
+    "targetTemperatureC": {
+        "access": "readwrite",
+        "default": 24.0,
+        "max": 30.0,
+        "min": 16.0,
+        "schedulable": true,
+        "step": 1.0,
+        "type": "temperature"
+    },
+    "verticalSwing": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    },
+    "xFan": {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "OFF": {},
+            "ON": {}
+        }
+    }
+}

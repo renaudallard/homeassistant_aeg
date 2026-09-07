@@ -107,6 +107,7 @@ def provided(coordinator: AegCoordinator) -> set[str]:
         # Whether the appliance is reachable at all is not a field of it.
         ids.add(f"{appliance_id}-connection")
         ids.add(f"{appliance_id}-firmware")
+        ids.add(f"{appliance_id}-climate")
         for capability in appliance.capabilities:
             if platform_for(capability) is None or not carried(appliance, capability):
                 continue

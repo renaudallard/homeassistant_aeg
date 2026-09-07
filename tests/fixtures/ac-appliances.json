@@ -1,0 +1,29 @@
+[
+ {
+  "applianceId": "<34 chars hidden>",
+  "applianceData": {
+   "applianceName": "Clim",
+   "modelName": "AC"
+  },
+  "connectionState": "connected",
+  "status": "enabled",
+  "properties": {
+   "desired": {},
+   "reported": {
+    "applianceState": "RUNNING",
+    "mode": "COOL",
+    "targetTemperatureC": 22.0,
+    "ambientTemperatureC": 26.5,
+    "fanSpeedSetting": "AUTO",
+    "verticalSwing": "OFF",
+    "applianceInfo": {
+     "applianceType": "AC",
+     "capabilityHash": "an-air-conditioner"
+    },
+    "networkInterface": {
+     "linkQualityIndicator": "GOOD"
+    }
+   }
+  }
+ }
+]

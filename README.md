@@ -99,6 +99,7 @@ quietly.
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
 | what firmware it is running | an update entity, and whether one is in hand |
+| a mode and a target temperature | a thermostat, as well as the parts |
 | a length of time | a sensor in seconds, and one reading as a clock |
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
@@ -169,6 +170,12 @@ network settings after that.
   sends, which does write to real appliances, but that is a second opinion
   rather than a demonstration.
 - **Onboarding is out of scope.** Pair new hardware with the vendor app.
+- **Only an air conditioner is gathered up.** An appliance describing a mode
+  and a target temperature becomes a thermostat as well as the selects and
+  numbers it is made of. A robot vacuum is not gathered the same way: its
+  capability tree carries nothing to command it with, so a vacuum entity would
+  be a read-only shell over entities that already exist. Neither has been tried
+  against a real appliance.
 - **Only English.** The fields worth naming are named in
   `custom_components/aeg/names.py` and the text lives in `strings.json`, so
   another language is a matter of translating that file. A field with no name
