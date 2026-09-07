@@ -291,6 +291,34 @@ async def test_a_time_the_machine_does_not_have_reads_as_nothing(
     assert clock.state == "unknown"
 
 
+async def test_a_numbered_level_reads_as_its_number(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """STEP_4 is the fourth step, and the four is the whole of what it says."""
+    await _setup(hass, entry, api)
+    hardness = hass.states.get("select.lave_linge_water_hardness")
+    assert hardness is not None
+    assert hardness.state == "4"
+    assert "4" in hardness.attributes["options"]
+    assert "STEP_4" not in hardness.attributes["options"]
+    # The ones this machine names rather than numbers are left as they are.
+    assert "MEDIUM" in hardness.attributes["options"]
+
+
+async def test_a_numbered_level_is_sent_back_as_the_appliance_names_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": "select.lave_linge_water_hardness", "option": "6"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"waterHardness": "STEP_6"}
+
+
 async def test_a_nested_field_is_sent_back_nested(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
