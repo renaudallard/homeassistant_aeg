@@ -175,6 +175,7 @@ async def test_it_becomes_one_device_with_entities_on_every_platform(
         Platform.SELECT,
         Platform.SENSOR,
         Platform.SWITCH,
+        Platform.UPDATE,
     }
 
 
@@ -306,6 +307,63 @@ async def test_the_entities_built_on_a_field_are_kept_with_it(
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
     }
     assert now == was
+
+
+async def test_it_says_what_firmware_the_appliance_is_running(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    installed = firmware.attributes["installed_version"]
+    assert installed
+    # Its network unit is doing nothing, so what it runs is all there is.
+    assert firmware.attributes["latest_version"] == installed
+    assert firmware.state == "off"
+
+
+async def test_an_update_in_hand_is_not_hidden(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The appliance never says which version is coming, only that one is."""
+    listed = _fixture("wm-appliances")
+    network = listed[0]["properties"]["reported"]["networkInterface"]
+    network["otaState"] = "READY_TO_UPDATE"
+    network["niuSwUpdateCurrentDescription"] = "A23642207A-S00010202A"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.attributes["latest_version"] == "A23642207A-S00010202A"
+    assert firmware.state == "on"
+    assert firmware.attributes["in_progress"] is False
+
+
+async def test_an_update_under_way_says_so(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["networkInterface"]["otaState"] = (
+        "FW_UPDATE_IN_PROGRESS"
+    )
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.attributes["in_progress"] is True
+
+
+async def test_an_appliance_that_says_nothing_about_firmware_gets_no_entity(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    del listed[0]["properties"]["reported"]["networkInterface"]["otaState"]
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    assert hass.states.get("update.lave_linge_firmware") is None
 
 
 async def test_an_appliance_off_the_network_says_so(

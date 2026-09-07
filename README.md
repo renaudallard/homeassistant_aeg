@@ -98,6 +98,7 @@ quietly.
 | what it is complaining about | a problem binary sensor, with the codes |
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
+| what firmware it is running | an update entity, and whether one is in hand |
 | a length of time | a sensor in seconds, and one reading as a clock |
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
