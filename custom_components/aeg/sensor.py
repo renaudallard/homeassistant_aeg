@@ -122,7 +122,8 @@ class AegDuration(AegEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
         self._attr_unique_id = f"{appliance_id}-{capability.path}-formatted"
-        self._attr_name = f"{self._attr_name} formatted"
+        # A name of its own, which wins over anything the field is called.
+        self._attr_name = f"{self.plain_name} formatted"
         self._ticks = counts_down(capability)
         self._seen: float | None = None
         self._seen_at = time.monotonic()

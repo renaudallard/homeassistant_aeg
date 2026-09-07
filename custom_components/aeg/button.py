@@ -67,7 +67,7 @@ class AegButton(AegEntity, ButtonEntity):
         super().__init__(coordinator, appliance_id, capability)
         self._command = command
         self._attr_unique_id = f"{appliance_id}-{capability.path}-{command}"
-        self._attr_name = f"{pretty(capability.path)} {pretty(command)}"
+        self._attr_name = f"{self.plain_name} {pretty(command)}"
         self._attr_icon = icon_for_command(command)
 
     @property

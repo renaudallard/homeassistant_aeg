@@ -44,6 +44,7 @@ from .capability import Capability, is_housekeeping, platform_for, value_at
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
 from .icons import icon_for
+from .names import PLATFORMS_FOR, key_for, readable
 from .triggers import Override
 
 # A model code stuck on the front of a field name, as in EWX1493A_easyIron.
@@ -149,9 +150,19 @@ class AegEntity(AegApplianceEntity):
         super().__init__(coordinator, appliance_id)
         self.capability = capability
         self._attr_unique_id = f"{appliance_id}-{capability.path}"
-        # The whole path, because two groups can hold the same field and one
-        # name for both is no name at all.
-        self._attr_name = pretty(capability.path)
+        # What to call it if Home Assistant has not been given anything
+        # better, and what anything built on this entity calls itself.
+        self.plain_name = readable(capability.name) or pretty(capability.path)
+        key = key_for(capability.name)
+        platform = platform_for(capability)
+        if platform and platform in PLATFORMS_FOR.get(key, frozenset()):
+            # Named where it can be translated, since a name set here would
+            # win over the translation and there would be no point to it.
+            self._attr_translation_key = key
+        else:
+            # The whole path, because two groups can hold the same field and
+            # one name for both is no name at all.
+            self._attr_name = pretty(capability.path)
         self._attr_icon = icon_for(capability)
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.

@@ -169,11 +169,13 @@ network settings after that.
   sends, which does write to real appliances, but that is a second opinion
   rather than a demonstration.
 - **Onboarding is out of scope.** Pair new hardware with the vendor app.
-- **Nothing is translated.** Entity names come from the appliance's own field
-  names, so some of them read awkwardly. The icon beside each one is guessed
-  from that name, so a field nobody has seen gets the same treatment as a
-  familiar one, and a wrong guess costs a wrong picture rather than a wrong
-  reading.
+- **Only English.** The fields worth naming are named in
+  `custom_components/aeg/names.py` and the text lives in `strings.json`, so
+  another language is a matter of translating that file. A field with no name
+  written for it is named from what the appliance calls it, which is how an
+  appliance nobody has seen still gets entities with names on them. The icon
+  beside each one is guessed from that name too, and a wrong guess costs a
+  wrong picture rather than a wrong reading.
 
 ## How the login works
 
@@ -261,6 +263,10 @@ latter two runs locally, so that workflow is the first sign of a manifest
 problem.
 
 ### Checking a login by hand
+
+`tools/make_names.py` works out which platforms each named field turns up on,
+from every capability tree to hand, and writes both the table at the bottom of
+`names.py` and the entity text in `strings.json`. Run it after adding a name.
 
 `tools/check_login.py` walks the whole login against a real account, from the
 provider lookup through to reading an appliance capability tree, and says which

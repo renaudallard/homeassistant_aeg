@@ -381,7 +381,7 @@ async def test_an_appliance_off_the_network_says_so(
     assert connection.attributes["device_class"] == "connectivity"
 
     # The rest is unavailable, which is right, and unexplained without it.
-    door = hass.states.get("sensor.lave_linge_door_state")
+    door = hass.states.get("sensor.lave_linge_door")
     assert door is not None
     assert door.state == "unavailable"
 
@@ -406,6 +406,32 @@ async def test_the_connection_is_not_mistaken_for_something_stale(
         e.unique_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
     }
     assert any(unique.endswith("-connection") for unique in kept)
+
+
+async def test_a_field_worth_naming_gets_a_name(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An appliance calls its spin speed userSelections/analogSpinSpeed."""
+    await _setup(hass, entry, api)
+    spin = hass.states.get("select.lave_linge_spin_speed")
+    assert spin is not None
+    assert spin.attributes["friendly_name"] == "Lave-linge Spin speed"
+
+
+async def test_a_field_nobody_has_named_still_gets_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Worked out from the field's own name, which is better than nothing."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    named = {
+        entity.unique_id.split("-", 1)[1]: entity.original_name
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert named["waterHardness"] == "Water hardness"
+    # A command is named for the field and the command, since nothing has been
+    # written for either.
+    assert named["executeCommand-START"] == "Execute command START"
 
 
 async def test_readings_carry_the_reported_value(
@@ -700,7 +726,7 @@ async def test_a_time_that_is_not_counting_down_stays_where_it_is(
         async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
         await hass.async_block_till_done()
 
-    steady = hass.states.get("sensor.lave_linge_min_finish_in_time_formatted")
+    steady = hass.states.get("sensor.lave_linge_shortest_finish_in_formatted")
     assert steady is not None
     assert steady.state == "04:00:00"
 
@@ -911,7 +937,7 @@ async def test_a_flag_the_appliance_words_is_sent_in_its_words(
     await hass.services.async_call(
         "switch",
         "turn_on",
-        {"entity_id": "switch.lave_linge_ui_lock_mode"},
+        {"entity_id": "switch.lave_linge_panel_lock"},
         blocking=True,
     )
     _, command = api.send_command.await_args.args
@@ -920,7 +946,7 @@ async def test_a_flag_the_appliance_words_is_sent_in_its_words(
     await hass.services.async_call(
         "switch",
         "turn_off",
-        {"entity_id": "switch.lave_linge_ui_lock_mode"},
+        {"entity_id": "switch.lave_linge_panel_lock"},
         blocking=True,
     )
     _, command = api.send_command.await_args.args
@@ -934,7 +960,7 @@ async def test_a_flag_with_no_words_is_sent_as_a_yes_or_a_no(
     await hass.services.async_call(
         "switch",
         "turn_on",
-        {"entity_id": "switch.lave_linge_user_selections_stain"},
+        {"entity_id": "switch.lave_linge_stain"},
         blocking=True,
     )
     _, command = api.send_command.await_args.args
@@ -950,6 +976,6 @@ async def test_a_flag_reported_as_a_word_is_read_as_one(
     api.appliances.return_value = listed
 
     await _setup(hass, entry, api)
-    lock = hass.states.get("switch.lave_linge_ui_lock_mode")
+    lock = hass.states.get("switch.lave_linge_panel_lock")
     assert lock is not None
     assert lock.state == "off"

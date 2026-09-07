@@ -51,5 +51,401 @@
       "already_configured": "This account is already set up.",
       "reauth_successful": "Signed in again successfully."
     }
+  },
+  "entity": {
+    "binary_sensor": {
+      "alerts": {
+        "name": "Alerts"
+      },
+      "charge_break": {
+        "name": "Charge break"
+      },
+      "charge_state": {
+        "name": "Charging"
+      },
+      "mop_attach_state": {
+        "name": "Mop attached"
+      },
+      "wm_economy": {
+        "name": "Economy"
+      }
+    },
+    "number": {
+      "flap_position": {
+        "name": "Louvre position"
+      },
+      "start_time": {
+        "name": "Start in"
+      },
+      "stop_time": {
+        "name": "Finish in"
+      },
+      "target_food_probe_temperature_c": {
+        "name": "Food probe target"
+      },
+      "target_temperature_c": {
+        "name": "Target temperature"
+      }
+    },
+    "select": {
+      "air_quality_light": {
+        "name": "Air quality light"
+      },
+      "analog_spin_speed": {
+        "name": "Spin speed"
+      },
+      "analog_temperature": {
+        "name": "Temperature"
+      },
+      "appliance_mode": {
+        "name": "Mode"
+      },
+      "clean_air_mode": {
+        "name": "Clean air"
+      },
+      "cleaning_mode": {
+        "name": "Cleaning mode"
+      },
+      "comfort_air": {
+        "name": "Comfort air"
+      },
+      "default_extra_rinse": {
+        "name": "Extra rinse by default"
+      },
+      "detergent_type": {
+        "name": "Detergent"
+      },
+      "display_light": {
+        "name": "Display brightness"
+      },
+      "end_of_cycle_sound": {
+        "name": "End of cycle sound"
+      },
+      "energy_saving_mode": {
+        "name": "Energy saving"
+      },
+      "extra_rinse_number": {
+        "name": "Extra rinse"
+      },
+      "fan_mode": {
+        "name": "Fan mode"
+      },
+      "fan_speed_setting": {
+        "name": "Fan speed"
+      },
+      "flap_oscillate": {
+        "name": "Louvre swing"
+      },
+      "flap_position": {
+        "name": "Louvre position"
+      },
+      "i_clean": {
+        "name": "I Clean"
+      },
+      "memory_id": {
+        "name": "Saved cycle"
+      },
+      "mop_water_rate": {
+        "name": "Water flow"
+      },
+      "mopping_pattern": {
+        "name": "Mopping pattern"
+      },
+      "phase_advance": {
+        "name": "Skip phase"
+      },
+      "program": {
+        "name": "Programme"
+      },
+      "program_uid": {
+        "name": "Programme"
+      },
+      "remote_notification_pending": {
+        "name": "Remote notifications"
+      },
+      "sleep_mode": {
+        "name": "Sleep mode"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "steam_value": {
+        "name": "Steam"
+      },
+      "time_manager_level": {
+        "name": "Time manager"
+      },
+      "vacuum_power": {
+        "name": "Suction"
+      },
+      "vertical_swing": {
+        "name": "Vertical swing"
+      },
+      "wash_level": {
+        "name": "Wash level"
+      },
+      "water_hardness": {
+        "name": "Water hardness"
+      },
+      "water_softener_mode": {
+        "name": "Water softener"
+      },
+      "x_fan": {
+        "name": "X Fan"
+      }
+    },
+    "sensor": {
+      "action_state": {
+        "name": "Action"
+      },
+      "air_dry_duration": {
+        "name": "Air drying time"
+      },
+      "alerts": {
+        "name": "Alerts"
+      },
+      "ambient_temperature_c": {
+        "name": "Room temperature"
+      },
+      "ambient_temperature_f": {
+        "name": "Room temperature"
+      },
+      "appliance_main_board_sw_version": {
+        "name": "Board firmware"
+      },
+      "appliance_state": {
+        "name": "State"
+      },
+      "appliance_total_working_time": {
+        "name": "Total working time"
+      },
+      "appliance_ui_sw_version": {
+        "name": "Panel firmware"
+      },
+      "battery_level": {
+        "name": "Battery"
+      },
+      "brush_runtime": {
+        "name": "Brush runtime"
+      },
+      "clean_air_mode": {
+        "name": "Clean air"
+      },
+      "clean_repetitions": {
+        "name": "Passes"
+      },
+      "clean_time": {
+        "name": "Cleaning time"
+      },
+      "cleaned_area": {
+        "name": "Area cleaned"
+      },
+      "cleaning_phase": {
+        "name": "Cleaning phase"
+      },
+      "cleaning_type": {
+        "name": "Cleaning type"
+      },
+      "connectivity_state": {
+        "name": "Connectivity"
+      },
+      "cycle_phase": {
+        "name": "Cycle phase"
+      },
+      "cycle_sub_phase": {
+        "name": "Cycle step"
+      },
+      "display_light": {
+        "name": "Display brightness"
+      },
+      "do_not_disturb_end_time": {
+        "name": "Do not disturb until"
+      },
+      "do_not_disturb_start_time": {
+        "name": "Do not disturb from"
+      },
+      "door_lock": {
+        "name": "Door lock"
+      },
+      "door_state": {
+        "name": "Door"
+      },
+      "error_code": {
+        "name": "Error code"
+      },
+      "evaporator_defrost_state": {
+        "name": "Defrosting"
+      },
+      "fan_speed": {
+        "name": "Fan speed"
+      },
+      "fan_speed_state": {
+        "name": "Fan speed"
+      },
+      "fc_optisense_load_weight": {
+        "name": "Measured load"
+      },
+      "filter_state": {
+        "name": "Filter"
+      },
+      "food_probe_insertion_state": {
+        "name": "Food probe"
+      },
+      "i_feel": {
+        "name": "I Feel"
+      },
+      "language": {
+        "name": "Language"
+      },
+      "life_remaining": {
+        "name": "Life remaining"
+      },
+      "min_finish_in_time": {
+        "name": "Shortest finish in"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "mop_location": {
+        "name": "Mop"
+      },
+      "mop_runtime": {
+        "name": "Mop runtime"
+      },
+      "nickname": {
+        "name": "Name"
+      },
+      "pm25_approximate": {
+        "name": "PM2.5"
+      },
+      "reason": {
+        "name": "Reason"
+      },
+      "remote_control": {
+        "name": "Remote control"
+      },
+      "running_time": {
+        "name": "Running time"
+      },
+      "side_brush_runtime": {
+        "name": "Side brush runtime"
+      },
+      "sound_volume": {
+        "name": "Volume"
+      },
+      "start_time": {
+        "name": "Start in"
+      },
+      "stop_time": {
+        "name": "Finish in"
+      },
+      "sw_update_state": {
+        "name": "Update state"
+      },
+      "target_temperature": {
+        "name": "Target temperature"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "time_to_end": {
+        "name": "Time to end"
+      },
+      "total_cycle_counter": {
+        "name": "Cycles run"
+      },
+      "total_runtime": {
+        "name": "Total running time"
+      },
+      "total_wash_cycles_count": {
+        "name": "Washes run"
+      },
+      "total_washing_time": {
+        "name": "Total washing time"
+      },
+      "voice_language": {
+        "name": "Voice language"
+      },
+      "washing_nominal_load_weight": {
+        "name": "Nominal load"
+      },
+      "water_level": {
+        "name": "Water level"
+      },
+      "water_tank_empty": {
+        "name": "Water tank empty"
+      },
+      "water_tray_insertion_state": {
+        "name": "Water tray"
+      }
+    },
+    "switch": {
+      "alert_sounds_enabled": {
+        "name": "Alert sounds"
+      },
+      "anticrease_no_steam": {
+        "name": "Crease guard"
+      },
+      "anticrease_wsteam": {
+        "name": "Crease guard with steam"
+      },
+      "avoid_collision": {
+        "name": "Avoid obstacles"
+      },
+      "carpet_turbo": {
+        "name": "Carpet boost"
+      },
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "do_not_disturb_enabled": {
+        "name": "Do not disturb"
+      },
+      "edge_clean_active": {
+        "name": "Edge cleaning"
+      },
+      "night_cycle": {
+        "name": "Night cycle"
+      },
+      "pet_avoidance": {
+        "name": "Avoid pets"
+      },
+      "pre_wash_phase": {
+        "name": "Prewash"
+      },
+      "rinse": {
+        "name": "Rinse"
+      },
+      "rinse_hold": {
+        "name": "Rinse hold"
+      },
+      "sleep_mode": {
+        "name": "Sleep mode"
+      },
+      "stain": {
+        "name": "Stain"
+      },
+      "tc_sensor": {
+        "name": "Load sensing"
+      },
+      "turbo_agitation": {
+        "name": "Turbo agitation"
+      },
+      "turbo_drying": {
+        "name": "Turbo drying"
+      },
+      "ui_lock": {
+        "name": "Panel lock"
+      },
+      "ui_lock_mode": {
+        "name": "Panel lock"
+      },
+      "ui_locked": {
+        "name": "Panel lock"
+      },
+      "water_reuse": {
+        "name": "Water reuse"
+      }
+    }
   }
 }
