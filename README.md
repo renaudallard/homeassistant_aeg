@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/header.png" alt="AEG Home Assistant integration" width="640"></p>
+
 # AEG appliances for Home Assistant
 
 Unofficial integration. Not affiliated with, endorsed by, or supported by AEG
@@ -69,6 +71,17 @@ the two it found:
 - The Android SDK base64 encodes the signature URL safe, while the Python
   client it was checked against uses plain base64. Plain base64 is what is
   known to work, so that is what is sent.
+
+## Branding
+
+`brands/` holds the four PNGs that home-assistant/brands expects under
+`custom_integrations/aeg/`, ready to be copied into a fork of that repository
+when the integration is published. `assets/` holds the repository banner, a
+mark for dark backgrounds, favicons and the SVG masters. Rescale from the SVGs
+rather than from the PNGs, and use `icon-simplified.svg` below roughly 48 px.
+
+The mark is original artwork for this integration. It is not the AEG logo and
+reproduces no AEG or Electrolux trademark.
 
 ## Development
 
