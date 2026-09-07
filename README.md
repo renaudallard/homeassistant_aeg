@@ -26,6 +26,7 @@ Home Assistant entities, which the cloud updates as they change.
 | Capability to entity mapping | `custom_components/aeg/capability.py` | yes |
 | Entity platforms | `custom_components/aeg/{sensor,switch,select,number,button,binary_sensor}.py` | yes |
 | Websocket for live state | `custom_components/aeg/websocket.py` | yes |
+| What the appliance will accept | `custom_components/aeg/triggers.py` | yes |
 
 ## How the login works
 
@@ -108,6 +109,13 @@ stop buttons. Enable the rest from the device page if you want it.
 The cloud pushes changes over a websocket, so a cycle finishing shows up when
 it happens rather than at the next poll. Polling carries on in the background
 at a slower rate, to catch whatever a dropped connection missed.
+
+An appliance also says what it will take at any given moment, and that is
+followed. A washing machine offers START when it is ready to start and PAUSE
+once it is running; it offers nothing at all until remote control has been
+armed at the machine itself. Settings freeze while a cycle runs, and a cold
+wash will not take a steam setting. Fields a model does not have, as opposed
+to ones it merely is not using, get no entity at all.
 
 ## Where the protocol knowledge comes from
 
