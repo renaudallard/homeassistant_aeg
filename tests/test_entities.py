@@ -311,6 +311,70 @@ async def test_the_finish_is_fixed_to_a_moment(
     )
 
 
+async def test_the_finish_moves_when_the_machine_changes_its_mind(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Picking another programme changes how long is left, so it moves."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    first = hass.states.get("sensor.lave_linge_finishes_at")
+    assert first is not None
+    was = dt_util.parse_datetime(first.state)
+    assert was is not None
+
+    # A shorter programme is chosen and the cloud says so on the next look.
+    shorter = _fixture("wm-appliances")
+    shorter[0]["properties"]["reported"]["timeToEnd"] = 1200
+    shorter[0]["properties"]["reported"]["userSelections"]["programUID"] = (
+        "QUICK_20_MIN_PR_20MIN3KG"
+    )
+    api.appliances.return_value = shorter
+    await entry.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    second = hass.states.get("sensor.lave_linge_finishes_at")
+    assert second is not None
+    now = dt_util.parse_datetime(second.state)
+    assert now is not None
+    assert now < was
+    assert abs((now - dt_util.utcnow()).total_seconds() - 1200) <= 2
+
+
+async def test_the_finish_moves_when_the_cloud_pushes_a_new_time(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The same holds for a change that arrives over the websocket."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    coordinator = entry.runtime_data.coordinator
+    appliance_id = next(iter(coordinator.data))
+    coordinator._pushed(
+        {
+            "Payload": {
+                "Appliances": [
+                    {
+                        "ApplianceId": appliance_id,
+                        "Metrics": [{"Name": "timeToEnd", "Value": 900}],
+                    }
+                ]
+            }
+        }
+    )
+    await hass.async_block_till_done()
+
+    finishes = hass.states.get("sensor.lave_linge_finishes_at")
+    assert finishes is not None
+    at = dt_util.parse_datetime(finishes.state)
+    assert at is not None
+    assert abs((at - dt_util.utcnow()).total_seconds() - 900) <= 2
+
+
 async def test_a_machine_with_nothing_running_has_no_finish(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
