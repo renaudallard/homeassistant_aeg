@@ -111,12 +111,14 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self._prepare()
                 session = await self._login_with_password(user_input[CONF_PASSWORD])
             except AegAuthError as err:
+                _LOGGER.warning("signing in failed: %s", err)
                 errors["base"] = (
                     "invalid_password"
                     if err.code == gigya.INVALID_CREDENTIALS
                     else "invalid_auth"
                 )
-            except AegConnectionError:
+            except AegConnectionError as err:
+                _LOGGER.warning("could not reach the service: %s", err)
                 errors["base"] = "cannot_connect"
             except Exception:
                 _LOGGER.exception("unexpected failure while signing in")
@@ -140,9 +142,11 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 await self._prepare()
                 self._vtoken = await self._send_code()
-            except AegAuthError:
+            except AegAuthError as err:
+                _LOGGER.warning("requesting a code failed: %s", err)
                 errors["base"] = "invalid_auth"
-            except AegConnectionError:
+            except AegConnectionError as err:
+                _LOGGER.warning("could not reach the service: %s", err)
                 errors["base"] = "cannot_connect"
             except Exception:
                 _LOGGER.exception("unexpected failure while requesting a code")
@@ -163,9 +167,11 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 session = await self._login_with_code(user_input[CONF_CODE])
-            except AegAuthError:
+            except AegAuthError as err:
+                _LOGGER.warning("the code was not accepted: %s", err)
                 errors["base"] = "invalid_code"
-            except AegConnectionError:
+            except AegConnectionError as err:
+                _LOGGER.warning("could not reach the service: %s", err)
                 errors["base"] = "cannot_connect"
             except Exception:
                 _LOGGER.exception("unexpected failure while checking the code")

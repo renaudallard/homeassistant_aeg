@@ -151,24 +151,36 @@ class AegAuth:
             headers=self._headers(),
             params={"brand": BRAND, "countryCode": self._country},
         )
-        if not isinstance(payload, list):
-            raise AegConnectionError("OneAccount returned no provider list")
-        for entry in payload:
-            if entry.get("brand") != BRAND:
-                continue
-            base_url = entry.get("httpRegionalBaseUrl")
-            if not base_url or base_url == OCP_BASE_URL:
-                raise AegAuthError(
-                    "OneAccount returned no regional endpoint for this account"
-                )
-            return IdentityProvider(
-                domain=str(entry["domain"]),
-                api_key=str(entry["apiKey"]),
-                brand=str(entry["brand"]),
-                http_base_url=str(base_url),
-                ws_base_url=str(entry.get("webSocketRegionalBaseUrl") or ""),
+        if not isinstance(payload, list) or not payload:
+            raise AegAuthError(
+                f"OneAccount lists no identity provider for {self._country}"
             )
-        raise AegAuthError(f"OneAccount knows no {BRAND} provider for {self._country}")
+        # Prefer the entry for our brand, but take what is there if the field
+        # does not say what we expect. The app logs a complaint about a missing
+        # or global endpoint and carries on, so we do the same rather than
+        # refusing an account the app itself would have signed in.
+        entry = next(
+            (item for item in payload if item.get("brand") == BRAND), payload[0]
+        )
+        _LOGGER.debug("identity provider fields: %s", sorted(entry))
+        domain = entry.get("domain")
+        api_key = entry.get("apiKey")
+        if not domain or not api_key:
+            raise AegAuthError(
+                "OneAccount returned an identity provider with no Gigya tenant"
+            )
+        base_url = entry.get("httpRegionalBaseUrl") or OCP_BASE_URL
+        if base_url == OCP_BASE_URL:
+            _LOGGER.warning(
+                "no regional endpoint for this account, using %s", OCP_BASE_URL
+            )
+        return IdentityProvider(
+            domain=str(domain),
+            api_key=str(api_key),
+            brand=str(entry.get("brand") or BRAND),
+            http_base_url=str(base_url),
+            ws_base_url=str(entry.get("webSocketRegionalBaseUrl") or ""),
+        )
 
     async def exchange(self, id_token: str) -> Tokens:
         """Trade a Gigya JWT for OCP tokens.
