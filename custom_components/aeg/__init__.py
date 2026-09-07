@@ -123,18 +123,29 @@ def _forget_what_is_gone(
 ) -> None:
     """Drop entities this account no longer has.
 
-    An earlier version made one for every field an appliance described, including
-    the ones it does not have, and those stay in the register until something
-    removes them.
+    An earlier version made one for every field an appliance described,
+    including the ones it does not have, and those stay in the register until
+    something removes them.
+
+    Knowing of nothing is not the same as knowing there is nothing. An account
+    that answered with an empty list, for a moment or for good, would otherwise
+    take every entity on it down, so it is left alone instead.
     """
-    registry = er.async_get(hass)
     keep = provided(coordinator)
+    if not keep:
+        _LOGGER.debug("nothing to compare against, so nothing is dropped")
+        return
+    registry = er.async_get(hass)
     for existing in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if existing.unique_id not in keep:
-            _LOGGER.debug(
-                "dropping %s, the appliance does not report it", existing.entity_id
-            )
-            registry.async_remove(existing.entity_id)
+        unique_id = existing.unique_id
+        if unique_id in keep or any(
+            unique_id.startswith(f"{field}-") for field in keep
+        ):
+            continue
+        _LOGGER.debug(
+            "dropping %s, the appliance does not report it", existing.entity_id
+        )
+        registry.async_remove(existing.entity_id)
 
 
 async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth) -> str:

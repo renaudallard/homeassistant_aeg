@@ -36,7 +36,7 @@ import json
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntryState
@@ -88,12 +88,21 @@ def api() -> AsyncMock:
     mock = AsyncMock()
     mock.appliances.return_value = _fixture("wm-appliances")
     mock.capabilities.return_value = _fixture("wm-capabilities")
+    # How long the token has left is asked for, not awaited.
+    mock.seconds_until_renewal = MagicMock(return_value=43200.0)
     return mock
 
 
 async def _setup(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) -> None:
     with patch("custom_components.aeg.AegApi", return_value=api):
         assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+
+async def _again(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) -> None:
+    """Set the entry up a second time, with the cloud still stood in for."""
+    with patch("custom_components.aeg.AegApi", return_value=api):
+        await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()
 
 
@@ -201,6 +210,61 @@ async def test_what_an_earlier_version_left_behind_is_taken_away(
 
     await _setup(hass, entry, api)
     assert registry.async_get(stale.entity_id) is None
+
+
+async def test_an_account_that_answers_with_nothing_takes_nothing_down(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Knowing of nothing is not the same as knowing there is nothing."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    before = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert before
+
+    # The account answers with an empty list, for a moment or for good.
+    api.appliances.return_value = []
+    await _again(hass, entry, api)
+
+    after = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert after == before
+
+
+async def test_the_entities_built_on_a_field_are_kept_with_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A clock, a finishing time and a button are not fields of their own.
+
+    Home Assistant remembers an entity it has been told to forget and gives it
+    back its own id if it returns, so getting this wrong costs less than it
+    might. It is still wrong.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    kept = {
+        e.unique_id.split("-", 1)[1]
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert "timeToEnd-formatted" in kept
+    assert "timeToEnd-at" in kept
+    assert "executeCommand-START" in kept
+
+    # An entry taken out of the register and put back is a different entry,
+    # and takes whatever had been done to it with it, so setting up again has
+    # to leave the ones it already has alone.
+    was = {
+        e.unique_id: e.id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    await _again(hass, entry, api)
+    now = {
+        e.unique_id: e.id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert now == was
 
 
 async def test_readings_carry_the_reported_value(

@@ -40,7 +40,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .capability import BUTTON, Capability, is_housekeeping, platform_for, value_at
+from .capability import Capability, is_housekeeping, platform_for, value_at
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
 from .triggers import Override
@@ -92,20 +92,20 @@ def fields(coordinator: AegCoordinator, platform: str) -> list[tuple[str, Capabi
 
 
 def provided(coordinator: AegCoordinator) -> set[str]:
-    """Every entity this account should have, by unique id."""
+    """Every field this account has entities for, by the id they start with.
+
+    An entity's unique id is the appliance and the field. Some entities add a
+    word of their own to that: a button for each command a field takes, a clock
+    beside a length of time, a finishing time beside a countdown. Answering
+    with what they all start with keeps those without this having to know every
+    kind of entity there is, which it got wrong once already.
+    """
     ids: set[str] = set()
     for appliance_id, appliance in coordinator.data.items():
         for capability in appliance.capabilities:
-            platform = platform_for(capability)
-            if platform is None or not carried(appliance, capability):
+            if platform_for(capability) is None or not carried(appliance, capability):
                 continue
-            if platform == BUTTON:
-                ids.update(
-                    f"{appliance_id}-{capability.path}-{command}"
-                    for command in capability.values
-                )
-            else:
-                ids.add(f"{appliance_id}-{capability.path}")
+            ids.add(f"{appliance_id}-{capability.path}")
     return ids
 
 
