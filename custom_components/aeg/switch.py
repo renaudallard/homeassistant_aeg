@@ -35,8 +35,22 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import SWITCH
+from .capability import SWITCH, Capability
+from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
+
+# What an appliance calls off, when it words a flag rather than setting it.
+OFF_WORDS = frozenset({"OFF", "FALSE", "DISABLED", "NO", "CLOSED", "0"})
+
+
+def worded(values: tuple[str, ...]) -> tuple[str, str] | None:
+    """The on and off of a flag an appliance words, if that is what it does."""
+    if len(values) != 2:
+        return None
+    off = next((value for value in values if value.upper() in OFF_WORDS), None)
+    if off is None:
+        return None
+    return next(value for value in values if value != off), off
 
 
 async def async_setup_entry(
@@ -50,7 +64,18 @@ async def async_setup_entry(
 
 
 class AegSwitch(AegEntity, SwitchEntity):
-    """A flag that can be set."""
+    """A flag that can be set.
+
+    Some flags are words rather than a yes and a no. A washing machine locks
+    its panel with ON and OFF while reporting the state of it as true and
+    false, so what it is sent is not always what it says back.
+    """
+
+    def __init__(
+        self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
+    ) -> None:
+        super().__init__(coordinator, appliance_id, capability)
+        self._words = worded(capability.values)
 
     @property
     def available(self) -> bool:
@@ -60,10 +85,15 @@ class AegSwitch(AegEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         value = self.reported
-        return None if value is None else bool(value)
+        if value is None:
+            return None
+        if isinstance(value, str):
+            # Every word is true otherwise, off included.
+            return value.upper() not in OFF_WORDS
+        return bool(value)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self.send(True)
+        await self.send(self._words[0] if self._words else True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self.send(False)
+        await self.send(self._words[1] if self._words else False)
