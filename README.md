@@ -109,12 +109,11 @@ programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume and reset.
 Enable the rest from the device page if you want them.
 
-Every appliance also gets a **connection** sensor. A washing machine turns
-itself off at the end of a cycle and drops off the network, and what it last
-said stays readable so the wash can be looked at afterwards; the connection
-sensor is what says the machine has gone, rather than every other entity saying
-it at once. Controls do go unavailable, since there is nothing to set on an
-appliance that cannot be reached.
+Every appliance also gets a **connection** sensor. When the cloud stops calling
+an appliance reachable, what it last said stays readable, so a wash can be
+looked at afterwards; the connection sensor is what says the machine has gone,
+rather than every other entity saying it at once. Controls do go unavailable,
+since there is nothing to set on an appliance that cannot be reached.
 
 Two details worth knowing, because they look like faults and are not:
 
@@ -128,9 +127,8 @@ The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter
 programme and it is on the new time as soon as the cloud mentions it. It only
 counts down while the appliance says it is running: a washing machine that has
-finished turns itself off and puts the length of the programme it is set to
-back where the time left was, and counting that down would show a wash nobody
-has started. It writes
+finished puts the length of the programme it is set to back where the time
+left was, and counting that down would show a wash nobody has started. It writes
 a state every second while a cycle runs, so exclude
 `sensor.*_time_to_end_formatted` from the recorder if that history is not worth
 keeping. The finishes at timestamp says the same thing and writes nothing
