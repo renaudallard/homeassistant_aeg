@@ -98,6 +98,7 @@ what a washing machine is, and a model it has never seen works the same way.
 | the problems it is complaining about | a problem binary sensor |
 | a choice, with the values it takes | a select |
 | a number with a range | a number |
+| a length of time | a sensor in seconds, and one reading as a clock |
 | anything else it reports | a sensor |
 
 A washing machine describes about 120 fields. Most of them are the machine
@@ -110,6 +111,10 @@ stop buttons. Enable the rest from the device page if you want it.
 The cloud pushes changes over a websocket, so a cycle finishing shows up when
 it happens rather than at the next poll. Polling carries on in the background
 at a slower rate, to catch whatever a dropped connection missed.
+
+A value that is a name and a number, as in the STEP_4 a washing machine sets
+its water hardness to, is a numbered level, so it reads as 4. The appliance
+still hears the name it uses.
 
 An appliance reports its problems as a list of codes, empty when there is
 nothing wrong, so they arrive as one problem binary sensor carrying whatever is
