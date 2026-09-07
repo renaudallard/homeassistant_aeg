@@ -89,8 +89,9 @@ class AegSelect(AegEntity, SelectEntity):
 
     @property
     def available(self) -> bool:
-        # A field the appliance will not take right now is not offered.
-        return super().available and self.override.writable
+        # Nothing to set on an appliance that cannot be reached, and nothing
+        # to set on a field it will not take right now.
+        return super().available and self.reachable and self.override.writable
 
     @property
     def current_option(self) -> str | None:

@@ -171,17 +171,27 @@ class AegEntity(AegApplianceEntity):
             self._attr_entity_registry_enabled_default = False
 
     @property
-    def available(self) -> bool:
-        """Unavailable when the account is unreachable or the machine is off.
-
-        A field the appliance stops reporting is unavailable too, which is how
-        a model says it does not have something its capabilities describe.
-        """
+    def reachable(self) -> bool:
+        """Whether the cloud can still hear the appliance."""
         appliance = self.appliance
+        return appliance is not None and appliance.connected
+
+    @property
+    def available(self) -> bool:
+        """What the appliance last said is worth reading after it stops saying it.
+
+        A washing machine turns itself off at the end of a cycle and drops off
+        the network, and the cloud goes on reporting what it last said. Hiding
+        all of that at the moment someone goes to look at how the wash went is
+        no help, and the connection sensor is there to say the machine has gone
+        rather than every other entity saying it at once.
+
+        A field the appliance stops reporting is another matter: that is how a
+        model says it does not have something its capabilities describe.
+        """
         return (
             super().available
-            and appliance is not None
-            and appliance.connected
+            and self.appliance is not None
             and self.reported is not None
         )
 

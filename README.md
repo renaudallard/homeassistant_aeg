@@ -109,10 +109,12 @@ programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume and reset.
 Enable the rest from the device page if you want them.
 
-Every appliance also gets a **connection** sensor, which stays available when
-the rest of it does not. Everything else goes unavailable when an appliance
-drops off the network, and that one says whether it is the appliance or the
-integration that is the matter.
+Every appliance also gets a **connection** sensor. A washing machine turns
+itself off at the end of a cycle and drops off the network, and what it last
+said stays readable so the wash can be looked at afterwards; the connection
+sensor is what says the machine has gone, rather than every other entity saying
+it at once. Controls do go unavailable, since there is nothing to set on an
+appliance that cannot be reached.
 
 Two details worth knowing, because they look like faults and are not:
 
@@ -124,7 +126,11 @@ Two details worth knowing, because they look like faults and are not:
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter
-programme and it is on the new time as soon as the cloud mentions it. It writes
+programme and it is on the new time as soon as the cloud mentions it. It only
+counts down while the appliance says it is running: a washing machine that has
+finished turns itself off and puts the length of the programme it is set to
+back where the time left was, and counting that down would show a wash nobody
+has started. It writes
 a state every second while a cycle runs, so exclude
 `sensor.*_time_to_end_formatted` from the recorder if that history is not worth
 keeping. The finishes at timestamp says the same thing and writes nothing
@@ -147,11 +153,11 @@ kind of appliance it is and what it is doing stay readable.
 For a model this has never seen, that download is the one thing a report cannot
 do without.
 
-## When everything goes unavailable
+## When the controls go unavailable
 
-Every entity of an appliance goes unavailable when the cloud stops hearing from
-it, because it reports the appliance as disconnected and there is nothing left
-worth showing. The **connection** sensor stays put and says so.
+An appliance that the cloud has stopped hearing from cannot be set to anything,
+so every control on it goes unavailable. Readings stay, holding whatever it
+last said. The **connection** sensor says which it is.
 
 An appliance talks to the cloud itself, over MQTT on **port 8883**, not through
 Home Assistant. A firewall that blocks outbound 8883 takes the appliance off

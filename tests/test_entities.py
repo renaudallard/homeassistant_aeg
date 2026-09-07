@@ -380,10 +380,84 @@ async def test_an_appliance_off_the_network_says_so(
     assert connection.state == "off"
     assert connection.attributes["device_class"] == "connectivity"
 
-    # The rest is unavailable, which is right, and unexplained without it.
+    # What it last said is still worth reading, which is the point of
+    # looking after a wash has finished.
     door = hass.states.get("sensor.lave_linge_door")
     assert door is not None
-    assert door.state == "unavailable"
+    assert door.state == "OPEN"
+
+    # Setting anything on it is not, since it cannot be reached.
+    hardness = hass.states.get("select.lave_linge_water_hardness")
+    assert hardness is not None
+    assert hardness.state == "unavailable"
+
+
+async def test_a_wash_that_has_finished_can_still_be_looked_at(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine turns itself off and drops off the network."""
+    listed = _fixture("wm-appliances")
+    listed[0]["connectionState"] = "disconnected"
+    listed[0]["properties"]["reported"]["applianceState"] = "END_OF_CYCLE"
+    listed[0]["properties"]["reported"]["totalWashCyclesCount"] = 42
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    state = hass.states.get("sensor.lave_linge_state")
+    assert state is not None
+    assert state.state == "END_OF_CYCLE"
+    counted = hass.states.get("sensor.lave_linge_washes_run")
+    assert counted is not None
+    assert counted.state == "42"
+
+
+async def test_a_finished_wash_can_still_be_looked_at(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine turns itself off and drops off the network."""
+    listed = _fixture("wm-appliances")
+    listed[0]["connectionState"] = "disconnected"
+    listed[0]["properties"]["reported"]["applianceState"] = "END_OF_CYCLE"
+    listed[0]["properties"]["reported"]["totalWashCyclesCount"] = 42
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    state = hass.states.get("sensor.lave_linge_state")
+    assert state is not None
+    assert state.state == "END_OF_CYCLE"
+    counted = hass.states.get("sensor.lave_linge_washes_run")
+    assert counted is not None
+    assert counted.state == "42"
+
+
+async def test_a_machine_that_has_finished_does_not_count_anything_down(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """It puts the length of the programme it is set to where the time left was.
+
+    Counting that down would show a wash nobody has started, and a finishing
+    time for one too.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["applianceState"] = "END_OF_CYCLE"
+    listed[0]["properties"]["reported"]["timeToEnd"] = 9000
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 1045.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+
+    # Two and a half hours, standing still.
+    standing = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert standing is not None
+    assert standing.state == "02:30:00"
+
+    finishes = hass.states.get("sensor.lave_linge_finishes_at")
+    assert finishes is not None
+    assert finishes.state == "unknown"
 
 
 async def test_a_reachable_appliance_says_that_too(
@@ -502,6 +576,7 @@ async def test_a_length_of_time_is_also_offered_as_a_clock(
 ) -> None:
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 4145
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     await _setup(hass, entry, api)
@@ -524,6 +599,7 @@ async def test_the_clock_ticks_down_between_updates(
     """The cloud mentions the time left now and then, not every second."""
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -552,6 +628,7 @@ async def test_the_clock_does_not_drift_when_the_programme_changes(
     """
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -569,6 +646,7 @@ async def test_the_clock_does_not_drift_when_the_programme_changes(
         # A shorter programme, and the cloud says so.
         shorter = _fixture("wm-appliances")
         shorter[0]["properties"]["reported"]["timeToEnd"] = 1200
+        shorter[0]["properties"]["reported"]["applianceState"] = "RUNNING"
         shorter[0]["properties"]["reported"]["userSelections"]["programUID"] = (
             "QUICK_20_MIN_PR_20MIN3KG"
         )
@@ -599,6 +677,7 @@ async def test_a_word_about_something_else_does_not_stand_the_clock_still(
     """
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -633,6 +712,7 @@ async def test_the_clock_takes_a_pushed_time_as_the_new_truth(
 ) -> None:
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -666,6 +746,7 @@ async def test_the_clock_stops_at_nothing_left(
 ) -> None:
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 30
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -691,6 +772,7 @@ async def test_the_clock_gives_up_rather_than_counting_down_to_a_guess(
     """
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 1800
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     with patch("custom_components.aeg.sensor.time") as clock:
@@ -737,6 +819,7 @@ async def test_the_finish_is_fixed_to_a_moment(
     """Home Assistant counts down to a timestamp without being told to."""
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
 
     before = dt_util.utcnow()
@@ -761,6 +844,7 @@ async def test_the_finish_moves_when_the_machine_changes_its_mind(
     """Picking another programme changes how long is left, so it moves."""
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
     await _setup(hass, entry, api)
 
@@ -772,6 +856,7 @@ async def test_the_finish_moves_when_the_machine_changes_its_mind(
     # A shorter programme is chosen and the cloud says so on the next look.
     shorter = _fixture("wm-appliances")
     shorter[0]["properties"]["reported"]["timeToEnd"] = 1200
+    shorter[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     shorter[0]["properties"]["reported"]["userSelections"]["programUID"] = (
         "QUICK_20_MIN_PR_20MIN3KG"
     )
@@ -793,6 +878,7 @@ async def test_the_finish_moves_when_the_cloud_pushes_a_new_time(
     """The same holds for a change that arrives over the websocket."""
     listed = _fixture("wm-appliances")
     listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
     api.appliances.return_value = listed
     await _setup(hass, entry, api)
 
