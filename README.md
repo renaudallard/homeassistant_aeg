@@ -33,14 +33,18 @@ capability tree still has to be mapped onto Home Assistant entities.
 Signing in takes two services. Neither of them is optional and the order
 matters.
 
-1. `GET /one-account-user/api/v1/identity-providers` on the OCP cloud says
+1. `POST /one-account-authorization/api/v1/token` with a client credentials
+   grant authorises the application itself. The lookup in the next step is not
+   anonymous, so nothing works without this.
+2. `GET /one-account-user/api/v1/identity-providers`, carrying that token, says
    which Gigya tenant this account belongs to, and which regional endpoint its
    appliances live behind. Nothing about the region is hardcoded.
-2. Gigya authenticates the user, by password or by a one time code mailed to
+3. Gigya authenticates the user, by password or by a one time code mailed to
    the account, and `accounts.getJWT` mints a JWT for the session. That call is
    signed with HMAC-SHA1 over the session secret.
-3. `POST /one-account-authorization/api/v2/token` trades the JWT for an OCP
-   access token and refresh token.
+4. `POST /one-account-authorization/api/v2/token` trades the JWT for an OCP
+   access token and refresh token. Its country header comes from the country
+   claim inside the JWT, which is what that field is asked of Gigya for.
 
 Renewal reuses the same token endpoint with a refresh grant, and that call is
 the only one carrying the client secret, as HTTP basic auth. The refresh token
