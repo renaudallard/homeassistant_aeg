@@ -45,6 +45,7 @@ from . import http
 from .auth import AegAuth, Tokens
 from .const import API_KEY, APPLIANCES_PATH
 from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
+from .http import redact_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -142,9 +143,13 @@ class AegApi:
                 method, path, params=params, json_body=json_body, retry=False
             )
         if status in (401, 403):
-            raise AegAuthError(f"{url} rejected the access token ({status})")
+            raise AegAuthError(
+                f"{redact_url(url)} rejected the access token ({status})"
+            )
         if status >= 400:
-            raise AegConnectionError(f"{url} refused the request ({status})")
+            raise AegConnectionError(
+                f"{redact_url(url)} refused the request ({status})"
+            )
         return payload
 
     async def appliances(self) -> list[dict[str, Any]]:

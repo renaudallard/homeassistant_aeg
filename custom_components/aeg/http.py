@@ -54,6 +54,7 @@ SECRETS = frozenset(
     {
         "access_token",
         "accesstoken",
+        "applianceid",
         "apikey",
         "authorization",
         "client_secret",
@@ -95,6 +96,21 @@ def redact(data: Any) -> Any:
     return data
 
 
+def redact_url(url: str) -> str:
+    """Hide the appliance id in a path, which names one particular machine.
+
+    Only the segment after "appliances" can be an id, and the ones that are
+    plain words there are parts of the route rather than an identifier.
+    """
+    parts = url.split("/")
+    return "/".join(
+        "<appliance id hidden>"
+        if index and parts[index - 1] == "appliances" and not part.isalpha()
+        else part
+        for index, part in enumerate(parts)
+    )
+
+
 def _readable(body: bytes) -> str:
     """A body fit to log: redacted if it is JSON, described if it is not."""
     if not body:
@@ -121,7 +137,7 @@ async def request(
     server side failure, or a body that does not parse. An empty body is fine
     and reads back as None.
     """
-    _LOGGER.debug("%s %s params=%s", method, url, params)
+    _LOGGER.debug("%s %s params=%s", method, redact_url(url), params)
     _LOGGER.debug("  headers %s", redact(dict(headers or {})))
     if data is not None:
         _LOGGER.debug("  form %s", redact(data))
@@ -142,17 +158,17 @@ async def request(
             _LOGGER.debug("  <- %s %s", status, dict(response.headers))
     except (aiohttp.ClientError, TimeoutError) as err:
         _LOGGER.debug("  <- did not answer: %s", err)
-        raise AegConnectionError(f"{url} is unreachable: {err}") from err
+        raise AegConnectionError(f"{redact_url(url)} is unreachable: {err}") from err
 
     _LOGGER.debug("  <- body %s", _readable(body))
 
     if status >= 500:
-        raise AegBackendError(f"{url} failed with status {status}")
+        raise AegBackendError(f"{redact_url(url)} failed with status {status}")
     if not body:
         return status, None
     try:
         return status, json.loads(body)
     except ValueError as err:
         raise AegConnectionError(
-            f"{url} answered status {status} with a body that is not JSON"
+            f"{redact_url(url)} answered status {status} with a body that is not JSON"
         ) from err
