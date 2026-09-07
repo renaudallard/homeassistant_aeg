@@ -24,19 +24,26 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Tests that the translations keep step with the English.
+"""Tests that the translations keep step with the English, and are used.
 
 A language file that has drifted from strings.json shows a raw key or an empty
-name in front of someone, and nothing fails to say so. These read the files and
-check they still line up.
+name in front of someone, and nothing fails to say so. Files lining up is not
+the same as Home Assistant reading them either, so the last of these loads a
+washing machine in each language and reads the names back off it.
 """
 
 import json
 import re
 from pathlib import Path
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from tests.test_entities import _setup, api, entry  # noqa: F401
 
 COMPONENT = Path(__file__).resolve().parent.parent / "custom_components" / "aeg"
 WORDS = Path(__file__).resolve().parent.parent / "tools" / "translations.json"
@@ -90,3 +97,58 @@ def test_every_string_has_words_in_every_language() -> None:
     for english in set(_paths(_english()).values()):
         assert english in says, f"nothing written for {english!r}"
         assert set(says[english]) == set(spoken), f"{english!r} is missing a language"
+
+
+# What a washing machine's spin speed is called, which is a word each of these
+# languages has one of its own for.
+SPIN_SPEED = {
+    "da": "Centrifugeringshastighed",
+    "de": "Schleuderdrehzahl",
+    "en": "Spin speed",
+    "es": "Velocidad de centrifugado",
+    "fr": "Vitesse d'essorage",
+    "it": "Velocità di centrifuga",
+    "nl": "Centrifugesnelheid",
+    "pl": "Prędkość wirowania",
+    "sv": "Centrifugeringshastighet",
+}
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+async def test_home_assistant_reads_them(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,  # noqa: F811
+    api: AsyncMock,  # noqa: F811
+    language: str,
+) -> None:
+    """Files that line up are not the same as names that turn up."""
+    hass.config.language = language
+    await _setup(hass, entry, api)
+
+    registry = er.async_get(hass)
+    found = {
+        entity.unique_id.split("-", 1)[1]: hass.states.get(entity.entity_id)
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    spin = found["userSelections/analogSpinSpeed"]
+    assert spin is not None
+    assert spin.attributes["friendly_name"] == f"Lave-linge {SPIN_SPEED[language]}"
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+async def test_a_field_with_no_words_stays_in_english(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,  # noqa: F811
+    api: AsyncMock,  # noqa: F811
+    language: str,
+) -> None:
+    """Better an English name than none at all."""
+    hass.config.language = language
+    await _setup(hass, entry, api)
+
+    registry = er.async_get(hass)
+    named = {
+        entity.unique_id.split("-", 1)[1]: entity.original_name
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert named["executeCommand-START"] == "Execute command START"
