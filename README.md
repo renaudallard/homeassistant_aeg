@@ -103,6 +103,11 @@ programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume and reset.
 Enable the rest from the device page if you want them.
 
+Every appliance also gets a **connection** sensor, which stays available when
+the rest of it does not. Everything else goes unavailable when an appliance
+drops off the network, and that one says whether it is the appliance or the
+integration that is the matter.
+
 Two details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
@@ -115,6 +120,19 @@ A value that is a name and a number is a step in a scale. Water hardness is
 seven steps, and a washing machine names the first three and numbers the rest;
 where the numbered steps land on their own place the whole list reads one to
 seven. The appliance still hears the name it uses.
+
+## When everything goes unavailable
+
+Every entity of an appliance goes unavailable when the cloud stops hearing from
+it, because it reports the appliance as disconnected and there is nothing left
+worth showing. The **connection** sensor stays put and says so.
+
+An appliance talks to the cloud itself, over MQTT on **port 8883**, not through
+Home Assistant. A firewall that blocks outbound 8883 takes the appliance off
+the network without anything on the Home Assistant side looking wrong, and
+every entity goes unavailable while the integration carries on talking to the
+cloud quite happily. Check the connection sensor first, and the appliance's own
+network settings after that.
 
 ## What is not done
 

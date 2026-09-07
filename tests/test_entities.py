@@ -267,6 +267,48 @@ async def test_the_entities_built_on_a_field_are_kept_with_it(
     assert now == was
 
 
+async def test_an_appliance_off_the_network_says_so(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Everything else goes quiet, so one entity has to stay and explain."""
+    listed = _fixture("wm-appliances")
+    listed[0]["connectionState"] = "disconnected"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    connection = hass.states.get("binary_sensor.lave_linge_connection")
+    assert connection is not None
+    assert connection.state == "off"
+    assert connection.attributes["device_class"] == "connectivity"
+
+    # The rest is unavailable, which is right, and unexplained without it.
+    door = hass.states.get("sensor.lave_linge_door_state")
+    assert door is not None
+    assert door.state == "unavailable"
+
+
+async def test_a_reachable_appliance_says_that_too(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    connection = hass.states.get("binary_sensor.lave_linge_connection")
+    assert connection is not None
+    assert connection.state == "on"
+
+
+async def test_the_connection_is_not_mistaken_for_something_stale(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """It is not a field of the appliance, so it has to be kept on purpose."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    await _again(hass, entry, api)
+    kept = {
+        e.unique_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert any(unique.endswith("-connection") for unique in kept)
+
+
 async def test_readings_carry_the_reported_value(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

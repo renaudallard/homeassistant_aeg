@@ -102,6 +102,8 @@ def provided(coordinator: AegCoordinator) -> set[str]:
     """
     ids: set[str] = set()
     for appliance_id, appliance in coordinator.data.items():
+        # Whether the appliance is reachable at all is not a field of it.
+        ids.add(f"{appliance_id}-connection")
         for capability in appliance.capabilities:
             if platform_for(capability) is None or not carried(appliance, capability):
                 continue
@@ -109,28 +111,14 @@ def provided(coordinator: AegCoordinator) -> set[str]:
     return ids
 
 
-class AegEntity(CoordinatorEntity[AegCoordinator]):
-    """One field of one appliance."""
+class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
+    """Something about one appliance, whether or not it is a field of it."""
 
     _attr_has_entity_name = True
 
-    def __init__(
-        self,
-        coordinator: AegCoordinator,
-        appliance_id: str,
-        capability: Capability,
-    ) -> None:
+    def __init__(self, coordinator: AegCoordinator, appliance_id: str) -> None:
         super().__init__(coordinator)
         self._appliance_id = appliance_id
-        self.capability = capability
-        self._attr_unique_id = f"{appliance_id}-{capability.path}"
-        # The whole path, because two groups can hold the same field and one
-        # name for both is no name at all.
-        self._attr_name = pretty(capability.path)
-        if is_housekeeping(capability):
-            # Worth having, not worth showing next to the wash.
-            self._attr_entity_category = EntityCategory.DIAGNOSTIC
-            self._attr_entity_registry_enabled_default = False
 
     @property
     def appliance(self) -> Appliance | None:
@@ -145,6 +133,27 @@ class AegEntity(CoordinatorEntity[AegCoordinator]):
             name=appliance.name if appliance else "AEG appliance",
             model=appliance.model if appliance else None,
         )
+
+
+class AegEntity(AegApplianceEntity):
+    """One field of one appliance."""
+
+    def __init__(
+        self,
+        coordinator: AegCoordinator,
+        appliance_id: str,
+        capability: Capability,
+    ) -> None:
+        super().__init__(coordinator, appliance_id)
+        self.capability = capability
+        self._attr_unique_id = f"{appliance_id}-{capability.path}"
+        # The whole path, because two groups can hold the same field and one
+        # name for both is no name at all.
+        self._attr_name = pretty(capability.path)
+        if is_housekeeping(capability):
+            # Worth having, not worth showing next to the wash.
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = False
 
     @property
     def available(self) -> bool:

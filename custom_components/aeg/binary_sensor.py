@@ -34,24 +34,32 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
 from .capability import ALERTS, BINARY_SENSOR
-from .entity import AegEntity, fields
+from .coordinator import AegCoordinator
+from .entity import AegApplianceEntity, AegEntity, fields
 
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback
 ) -> None:
     coordinator = entry.runtime_data.coordinator
-    add(
+    flags: list[BinarySensorEntity] = [
         AegAlerts(coordinator, appliance_id, capability)
         if capability.kind in ALERTS
         else AegBinarySensor(coordinator, appliance_id, capability)
         for appliance_id, capability in fields(coordinator, BINARY_SENSOR)
-    )
+    ]
+    # One that stays available whatever the appliance is doing, so an appliance
+    # that has dropped off the network can say so.
+    flags += [
+        AegConnection(coordinator, appliance_id) for appliance_id in coordinator.data
+    ]
+    add(flags)
 
 
 class AegBinarySensor(AegEntity, BinarySensorEntity):
@@ -105,3 +113,31 @@ class AegAlerts(AegEntity, BinarySensorEntity):
             and appliance.connected
             and self.reported is not None
         )
+
+
+class AegConnection(AegApplianceEntity, BinarySensorEntity):
+    """Whether the cloud can still hear the appliance.
+
+    Everything else goes unavailable when an appliance drops off the network,
+    which is right but says nothing about why. This one stays put and answers
+    that, so a machine that cannot reach the cloud looks like a machine that
+    cannot reach the cloud rather than like a broken integration.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_name = "Connection"
+
+    def __init__(self, coordinator: AegCoordinator, appliance_id: str) -> None:
+        super().__init__(coordinator, appliance_id)
+        self._attr_unique_id = f"{appliance_id}-connection"
+
+    @property
+    def is_on(self) -> bool:
+        appliance = self.appliance
+        return appliance is not None and appliance.connected
+
+    @property
+    def available(self) -> bool:
+        # Only the account being unreachable can silence this one.
+        return self.coordinator.last_update_success and self.appliance is not None
