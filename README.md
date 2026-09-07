@@ -42,9 +42,14 @@ matters.
 3. Gigya authenticates the user, by password or by a one time code mailed to
    the account, and `accounts.getJWT` mints a JWT for the session. That call is
    signed with HMAC-SHA1 over the session secret.
-4. `POST /one-account-authorization/api/v2/token` trades the JWT for an OCP
-   access token and refresh token. Its country header comes from the country
-   claim inside the JWT, which is what that field is asked of Gigya for.
+4. `POST /one-account-authorization/api/v1/token` trades the JWT for an OCP
+   access token and refresh token, against the regional endpoint rather than
+   the global one. Its country header comes from the country claim inside the
+   JWT, which is what that field is asked of Gigya for.
+
+The app uses v2 of the token endpoint with snake_case field names. That answers
+400 to the same exchange v1 accepts, so v1 is what this uses, with the
+camelCase names the rest of the API uses.
 
 Renewal reuses the same token endpoint with a refresh grant, and that call is
 the only one carrying the client secret, as HTTP basic auth. The refresh token

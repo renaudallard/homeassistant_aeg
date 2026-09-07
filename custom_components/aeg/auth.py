@@ -116,13 +116,16 @@ def _jwt_country(id_token: str) -> str | None:
 
 
 def _tokens_from(payload: dict[str, Any]) -> Tokens:
-    access_token = payload.get("access_token")
-    refresh_token = payload.get("refresh_token")
+    # v1 names its fields the way the rest of the API does, in camelCase. The
+    # v2 endpoint the app uses answers in snake_case, which is the only reason
+    # both spellings are read here.
+    access_token = payload.get("accessToken") or payload.get("access_token")
+    refresh_token = payload.get("refreshToken") or payload.get("refresh_token")
     if not access_token or not refresh_token:
         raise AegAuthError("OneAccount did not return a token pair")
     # A missing lifetime is treated as already expired, so the next call
     # refreshes rather than sending a token we cannot reason about.
-    expires_in = float(payload.get("expires_in", 0))
+    expires_in = float(payload.get("expiresIn") or payload.get("expires_in") or 0)
     return Tokens(
         access_token=str(access_token),
         refresh_token=str(refresh_token),
