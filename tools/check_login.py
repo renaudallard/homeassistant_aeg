@@ -119,7 +119,9 @@ def _dump(where: Path, name: str, data: Any) -> None:
     """Write a payload out with the identifiers taken out of it."""
     where.mkdir(parents=True, exist_ok=True)
     path = where / f"{name}.json"
-    path.write_text(json.dumps(redact(data), indent=1, sort_keys=True))
+    # Not sorted: the order an appliance lists a field's values in is what
+    # says thirty degrees is less than forty, and sorting throws that away.
+    path.write_text(json.dumps(redact(data), indent=1))
     _note(f"wrote {path}")
 
 
