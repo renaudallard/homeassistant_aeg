@@ -46,7 +46,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import AegApi
-from .capability import Capability, parse, value_at
+from .capability import STATE, Capability, parse, value_at
 from .const import DOMAIN
 from .errors import AegAuthError, AegError
 from .triggers import Override, evaluate
@@ -170,6 +170,16 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 overrides={},
             )
         self._refresh_overrides(appliances)
+        for appliance in appliances.values():
+            # The one line worth having when an appliance goes quiet, which is
+            # the far end of an answer too long to log whole.
+            _LOGGER.debug(
+                "%s is %s, %s, reporting %d fields",
+                appliance.model,
+                "reachable" if appliance.connected else "not reachable",
+                value_at(appliance.reported, STATE) or "saying nothing of its state",
+                len(appliance.reported),
+            )
         return appliances
 
     def _refresh_overrides(self, appliances: dict[str, Appliance]) -> None:

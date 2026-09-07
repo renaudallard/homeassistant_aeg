@@ -128,14 +128,23 @@ def redact_url(url: str) -> str:
     )
 
 
+# Enough for an appliance list, which runs to twelve kilobytes and keeps what
+# is worth reading at the far end of it. A shorter cut made the log useless for
+# the one question it was there to answer.
+MOST = 20000
+
+
 def _readable(body: bytes) -> str:
     """A body fit to log: redacted if it is JSON, described if it is not."""
     if not body:
         return "empty"
     try:
-        return json.dumps(redact(json.loads(body)))[:2000]
+        readable = json.dumps(redact(json.loads(body)))
     except ValueError:
         return f"<{len(body)} bytes that are not JSON>"
+    if len(readable) <= MOST:
+        return readable
+    return f"{readable[:MOST]} <{len(readable) - MOST} more characters>"
 
 
 async def request(

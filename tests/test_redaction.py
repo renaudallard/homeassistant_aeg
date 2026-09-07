@@ -33,7 +33,7 @@ are the ones a real account produced.
 
 import json
 
-from custom_components.aeg.http import redact, redact_url
+from custom_components.aeg.http import _readable, redact, redact_url
 
 APPLIANCE = "914505616_00:54600049-443E07743904"
 BASE = "https://api.eu.ocp.electrolux.one/appliance/api/v2/appliances"
@@ -56,6 +56,22 @@ def test_leaves_the_route_alone() -> None:
     assert "hidden" not in redact_url(
         "https://api.ocp.electrolux.one/one-account-authorization/api/v1/token"
     )
+
+
+def test_a_long_answer_is_cut_but_says_it_was() -> None:
+    """The appliance list runs to twelve kilobytes and matters at the far end."""
+    long_enough = {"filler": "x" * 30000, "connectionState": "connected"}
+    written = _readable(json.dumps(long_enough).encode())
+    assert "more characters" in written
+    assert len(written) < 30000
+
+
+def test_an_answer_that_fits_is_left_whole() -> None:
+    """Twelve kilobytes fits, which is the point of the room being there."""
+    listed = [{"applianceData": {"modelName": "WM"}, "reported": {"a": "b" * 9000}}]
+    written = _readable(json.dumps(listed).encode())
+    assert "more characters" not in written
+    assert "WM" in written
 
 
 def test_hides_an_appliance_id_in_a_body() -> None:
