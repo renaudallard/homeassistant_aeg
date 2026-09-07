@@ -54,7 +54,8 @@ def pretty(name: str) -> str:
     Words already in capitals are left alone, so an acronym stays an acronym
     while analogTemperature becomes what you would expect.
     """
-    words = MODEL_PREFIX.sub("", name).replace("_", " ")
+    segments = [MODEL_PREFIX.sub("", part) for part in name.split("/")]
+    words = " ".join(segments).replace("_", " ")
     parts = re.sub(r"(?<=[a-z0-9])([A-Z])", r" \1", words).split()
     if not parts:
         return name
@@ -91,10 +92,16 @@ class AegEntity(CoordinatorEntity[AegCoordinator]):
         self._appliance_id = appliance_id
         self.capability = capability
         self._attr_unique_id = f"{appliance_id}-{capability.path}"
-        self._attr_name = pretty(capability.name)
+        # The whole path, because two groups can hold the same field and one
+        # name for both is no name at all.
+        self._attr_name = pretty(capability.path)
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = False
+        elif capability.readable and self.reported is None:
+            # Described but never reported, so this model does not have it.
+            # Left in place in case it appears, but not in the way.
             self._attr_entity_registry_enabled_default = False
 
     @property

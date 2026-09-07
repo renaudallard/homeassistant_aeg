@@ -66,7 +66,7 @@ class AegButton(AegEntity, ButtonEntity):
         super().__init__(coordinator, appliance_id, capability)
         self._command = command
         self._attr_unique_id = f"{appliance_id}-{capability.path}-{command}"
-        self._attr_name = f"{pretty(capability.name)} {pretty(command)}"
+        self._attr_name = f"{pretty(capability.path)} {pretty(command)}"
 
     @property
     def available(self) -> bool:

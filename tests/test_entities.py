@@ -144,6 +144,26 @@ async def test_the_wash_is_shown_and_the_housekeeping_is_not(
             assert by_id[hidden_field].disabled, hidden_field
 
 
+async def test_every_entity_survives_being_added(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An entity that raises while being added is dropped with a log line.
+
+    Checking a handful of entities hides that, so check that every one of them
+    reached a state.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    expected = [
+        entity
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if not entity.disabled
+    ]
+    assert expected
+    missing = [e.entity_id for e in expected if hass.states.get(e.entity_id) is None]
+    assert not missing, f"entities that failed to load: {missing}"
+
+
 async def test_readings_carry_the_reported_value(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
