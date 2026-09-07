@@ -129,6 +129,18 @@ seven steps, and a washing machine names the first three and numbers the rest;
 where the numbered steps land on their own place the whole list reads one to
 seven. The appliance still hears the name it uses.
 
+## Reporting a problem
+
+The device page offers to download diagnostics. That carries the whole of what
+the appliance said about itself, what it is reporting, what it will accept
+right now, and whether the stream is carrying the updates or polling is. It is
+redacted the same way the logs are, so tokens, keys, the address on the account
+and the appliance's own identifier are replaced by a note of their length. What
+kind of appliance it is and what it is doing stay readable.
+
+For a model this has never seen, that download is the one thing a report cannot
+do without.
+
 ## When everything goes unavailable
 
 Every entity of an appliance goes unavailable when the cloud stops hearing from
