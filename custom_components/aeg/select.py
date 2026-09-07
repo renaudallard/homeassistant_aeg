@@ -39,14 +39,29 @@ from .capability import SELECT, Capability
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
-# A value that is a name and a number, as in STEP_4, is a numbered level. The
-# number is the whole of what it says, so that is what is shown.
+# A value that is a name and a number, as in STEP_4, is a step in a scale.
 LEVEL = re.compile(r"^[A-Z][A-Z_]*_(\d+)$")
 
 
-def shown_as(value: str) -> str:
-    found = LEVEL.match(value)
-    return found.group(1) if found else value
+def numbering(values: tuple[str, ...]) -> dict[str, str]:
+    """Number a scale, if that is what these values are.
+
+    A field can name the first few steps and number the rest: a washing
+    machine sets its water hardness to SOFT, MEDIUM, HARD and then STEP_4 up
+    to STEP_7, which is one scale of seven whichever way it says it. The
+    numbered ones say where they sit, so if each lands on its own place the
+    whole list is a scale and every value is shown as its place in it.
+    """
+    placed = [
+        (place, LEVEL.match(value)) for place, value in enumerate(values, start=1)
+    ]
+    numbered = [(place, found) for place, found in placed if found]
+    if len(numbered) < 2:
+        return {}
+    if any(int(found.group(1)) != place for place, found in numbered):
+        # The numbers do not line up, so they count something else.
+        return {}
+    return {value: str(place) for place, value in enumerate(values, start=1)}
 
 
 async def async_setup_entry(
@@ -67,7 +82,9 @@ class AegSelect(AegEntity, SelectEntity):
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
         # What the appliance calls each value, by what it is shown as.
-        self._values = {shown_as(value): value for value in capability.values}
+        shown = numbering(capability.values)
+        self._values = {shown.get(value, value): value for value in capability.values}
+        self._shown = shown
         self._attr_options = list(self._values)
 
     @property
@@ -80,7 +97,7 @@ class AegSelect(AegEntity, SelectEntity):
         value = self.reported
         if value not in self.capability.values:
             return None
-        return shown_as(str(value))
+        return self._shown.get(str(value), str(value))
 
     async def async_select_option(self, option: str) -> None:
         await self.send(self._values.get(option, option))
