@@ -14,8 +14,7 @@ Requires Home Assistant 2026.9 or newer, which itself needs Python 3.14.2.
 ## State of the work
 
 An account can be added through the interface and its appliances turn up as
-Home Assistant entities. State is polled every thirty seconds; the websocket
-that would push it instead is not written yet.
+Home Assistant entities, which the cloud updates as they change.
 
 | Piece | Where | Done |
 | --- | --- | --- |
@@ -26,7 +25,7 @@ that would push it instead is not written yet.
 | Config flow, with reauthentication | `custom_components/aeg/config_flow.py` | yes |
 | Capability to entity mapping | `custom_components/aeg/capability.py` | yes |
 | Entity platforms | `custom_components/aeg/{sensor,switch,select,number,button,binary_sensor}.py` | yes |
-| Websocket for live state | | no |
+| Websocket for live state | `custom_components/aeg/websocket.py` | yes |
 
 ## How the login works
 
@@ -101,9 +100,14 @@ what a washing machine is, and a model it has never seen works the same way.
 
 A washing machine describes about 120 fields. Most of them are the machine
 talking to itself, so the maintenance counters, stored cycles, network stack
-and the rest arrive as diagnostics and start disabled. What is left is the
-wash: the programme, temperature, spin speed, rinse, steam, the door and the
-start and stop buttons. Enable the rest from the device page if you want it.
+and the rest arrive as diagnostics and start disabled, as does anything the
+appliance describes but never reports. What is left is the wash: the
+programme, temperature, spin speed, rinse, steam, the door and the start and
+stop buttons. Enable the rest from the device page if you want it.
+
+The cloud pushes changes over a websocket, so a cycle finishing shows up when
+it happens rather than at the next poll. Polling carries on in the background
+at a slower rate, to catch whatever a dropped connection missed.
 
 ## Where the protocol knowledge comes from
 

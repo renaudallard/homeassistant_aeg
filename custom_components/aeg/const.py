@@ -37,6 +37,7 @@ DOMAIN = "aeg"
 # constants. The tokens live in the entry because the refresh token rotates on
 # every renewal and has to survive a restart.
 CONF_BASE_URL = "base_url"
+CONF_WS_URL = "ws_url"
 CONF_ACCESS_TOKEN = "access_token"
 CONF_REFRESH_TOKEN = "refresh_token"
 CONF_EXPIRES_AT = "expires_at"

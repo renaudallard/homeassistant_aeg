@@ -49,6 +49,7 @@ from custom_components.aeg.const import (
     CONF_BASE_URL,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
+    CONF_WS_URL,
     DOMAIN,
 )
 from custom_components.aeg.errors import AegAuthError, AegConnectionError
@@ -136,6 +137,7 @@ async def test_password_signs_in(
         CONF_EMAIL: EMAIL,
         CONF_COUNTRY: COUNTRY,
         CONF_BASE_URL: PROVIDER.http_base_url,
+        CONF_WS_URL: PROVIDER.ws_base_url,
         CONF_ACCESS_TOKEN: TOKENS.access_token,
         CONF_REFRESH_TOKEN: TOKENS.refresh_token,
         CONF_EXPIRES_AT: TOKENS.expires_at,

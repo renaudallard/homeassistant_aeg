@@ -55,6 +55,7 @@ from .const import (
     CONF_BASE_URL,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
+    CONF_WS_URL,
     DOMAIN,
 )
 from .errors import AegAuthError, AegConnectionError
@@ -232,6 +233,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             CONF_EMAIL: self._email,
             CONF_COUNTRY: self._country,
             CONF_BASE_URL: self._provider.http_base_url,
+            CONF_WS_URL: self._provider.ws_base_url,
             CONF_ACCESS_TOKEN: tokens.access_token,
             CONF_REFRESH_TOKEN: tokens.refresh_token,
             CONF_EXPIRES_AT: tokens.expires_at,

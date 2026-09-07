@@ -33,6 +33,7 @@ a pair that is not written back leaves the account unreachable after a restart.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
@@ -47,8 +48,12 @@ from .const import (
     CONF_BASE_URL,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
+    CONF_WS_URL,
 )
 from .coordinator import AegCoordinator
+from .errors import AegError
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
@@ -100,14 +105,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
 
     # The first refresh reads what every appliance can do and what it is
     # doing, and proves the stored tokens still work while it is at it.
-    coordinator = AegCoordinator(hass, entry, api)
+    coordinator = AegCoordinator(hass, entry, api, session)
     await coordinator.async_config_entry_first_refresh()
+
+    coordinator.start_stream(await _stream_url(hass, entry, auth))
 
     entry.runtime_data = AegData(api=api, coordinator=coordinator)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
+async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth) -> str:
+    """Where the cloud pushes changes for this account.
+
+    Entries made before there was a stream do not have it, so it is looked up
+    once and kept. Without it the integration polls, which is worse but works.
+    """
+    stored = entry.data.get(CONF_WS_URL)
+    if stored:
+        return str(stored)
+    try:
+        url = (await auth.identity_provider()).ws_base_url
+    except AegError as err:
+        _LOGGER.debug("no endpoint to stream from, polling instead: %s", err)
+        return ""
+    hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_WS_URL: url})
+    return url
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     """Unload an AEG account."""
+    await entry.runtime_data.coordinator.stop_stream()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

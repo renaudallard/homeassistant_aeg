@@ -49,6 +49,7 @@ from custom_components.aeg.const import (
     CONF_BASE_URL,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
+    CONF_WS_URL,
     DOMAIN,
 )
 
@@ -68,6 +69,7 @@ def entry(hass: HomeAssistant) -> MockConfigEntry:
             CONF_EMAIL: "someone@example.com",
             CONF_COUNTRY: "BE",
             CONF_BASE_URL: "https://api.eu.ocp.electrolux.one",
+            CONF_WS_URL: "wss://ws.eu.ocp.electrolux.one",
             CONF_ACCESS_TOKEN: "an-access-token",
             CONF_REFRESH_TOKEN: "a-refresh-token",
             CONF_EXPIRES_AT: 4102444800.0,

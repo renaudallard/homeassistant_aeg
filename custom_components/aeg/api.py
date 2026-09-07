@@ -84,6 +84,10 @@ class AegApi:
         """The current token pair, which changes on every renewal."""
         return self._tokens
 
+    async def authorization(self) -> str:
+        """A bearer header, renewed if it is due. The stream reconnects with it."""
+        return f"Bearer {await self._access_token()}"
+
     async def _store(self, tokens: Tokens) -> None:
         self._tokens = tokens
         if self._on_tokens is not None:

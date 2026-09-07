@@ -38,6 +38,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -46,10 +47,14 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import AegApi
 from .capability import Capability, parse
 from .errors import AegAuthError, AegError
+from .websocket import AegStream, apply
 
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=30)
+# While the cloud is pushing, polling is only there to catch what a dropped
+# connection missed.
+SCAN_INTERVAL_STREAMING = timedelta(minutes=10)
 
 
 @dataclass
@@ -67,7 +72,13 @@ class Appliance:
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
     """Polls the account and hands out the state of each appliance."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: AegApi) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        api: AegApi,
+        session: aiohttp.ClientSession,
+    ) -> None:
         super().__init__(
             hass,
             _LOGGER,
@@ -76,6 +87,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             update_interval=SCAN_INTERVAL,
         )
         self.api = api
+        self._session = session
+        self._stream: AegStream | None = None
         self._capabilities: dict[str, list[Capability]] = {}
 
     async def _async_setup(self) -> None:
@@ -117,6 +130,37 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 connected=entry.get("connectionState") == "connected",
             )
         return appliances
+
+    def start_stream(self, url: str) -> None:
+        """Ask the cloud to push changes rather than waiting to be asked."""
+        if self._stream is not None or not url or not self.data:
+            return
+        self._stream = AegStream(
+            self._session,
+            url,
+            self.api.authorization,
+            list(self.data),
+            self._pushed,
+            self._streaming,
+        )
+        self._stream.start()
+
+    async def stop_stream(self) -> None:
+        stream, self._stream = self._stream, None
+        if stream is not None:
+            await stream.stop()
+
+    def _pushed(self, message: dict[str, Any]) -> None:
+        """Fold a pushed change into what we hold and tell the entities."""
+        touched = apply(
+            message, {key: value.reported for key, value in self.data.items()}
+        )
+        if touched:
+            self.async_set_updated_data(self.data)
+
+    def _streaming(self, connected: bool) -> None:
+        # Polling stays as the safety net for whatever a drop missed.
+        self.update_interval = SCAN_INTERVAL_STREAMING if connected else SCAN_INTERVAL
 
     async def send(self, appliance_id: str, path: str, value: Any) -> None:
         """Send one field, nested the way the appliance reports it back."""
