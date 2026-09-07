@@ -44,7 +44,7 @@ import aiohttp
 from . import http
 from .auth import AegAuth, Tokens
 from .const import API_KEY, APPLIANCES_PATH
-from .errors import AegAuthError, AegConnectionError
+from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +91,15 @@ class AegApi:
     async def _access_token(self) -> str:
         async with self._lock:
             if self._tokens.expired:
-                await self._store(await self._auth.refresh(self._tokens))
+                try:
+                    await self._store(await self._auth.refresh(self._tokens))
+                except AegTooManyRequests:
+                    # Renewing a token that was issued moments ago is refused.
+                    # The one in hand is good until it actually expires, so use
+                    # it rather than failing an update over the margin.
+                    if not self._tokens.usable:
+                        raise
+                    _LOGGER.debug("renewal refused as too soon, keeping the token")
             return self._tokens.access_token
 
     async def _renew(self, rejected: str) -> None:

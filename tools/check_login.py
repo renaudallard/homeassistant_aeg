@@ -61,7 +61,7 @@ sys.path.insert(0, ".")
 from custom_components.aeg import gigya
 from custom_components.aeg.api import AegApi
 from custom_components.aeg.auth import AegAuth
-from custom_components.aeg.errors import AegError
+from custom_components.aeg.errors import AegError, AegTooManyRequests
 
 
 def _urlsafe_sign(secret: str, method: str, url: str, params: dict[str, str]) -> str:
@@ -147,9 +147,18 @@ async def check(email: str, country: str) -> int:
         _ok(f"access token good for {int(tokens.expires_at - time.time())}s")
 
         _step(6, "token refresh")
-        refreshed = await auth.refresh(tokens)
-        rotated = refreshed.refresh_token != tokens.refresh_token
-        _ok(f"refresh token {'rotated' if rotated else 'unchanged'}")
+        try:
+            refreshed = await auth.refresh(tokens)
+        except AegTooManyRequests as err:
+            # The exchange happened seconds ago, so the service is right to
+            # refuse. The app recovers the same way, by keeping what it has.
+            refreshed = tokens
+            _ok("refused as too soon, which is what should happen here")
+            _note(f"{err}")
+            _note("the client keeps the token it holds when this happens")
+        else:
+            rotated = refreshed.refresh_token != tokens.refresh_token
+            _ok(f"refresh token {'rotated' if rotated else 'unchanged'}")
 
         api = AegApi(session, auth, refreshed, provider.http_base_url, country)
 

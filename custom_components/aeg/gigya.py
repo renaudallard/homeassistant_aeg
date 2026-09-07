@@ -50,7 +50,7 @@ from urllib.parse import quote, urlsplit
 import aiohttp
 
 from . import http
-from .errors import AegAuthError, AegConnectionError
+from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -191,7 +191,7 @@ class GigyaClient:
         """
         status, payload = await http.request(self._session, "POST", url, data=body)
         if status == 429:
-            raise AegConnectionError("Gigya is rate limiting this client")
+            raise AegTooManyRequests("Gigya is rate limiting this client")
         if status >= 400:
             details = payload if isinstance(payload, dict) else {}
             message = details.get("errorMessage", "no message")

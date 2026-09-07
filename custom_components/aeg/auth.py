@@ -57,7 +57,7 @@ from .const import (
     TOKEN_EXPIRY_MARGIN,
     TOKEN_PATH_V1,
 )
-from .errors import AegAuthError, AegConnectionError
+from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,7 +87,13 @@ class Tokens:
 
     @property
     def expired(self) -> bool:
+        """Due for renewal, counting the margin."""
         return time.time() >= self.expires_at - TOKEN_EXPIRY_MARGIN
+
+    @property
+    def usable(self) -> bool:
+        """Still accepted by the service, margin or no margin."""
+        return time.time() < self.expires_at
 
 
 def _detail(payload: Any) -> str:
@@ -175,6 +181,8 @@ class AegAuth:
             params=params,
             json_body=json_body,
         )
+        if status == 429:
+            raise AegTooManyRequests(f"OneAccount is throttling: {_detail(payload)}")
         if status in (401, 403):
             raise AegAuthError(
                 f"OneAccount rejected the credentials ({status}): {_detail(payload)}"

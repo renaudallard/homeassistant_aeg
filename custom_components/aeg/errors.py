@@ -58,3 +58,12 @@ class AegConnectionError(AegError):
 
 class AegBackendError(AegConnectionError):
     """The service answered with a server side failure."""
+
+
+class AegTooManyRequests(AegConnectionError):
+    """The service asked us to slow down.
+
+    Renewing a token that was issued moments ago is refused this way. It is
+    not a failure if the token in hand still works, which is how the app
+    treats it.
+    """
