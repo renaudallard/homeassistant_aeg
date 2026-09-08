@@ -449,6 +449,29 @@ async def test_a_field_that_changed_platform_leaves_nothing_behind(
     assert now is not None and now.state == "OFF"
 
 
+async def test_a_thermostat_an_appliance_never_had_is_taken_away(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine gathers up into no thermostat and never did.
+
+    The three entities that stand for an appliance rather than a field were
+    claimed whatever the appliance is, so one of them outlived any version
+    that had made it.
+    """
+    registry = er.async_get(hass)
+    appliance = _fixture("wm-appliances")[0]["applianceId"]
+    stale = registry.async_get_or_create(
+        "climate",
+        DOMAIN,
+        f"{appliance}-climate",
+        config_entry=entry,
+        suggested_object_id="lave_linge_thermostat",
+    )
+
+    await _setup(hass, entry, api)
+    assert registry.async_get(stale.entity_id) is None
+
+
 async def test_a_companion_entity_is_not_mistaken_for_a_stale_one(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

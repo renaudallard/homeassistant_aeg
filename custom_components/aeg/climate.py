@@ -80,11 +80,22 @@ async def async_setup_entry(
     thermostats = []
     for appliance_id, appliance in coordinator.data.items():
         fields = {capability.path: capability for capability in appliance.capabilities}
-        mode = fields.get(MODE)
-        target = fields.get(TARGET)
-        if mode and mode.values and target and target.writable:
+        if gathers(fields):
             thermostats.append(AegClimate(coordinator, appliance_id, fields))
     add(thermostats)
+
+
+def gathers(fields: dict[str, Capability]) -> bool:
+    """Whether an appliance's fields gather up into a thermostat.
+
+    A mode it can be set to and a target temperature it will take, which is
+    what an air conditioner has and a washing machine has not. Asked from
+    outside as well, so that an appliance which has never had a thermostat is
+    not held to have one.
+    """
+    mode = fields.get(MODE)
+    target = fields.get(TARGET)
+    return bool(mode and mode.values and target and target.writable)
 
 
 class AegClimate(AegApplianceEntity, ClimateEntity):

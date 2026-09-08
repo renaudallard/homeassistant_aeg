@@ -151,12 +151,21 @@ def provided(coordinator: AegCoordinator) -> dict[str, str]:
     kind of entity there is, which it got wrong once already. Each of those
     goes on the platform its field does, so the kind travels with the id.
     """
+    # Whether an appliance gathers up into a thermostat is the one thing here
+    # that has to be asked of the platform that makes them, and that platform
+    # is reached through this package, so it cannot be imported at the top.
+    from .climate import gathers
+
     ids: dict[str, str] = {}
     for appliance_id, appliance in coordinator.data.items():
         # Whether the appliance is reachable at all is not a field of it.
         ids[f"{appliance_id}-connection"] = Platform.BINARY_SENSOR
+        # It keeps its firmware entity through going quiet about the update,
+        # the same way a field does, since silence is not the absence of one.
         ids[f"{appliance_id}-firmware"] = Platform.UPDATE
-        ids[f"{appliance_id}-climate"] = Platform.CLIMATE
+        fields = {capability.path: capability for capability in appliance.capabilities}
+        if gathers(fields):
+            ids[f"{appliance_id}-climate"] = Platform.CLIMATE
         for capability in appliance.capabilities:
             platform = platform_for(capability)
             if platform is None or lacks(coordinator, appliance, capability):
