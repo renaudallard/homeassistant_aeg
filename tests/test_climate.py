@@ -221,6 +221,35 @@ async def test_turning_it_off_uses_the_mode_it_has_for_that(
     assert command == {"mode": "OFF"}
 
 
+async def test_turning_it_on_uses_the_command_it_has_for_that(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """This one has no ON among its modes, only a command that says it."""
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "climate", "turn_on", {"entity_id": THERMOSTAT}, blocking=True
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"executeCommand": "ON"}
+
+
+async def test_it_is_told_on_and_off_the_way_it_words_them(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A model with both words among its modes never reaches for a command."""
+    tree = json.loads((FIXTURES / "ac-capabilities.json").read_text())
+    tree["mode"]["values"]["ON"] = {}
+    del tree["executeCommand"]
+    api.capabilities.return_value = tree
+
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "climate", "turn_on", {"entity_id": THERMOSTAT}, blocking=True
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"mode": "ON"}
+
+
 async def test_the_fan_and_the_swing_are_sent_as_they_come(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

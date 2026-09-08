@@ -37,6 +37,7 @@ not.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from homeassistant.components.climate import ClimateEntity
@@ -49,6 +50,8 @@ from . import AegConfigEntry
 from .capability import Capability, value_at
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 MODE = "mode"
 TARGET = "targetTemperatureC"
@@ -101,8 +104,7 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         self._attr_unique_id = f"{appliance_id}-climate"
 
         offered = [MODES[value] for value in fields[MODE].values if value in MODES]
-        command = fields.get(COMMAND)
-        if HVACMode.OFF not in offered and command and "OFF" in command.values:
+        if HVACMode.OFF not in offered and self._turns("OFF") is not None:
             # It turns off by being told to rather than by a mode of its own.
             offered.append(HVACMode.OFF)
         self._attr_hvac_modes = offered
@@ -116,8 +118,10 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             self._attr_target_temperature_step = target.step
 
         features = ClimateEntityFeature.TARGET_TEMPERATURE
-        if HVACMode.OFF in offered:
-            features |= ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
+        if self._turns("OFF") is not None:
+            features |= ClimateEntityFeature.TURN_OFF
+        if self._turns("ON") is not None:
+            features |= ClimateEntityFeature.TURN_ON
         fan = fields.get(FAN)
         if fan and fan.values:
             self._attr_fan_modes = list(fan.values)
@@ -184,15 +188,30 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
     async def async_turn_off(self) -> None:
         await self._turn(False)
 
+    def _turns(self, word: str) -> str | None:
+        """The field that takes ON or OFF as a word, if either of them does.
+
+        Some appliances keep both among the modes they run in and some keep
+        them as commands of their own. The mode is preferred, since that is
+        the field the state is read back from.
+        """
+        if word in self._fields[MODE].values:
+            return MODE
+        command = self._fields.get(COMMAND)
+        if command is not None and word in command.values:
+            return COMMAND
+        return None
+
     async def _turn(self, on: bool) -> None:
         word = "ON" if on else "OFF"
-        if (
-            MODES.get(word) in self._attr_hvac_modes
-            and word in self._fields[MODE].values
-        ):
-            await self.coordinator.send(self._appliance_id, MODE, word)
+        field = self._turns(word)
+        if field is None:
+            # Nothing to send it to. Turning on and off is only offered where
+            # one of the two fields has the word, so this is not reachable
+            # from a service call.
+            _LOGGER.debug("this appliance has no way of being told %s", word)
             return
-        await self.coordinator.send(self._appliance_id, COMMAND, word)
+        await self.coordinator.send(self._appliance_id, field, word)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         wanted = kwargs.get(ATTR_TEMPERATURE)
