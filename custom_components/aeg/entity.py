@@ -33,7 +33,6 @@ presented and, where it can be set, how it is sent back.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from homeassistant.const import EntityCategory, UnitOfTemperature
@@ -51,11 +50,8 @@ from .capability import (
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
 from .icons import icon_for
-from .names import PLATFORMS_FOR, key_for, readable
+from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, key_for, readable
 from .triggers import Override
-
-# A model code stuck on the front of a field name, as in EWX1493A_easyIron.
-MODEL_PREFIX = re.compile(r"^[A-Z]{2,}[0-9A-Z]*_")
 
 
 def pretty(name: str) -> str:
@@ -66,7 +62,7 @@ def pretty(name: str) -> str:
     """
     segments = [MODEL_PREFIX.sub("", part) for part in name.split("/")]
     words = " ".join(segments).replace("_", " ")
-    parts = re.sub(r"(?<=[a-z0-9])([A-Z])", r" \1", words).split()
+    parts = CAMEL.sub(r" \1", words).split()
     if not parts:
         return name
     readable = [parts[0].capitalize() if parts[0].islower() else parts[0]]

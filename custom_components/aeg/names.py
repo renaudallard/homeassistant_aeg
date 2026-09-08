@@ -49,6 +49,10 @@ import re
 # A model code stuck on the front of a field name, as in EWX1493A_easyIron.
 MODEL_PREFIX = re.compile(r"^[A-Z]{2,}[0-9A-Z]*_")
 
+# Where one word ends and the next begins in a name written in camel case, as
+# at the T of analogTemperature.
+CAMEL = re.compile(r"(?<=[a-z0-9])([A-Z])")
+
 NAMES: dict[str, str] = {
     # What the appliance is doing
     "applianceState": "State",
@@ -195,7 +199,7 @@ def readable(field: str) -> str | None:
 def key_for(field: str) -> str:
     """What Home Assistant looks the text up under."""
     plain = MODEL_PREFIX.sub("", field)
-    return re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", plain).lower()
+    return CAMEL.sub(r"_\1", plain).lower()
 
 
 # Everything below is written by tools/make_names.py. Do not edit it by hand.
