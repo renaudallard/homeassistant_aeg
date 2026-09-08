@@ -170,13 +170,31 @@ def _offers(node: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     return offers
 
 
-def _capability(path: str, node: Mapping[str, Any]) -> Capability:
+def _on_offer(node: Mapping[str, Any]) -> tuple[str, ...]:
+    """The values of a field, less the ones it has set aside.
+
+    An appliance marks a value it will not take the way it marks a field it
+    does not have. A washing machine keeps a hidden service programme in the
+    list that way, and its spin speeds carry a DISABLED that is not a speed;
+    an air conditioner sets aside two of the modes it describes. Offering one
+    of those is offering something the appliance has said is not there.
+    """
     values = node.get("values")
+    if not isinstance(values, Mapping):
+        return ()
+    return tuple(
+        str(name)
+        for name, member in values.items()
+        if not (isinstance(member, Mapping) and member.get("disabled") is True)
+    )
+
+
+def _capability(path: str, node: Mapping[str, Any]) -> Capability:
     return Capability(
         path=path,
         access=str(node.get("access", "read")),
         kind=str(node.get("type", "")),
-        values=tuple(values) if isinstance(values, dict) and values else (),
+        values=_on_offer(node),
         minimum=_number(node.get("min")),
         maximum=_number(node.get("max")),
         step=_number(node.get("step")),

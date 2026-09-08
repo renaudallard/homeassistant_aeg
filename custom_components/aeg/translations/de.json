@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Programm"
       },
-      "remote_notification_pending": {
-        "name": "Fernbenachrichtigungen"
-      },
       "sleep_mode": {
         "name": "Schlafmodus"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Fernbedienung"
+      },
+      "remote_notification_pending": {
+        "name": "Fernbenachrichtigungen"
       },
       "running_time": {
         "name": "Laufzeit"

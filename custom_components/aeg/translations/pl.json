@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Program"
       },
-      "remote_notification_pending": {
-        "name": "Powiadomienia zdalne"
-      },
       "sleep_mode": {
         "name": "Tryb nocny"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Zdalne sterowanie"
+      },
+      "remote_notification_pending": {
+        "name": "Powiadomienia zdalne"
       },
       "running_time": {
         "name": "Czas pracy"

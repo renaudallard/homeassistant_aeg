@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Programma"
       },
-      "remote_notification_pending": {
-        "name": "Meldingen op afstand"
-      },
       "sleep_mode": {
         "name": "Slaapstand"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Afstandsbediening"
+      },
+      "remote_notification_pending": {
+        "name": "Meldingen op afstand"
       },
       "running_time": {
         "name": "Looptijd"

@@ -232,6 +232,44 @@ def test_a_group_that_numbers_its_members_is_read_like_one_that_names_them() -> 
     assert platform_for(by_path["airConditioner/louvers/0/orientation"]) is None
 
 
+def test_a_value_the_appliance_has_set_aside_is_not_offered() -> None:
+    """A washing machine keeps a hidden service programme in its list.
+
+    It marks it the way it marks a field the model does not have, and a value
+    marked that way is not one to put in front of anybody.
+    """
+    programme = _one(
+        {
+            "programUID": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {
+                    "COTTONS": {},
+                    "MACHINE_SETTINGS_HIDDEN_TEST": {"disabled": True},
+                    "WOOL": {},
+                },
+            }
+        }
+    )
+    assert programme.values == ("COTTONS", "WOOL")
+    assert platform_for(programme) == SELECT
+
+
+def test_a_field_with_every_value_set_aside_has_nothing_to_choose_between() -> None:
+    """A washing machine describes one of those, and it is not a choice."""
+    nothing = _one(
+        {
+            "remoteNotificationPending": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {"OFF": {"disabled": True}, "ON": {"disabled": True}},
+            }
+        }
+    )
+    assert nothing.values == ()
+    assert platform_for(nothing) == SENSOR
+
+
 def test_a_field_holding_a_structure_is_not_a_reading() -> None:
     """An air purifier carries a second list of alerts and types it as one.
 

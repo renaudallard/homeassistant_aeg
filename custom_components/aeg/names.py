@@ -283,7 +283,7 @@ PLATFORMS_FOR: dict[str, frozenset[str]] = {
     "program_uid": frozenset({"select"}),
     "reason": frozenset({"sensor"}),
     "remote_control": frozenset({"sensor"}),
-    "remote_notification_pending": frozenset({"select"}),
+    "remote_notification_pending": frozenset({"sensor"}),
     "rinse": frozenset({"switch"}),
     "rinse_hold": frozenset({"switch"}),
     "running_time": frozenset({"sensor"}),

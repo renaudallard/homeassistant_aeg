@@ -325,16 +325,20 @@ async def test_choosing_a_way_of_running_it_says_so_in_its_own_word(
     assert command == {"mode": "DRY"}
 
 
-async def test_turning_it_off_uses_the_mode_it_has_for_that(
+async def test_turning_it_off_uses_the_command_when_the_mode_is_set_aside(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
-    """This one has an off mode, so there is no need to command it off."""
+    """This one lists an off mode and marks it disabled, so it is not one.
+
+    The command that says the same thing is what is left, which is how it is
+    turned on as well.
+    """
     await _setup(hass, entry, api)
     await hass.services.async_call(
         "climate", "turn_off", {"entity_id": THERMOSTAT}, blocking=True
     )
     _, command = api.send_command.await_args.args
-    assert command == {"mode": "OFF"}
+    assert command == {"executeCommand": "OFF"}
 
 
 async def test_turning_it_on_uses_the_command_it_has_for_that(

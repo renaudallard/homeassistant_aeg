@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Program"
       },
-      "remote_notification_pending": {
-        "name": "Fjernnotifikationer"
-      },
       "sleep_mode": {
         "name": "Sovetilstand"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Fjernbetjening"
+      },
+      "remote_notification_pending": {
+        "name": "Fjernnotifikationer"
       },
       "running_time": {
         "name": "Driftstid"

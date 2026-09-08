@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Program"
       },
-      "remote_notification_pending": {
-        "name": "Fjärraviseringar"
-      },
       "sleep_mode": {
         "name": "Viloläge"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Fjärrstyrning"
+      },
+      "remote_notification_pending": {
+        "name": "Fjärraviseringar"
       },
       "running_time": {
         "name": "Drifttid"

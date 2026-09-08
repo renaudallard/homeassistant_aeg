@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Programme"
       },
-      "remote_notification_pending": {
-        "name": "Notifications à distance"
-      },
       "sleep_mode": {
         "name": "Mode nuit"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Commande à distance"
+      },
+      "remote_notification_pending": {
+        "name": "Notifications à distance"
       },
       "running_time": {
         "name": "Temps de fonctionnement"

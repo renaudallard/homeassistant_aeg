@@ -164,9 +164,6 @@
       "program_uid": {
         "name": "Programa"
       },
-      "remote_notification_pending": {
-        "name": "Notificaciones remotas"
-      },
       "sleep_mode": {
         "name": "Modo reposo"
       },
@@ -321,6 +318,9 @@
       },
       "remote_control": {
         "name": "Control remoto"
+      },
+      "remote_notification_pending": {
+        "name": "Notificaciones remotas"
       },
       "running_time": {
         "name": "Tiempo en marcha"
