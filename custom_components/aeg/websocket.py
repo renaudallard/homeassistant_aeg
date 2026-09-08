@@ -80,6 +80,8 @@ class AegStream:
         self._task: asyncio.Task[None] | None = None
         # Whether the last failure has already been written out in full.
         self._complained = False
+        # Whether the last attempt got as far as an open connection.
+        self._opened = False
 
     def start(self) -> None:
         if self._task is None and self._appliance_ids:
@@ -105,6 +107,7 @@ class AegStream:
     async def _run(self) -> None:
         while True:
             delay = RECONNECT_DELAY
+            self._opened = False
             try:
                 if await self._listen():
                     # It ended because the token was running out, which is
@@ -116,6 +119,12 @@ class AegStream:
                 raise
             except aiohttp.ClientError as err:
                 _LOGGER.debug("the stream dropped: %s", err)
+                if not self._opened:
+                    # Nothing dropped, because nothing opened. A token the
+                    # cloud will not take, or a URL kept from an account that
+                    # has moved, is refused again just as surely in thirty
+                    # seconds as in five.
+                    delay = RECONNECT_DELAY_UNEXPECTED
             except Exception:
                 # A stream that is never going to work, a URL kept from an
                 # account that has moved being the way that happens, would
@@ -150,8 +159,11 @@ class AegStream:
                 len(self._appliance_ids),
                 renew_in,
             )
-            # It opened, so the next thing to go wrong is worth reading.
+            # It opened, so the next thing to go wrong is worth reading, and
+            # whatever ends it is a connection dropping rather than one the
+            # cloud would not give us.
             self._complained = False
+            self._opened = True
             self._on_connected(True)
             try:
                 async with asyncio.timeout(renew_in):

@@ -37,6 +37,7 @@ import logging
 from typing import Any
 from unittest.mock import patch
 
+import aiohttp
 import pytest
 
 from custom_components.aeg import websocket
@@ -143,6 +144,39 @@ async def test_it_says_which_appliances_to_watch() -> None:
         '[{"applianceId": "one"}, {"applianceId": "two"}]'
     )
     assert session.opened[0]["version"] == "2"
+
+
+class _Refused:
+    """A cloud that answers the handshake with no."""
+
+    def __init__(self) -> None:
+        self.tried = 0
+
+    def ws_connect(self, url: str, **kwargs: Any) -> "_Connection":
+        self.tried += 1
+        raise aiohttp.ClientError("the cloud would not take the token")
+
+
+async def test_a_handshake_the_cloud_refuses_is_not_retried_at_once() -> None:
+    """A stale token or a URL from an account that has moved never opens."""
+    session = _Refused()
+    stream = AegStream(
+        session,  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        _authorization,
+        lambda: 43200.0,
+        ["an-appliance"],
+        lambda message: None,
+        lambda connected: None,
+    )
+    with patch.object(websocket, "RECONNECT_DELAY", 0.01):
+        stream.start()
+        await asyncio.sleep(0.2)
+        await stream.stop()
+
+    # The five seconds a dropped connection waits are for a connection that
+    # was there to drop, not for one the cloud will not open at all.
+    assert session.tried == 1
 
 
 class _Broken:
