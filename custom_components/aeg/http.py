@@ -97,15 +97,28 @@ SECRETS = frozenset(
 )
 
 
+def _hidden(value: Any) -> Any:
+    """What a secret is replaced by.
+
+    A note of its length where it has one, since that is what tells a token
+    that arrived truncated from one that did not. Anything under a secret name
+    goes whatever type it came as: a postcode and a year of birth are numbers,
+    and hiding only the ones that happen to be text gives the rest away.
+
+    Nothing is not a secret, so it stays as it is and says so.
+    """
+    if value is None or value == "":
+        return value
+    if isinstance(value, str):
+        return f"<{len(value)} chars hidden>"
+    return "<hidden>"
+
+
 def redact(data: Any) -> Any:
     """Copy a structure with every secret replaced by a note of its length."""
     if isinstance(data, dict):
         return {
-            key: (
-                f"<{len(value)} chars hidden>"
-                if str(key).lower() in SECRETS and isinstance(value, str) and value
-                else redact(value)
-            )
+            key: (_hidden(value) if str(key).lower() in SECRETS else redact(value))
             for key, value in data.items()
         }
     if isinstance(data, list):

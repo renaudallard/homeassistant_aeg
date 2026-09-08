@@ -193,3 +193,31 @@ def test_hides_the_account_and_its_credentials() -> None:
     ):
         assert secret not in text
     assert "BE" in text
+
+
+def test_a_secret_that_is_not_text_is_hidden_too() -> None:
+    """A postcode and a year of birth arrive as numbers, and still say who."""
+    profile = redact(
+        {
+            "zip": 1000,
+            "birthYear": 1979,
+            "uid": 4815162342,
+            "country": "BE",
+        }
+    )
+    text = json.dumps(profile)
+    assert "1000" not in text
+    assert "1979" not in text
+    assert "4815162342" not in text
+    # What the account is for stays readable.
+    assert "BE" in text
+
+
+def test_a_secret_hidden_inside_a_list_is_still_hidden() -> None:
+    hidden = redact({"phone": ["+3212345678", "+3287654321"]})
+    assert "3212345678" not in json.dumps(hidden)
+
+
+def test_nothing_is_not_a_secret() -> None:
+    """An absent field says nothing, so it is left saying nothing."""
+    assert redact({"email": None, "password": ""}) == {"email": None, "password": ""}
