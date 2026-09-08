@@ -72,9 +72,6 @@ class AegSensor(AegEntity, SensorEntity):
         self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
-        # Kept rather than read back off the entity: an attribute Home
-        # Assistant never assigned is not there to be read.
-        self._enum_options: tuple[str, ...] = ()
         if is_duration(capability):
             self._attr_device_class = SensorDeviceClass.DURATION
             self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
@@ -82,12 +79,6 @@ class AegSensor(AegEntity, SensorEntity):
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = degrees(capability)
             self._attr_state_class = SensorStateClass.MEASUREMENT
-        elif capability.values and capability.kind == "string":
-            # The appliance lists what this field can say, so let the frontend
-            # translate it rather than showing the raw word.
-            self._attr_device_class = SensorDeviceClass.ENUM
-            self._attr_options = list(capability.values)
-            self._enum_options = capability.values
 
     @property
     def native_value(self) -> Any:
@@ -97,14 +88,6 @@ class AegSensor(AegEntity, SensorEntity):
             # in 255 characters.
             return None
         return value
-
-    @property
-    def available(self) -> bool:
-        if self._enum_options:
-            # A reading outside its own list would be logged as an error on
-            # every refresh, which is worse than saying nothing.
-            return super().available and self.reported in self._enum_options
-        return super().available
 
 
 class AegDuration(AegEntity, SensorEntity):

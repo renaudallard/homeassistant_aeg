@@ -701,6 +701,20 @@ async def test_readings_carry_the_reported_value(
     assert temperature is not None and temperature.state == "40_CELSIUS"
 
 
+async def test_a_reading_the_appliance_did_not_list_is_still_shown(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A capability tree is what the model says, not a promise it keeps."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["applianceState"] = "SOMETHING_NEW"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    state = hass.states.get("sensor.lave_linge_state")
+    assert state is not None
+    assert state.state == "SOMETHING_NEW"
+
+
 async def test_a_quiet_machine_reports_no_problem(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
