@@ -47,7 +47,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import Capability, value_at
+from .capability import STATE, Capability, value_at
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity
 
@@ -145,7 +145,7 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
 
     @property
     def hvac_mode(self) -> HVACMode | None:
-        if str(self._at("applianceState")).upper() == "OFF":
+        if str(self._at(STATE)).upper() == "OFF":
             return HVACMode.OFF
         running = self._at(MODE)
         return MODES.get(str(running).upper()) if running is not None else None
