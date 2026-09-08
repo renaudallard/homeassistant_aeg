@@ -30,16 +30,24 @@ The service refuses to mint a token when it issued one moments ago, answering
 429 with cas_3404. The app recovers by keeping the token it holds, and so does
 this, because the margin that triggers a renewal is shorter than the life left
 in the token.
+
+A refresh token it will not take at all is a different answer, and has to reach
+Home Assistant as a reason to sign in again rather than as a call to retry.
 """
 
 import time
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from custom_components.aeg.api import AegApi
-from custom_components.aeg.auth import Tokens
-from custom_components.aeg.errors import AegTooManyRequests
+from custom_components.aeg.auth import AegAuth, Tokens
+from custom_components.aeg.errors import (
+    AegAuthError,
+    AegConnectionError,
+    AegTooManyRequests,
+)
 
 
 def _api(auth: AsyncMock, tokens: Tokens) -> AegApi:
@@ -97,3 +105,41 @@ async def test_a_live_token_is_used_without_asking_for_another() -> None:
 
     assert await api._access_token() == "an-access-token"
     auth.refresh.assert_not_awaited()
+
+
+def _answering(monkeypatch: pytest.MonkeyPatch, status: int, payload: Any) -> AegAuth:
+    """A OneAccount client whose next call gets this answer."""
+
+    async def answer(*_args: Any, **_kwargs: Any) -> tuple[int, Any]:
+        return status, payload
+
+    monkeypatch.setattr("custom_components.aeg.auth.http.request", answer)
+    return AegAuth(MagicMock(), "BE")
+
+
+async def test_a_spent_refresh_token_asks_for_a_new_sign_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OneAccount turns this one down with a 400, not with the usual 401.
+
+    Reported as anything but an authentication failure it would be retried for
+    as long as the entry is loaded, and the account would never be asked for.
+    """
+    auth = _answering(
+        monkeypatch,
+        400,
+        {"message": "Bad Request", "code": 400, "oneAccountError": "invalid_grant"},
+    )
+
+    with pytest.raises(AegAuthError):
+        await auth.refresh(Tokens("an-access-token", "a-spent-refresh-token", 0.0))
+
+
+async def test_a_refusal_that_is_not_about_the_account_is_still_worth_retrying(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    auth = _answering(monkeypatch, 400, {"message": "Bad Request", "code": 400})
+
+    with pytest.raises(AegConnectionError) as refused:
+        await auth.refresh(Tokens("an-access-token", "a-refresh-token", 0.0))
+    assert not isinstance(refused.value, AegAuthError)
