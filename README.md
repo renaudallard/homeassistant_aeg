@@ -268,6 +268,14 @@ the suite, and **Validate** runs HACS validation and hassfest. Neither of the
 latter two runs locally, so that workflow is the first sign of a manifest
 problem.
 
+A third, **Autorelease**, runs only when the version in the manifest changes.
+It holds the release back on the same three checks, then tags the commit,
+writes the release with the notes running from the tag before it, and puts a
+zip of `custom_components/aeg` on it. Releasing is therefore a matter of
+bumping the version and pushing. A release written by hand before the workflow
+gets there keeps its own notes and is only given the zip, which is how a
+release worth writing up properly still gets one.
+
 ### Regenerating the names and the translations
 
 `tools/make_names.py` works out which platforms each named field turns up on,

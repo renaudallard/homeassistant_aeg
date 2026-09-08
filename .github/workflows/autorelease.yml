@@ -1,0 +1,138 @@
+name: Autorelease
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - custom_components/aeg/manifest.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Two version bumps in quick succession would race on the tag and on writing
+# the release. Serialise them per ref, and do not cancel one halfway: a run
+# killed between creating a release and uploading to it leaves a release
+# without its zip.
+concurrency:
+  group: autorelease-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The real suite, called rather than copied, so there is no second copy to
+  # keep in step with it.
+  verify:
+    uses: ./.github/workflows/test.yml
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: home-assistant/actions/hassfest@master
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [verify, hacs, hassfest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The whole history, since the notes are written from the tag
+          # before this one.
+          fetch-depth: 0
+
+      - name: Read the version out of the manifest
+        id: version
+        run: |
+          version=$(jq -r .version custom_components/aeg/manifest.json)
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "no version in manifest.json" >&2
+            exit 1
+          fi
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: See what is there already
+        id: found
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          if git ls-remote --tags --exit-code origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "tag=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=false" >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the zip
+        run: |
+          mkdir -p dist
+          cd custom_components/aeg
+          # A checkout carries none of these, but a run started by hand on a
+          # runner that has already linted or tested would, and a cache in a
+          # release zip is worse than a long list here.
+          zip -qr ../../dist/aeg.zip . \
+            -x '*.pyc' '__pycache__/*' '*/__pycache__/*' \
+               '.ruff_cache/*' '.mypy_cache/*' '.pytest_cache/*'
+          cd ../..
+          unzip -l dist/aeg.zip
+
+      - name: Tag it, unless it is tagged already
+        if: steps.found.outputs.tag == 'false'
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          git tag "$tag"
+          git push origin "$tag"
+
+      - name: Put the zip on a release that has none
+        if: steps.found.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          # A release written by hand, or one from a run that died before it
+          # uploaded, carries no zip. Add one, and leave a release that has
+          # its own alone rather than writing over it.
+          if gh release view "$tag" --json assets --jq '.assets[].name' | grep -qx 'aeg.zip'; then
+            echo "$tag already carries aeg.zip"
+          else
+            gh release upload "$tag" dist/aeg.zip
+          fi
+
+      - name: Write the release
+        if: steps.found.outputs.release == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          # Left to itself GitHub guesses which release the notes run from,
+          # and guesses wrong as soon as a fix lands on an older line, so it
+          # is handed the highest tag below this one.
+          git fetch --tags --quiet origin
+          before=$( { git tag --list 'v*'; echo "$tag"; } |
+            sort -uV |
+            awk -v wanted="$tag" '$0 == wanted { exit } { last = $0 } END { print last }')
+          notes=(--title "$tag" --generate-notes)
+          if [ -n "$before" ]; then
+            notes+=(--notes-start-tag "$before")
+          fi
+          # Writing the release is the call that fails on a bad day, and a
+          # run that gives up here leaves a tag with nothing on it.
+          for wait in 10 30 90; do
+            gh release create "$tag" "${notes[@]}" dist/aeg.zip && exit 0
+            echo "could not write the release, waiting ${wait}s" >&2
+            sleep "$wait"
+          done
+          gh release create "$tag" "${notes[@]}" dist/aeg.zip
