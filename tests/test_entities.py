@@ -325,6 +325,54 @@ async def test_a_field_never_reported_is_still_taken_away(
     assert registry.async_get(stale.entity_id) is None
 
 
+async def test_a_field_that_changed_platform_leaves_nothing_behind(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A field can move from one kind of entity to another between versions.
+
+    Remote notifications was a select until the appliance was read as saying
+    both of its values are set aside, which leaves nothing to choose between.
+    The select was kept because the field is still there, and sat with the
+    name and nothing to say.
+    """
+    registry = er.async_get(hass)
+    appliance = _fixture("wm-appliances")[0]["applianceId"]
+    was = registry.async_get_or_create(
+        "select",
+        DOMAIN,
+        f"{appliance}-remoteNotificationPending",
+        config_entry=entry,
+        suggested_object_id="lave_linge_remote_notifications_old",
+    )
+
+    await _setup(hass, entry, api)
+
+    assert registry.async_get(was.entity_id) is None
+    now = hass.states.get("sensor.lave_linge_remote_notifications")
+    assert now is not None and now.state == "OFF"
+
+
+async def test_a_companion_entity_is_not_mistaken_for_a_stale_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Some entities add a word to the id of the field they come from.
+
+    They go on the platform their field does, so comparing the kind must not
+    take them for something left over.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    kept = {
+        record.unique_id
+        for record in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    appliance = _fixture("wm-appliances")[0]["applianceId"]
+    assert f"{appliance}-timeToEnd-formatted" in kept
+    assert f"{appliance}-timeToEnd-at" in kept
+    assert f"{appliance}-executeCommand-START" in kept
+    assert f"{appliance}-connection" in kept
+
+
 async def test_an_appliance_that_has_gone_quiet_keeps_its_entities(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

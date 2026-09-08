@@ -138,6 +138,11 @@ def _forget_what_is_gone(
     describe: a listing that arrived without one of them, for a moment or for
     good, is not the account saying that appliance has gone, and taking its
     entities away would take the history and the automations on them too.
+
+    What kind of entity a field becomes is compared as well as whether it has
+    one. A field can move from one platform to another between versions, and
+    the entity left on the old one is as dead as one whose field has gone: it
+    keeps the name and sits there with nothing to say.
     """
     keep = provided(coordinator)
     listed = tuple(coordinator.data)
@@ -150,12 +155,20 @@ def _forget_what_is_gone(
                 existing.entity_id,
             )
             continue
-        if unique_id in keep or any(
-            unique_id.startswith(f"{field}-") for field in keep
-        ):
+        becomes = keep.get(unique_id) or next(
+            (
+                platform
+                for field, platform in keep.items()
+                if unique_id.startswith(f"{field}-")
+            ),
+            None,
+        )
+        if becomes == existing.domain:
             continue
         _LOGGER.debug(
-            "dropping %s, the appliance does not report it", existing.entity_id
+            "dropping %s, the appliance %s",
+            existing.entity_id,
+            "does not report it" if becomes is None else f"reports it as a {becomes}",
         )
         registry.async_remove(existing.entity_id)
 

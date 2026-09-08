@@ -35,7 +35,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.const import EntityCategory, UnitOfTemperature
+from homeassistant.const import EntityCategory, Platform, UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -141,27 +141,27 @@ def lacks(coordinator: AegCoordinator, appliance: Appliance, field: Capability) 
     return field.path not in coordinator.seen(appliance.id)
 
 
-def provided(coordinator: AegCoordinator) -> set[str]:
-    """Every field this account has entities for, by the id they start with.
+def provided(coordinator: AegCoordinator) -> dict[str, str]:
+    """Every field this account has entities for, and what each one becomes.
 
     An entity's unique id is the appliance and the field. Some entities add a
     word of their own to that: a button for each command a field takes, a clock
     beside a length of time, a finishing time beside a countdown. Answering
     with what they all start with keeps those without this having to know every
-    kind of entity there is, which it got wrong once already.
+    kind of entity there is, which it got wrong once already. Each of those
+    goes on the platform its field does, so the kind travels with the id.
     """
-    ids: set[str] = set()
+    ids: dict[str, str] = {}
     for appliance_id, appliance in coordinator.data.items():
         # Whether the appliance is reachable at all is not a field of it.
-        ids.add(f"{appliance_id}-connection")
-        ids.add(f"{appliance_id}-firmware")
-        ids.add(f"{appliance_id}-climate")
+        ids[f"{appliance_id}-connection"] = Platform.BINARY_SENSOR
+        ids[f"{appliance_id}-firmware"] = Platform.UPDATE
+        ids[f"{appliance_id}-climate"] = Platform.CLIMATE
         for capability in appliance.capabilities:
-            if platform_for(capability) is None or lacks(
-                coordinator, appliance, capability
-            ):
+            platform = platform_for(capability)
+            if platform is None or lacks(coordinator, appliance, capability):
                 continue
-            ids.add(f"{appliance_id}-{capability.path}")
+            ids[f"{appliance_id}-{capability.path}"] = platform
     return ids
 
 
