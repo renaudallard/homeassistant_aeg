@@ -110,6 +110,9 @@ programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume and reset.
 Enable the rest from the device page if you want them.
 
+An appliance added to the account turns up on the next look, which loads the
+entry again to read what the new one can do.
+
 A capability tree covers a range of models, so it describes fields a given
 machine does not have. Those get no entity, and one left over from an earlier
 version is taken away, but only once the appliance has been reachable and has

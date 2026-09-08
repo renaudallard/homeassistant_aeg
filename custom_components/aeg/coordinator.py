@@ -204,6 +204,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 overrides={},
             )
         self._refresh_overrides(appliances)
+        self._notice_new(appliances)
         for appliance in appliances.values():
             # The one line worth having when an appliance goes quiet, which is
             # the far end of an answer too long to log whole.
@@ -215,6 +216,23 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 len(appliance.reported),
             )
         return appliances
+
+    def _notice_new(self, appliances: dict[str, Appliance]) -> None:
+        """Load the account again when an appliance has been added to it.
+
+        What an appliance can do is read once, while the entry is being set
+        up, so one that turned up afterwards has no capabilities, no entities
+        of its own and no place in the stream. Reading them means setting the
+        entry up again, which is not something an update can do for itself.
+        """
+        entry = self.config_entry
+        added = set(appliances) - set(self._capabilities)
+        if not added or entry is None:
+            return
+        _LOGGER.debug(
+            "%d appliance(s) added to the account, loading it again", len(added)
+        )
+        self.hass.config_entries.async_schedule_reload(entry.entry_id)
 
     def _refresh_overrides(self, appliances: dict[str, Appliance]) -> None:
         """Work out what each appliance will accept in the state it is in."""

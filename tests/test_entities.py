@@ -366,6 +366,35 @@ async def test_an_account_that_answers_with_nothing_takes_nothing_down(
     assert after == before
 
 
+async def test_an_appliance_added_to_the_account_is_picked_up(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """What an appliance can do is read while the entry is being set up."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    assert not [
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.startswith("a-second-machine-")
+    ]
+
+    both = _fixture("wm-appliances")
+    second = copy.deepcopy(both[0])
+    second["applianceId"] = "a-second-machine"
+    both.append(second)
+    api.appliances.return_value = both
+    with patch("custom_components.aeg.AegApi", return_value=api):
+        freeze_time = dt_util.utcnow() + timedelta(minutes=1)
+        async_fire_time_changed(hass, freeze_time)
+        await hass.async_block_till_done()
+
+    assert [
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.startswith("a-second-machine-")
+    ]
+
+
 async def test_an_appliance_a_listing_left_out_keeps_its_entities(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
