@@ -325,6 +325,103 @@ async def test_a_field_never_reported_is_still_taken_away(
     assert registry.async_get(stale.entity_id) is None
 
 
+async def test_a_finished_update_is_not_an_update_waiting(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The word an appliance uses when an update has gone through is UPDATE_OK.
+
+    Two words that no appliance says were being read as the end of one, and
+    that one was not, so a machine that had just updated said an update was
+    waiting and gave the word itself as the version on offer.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["networkInterface"]["otaState"] = "UPDATE_OK"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.state == "off"
+    assert (
+        firmware.attributes["latest_version"]
+        == firmware.attributes["installed_version"]
+    )
+
+
+async def test_a_word_nobody_can_read_is_not_an_update(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A later firmware can say something none of this knows.
+
+    Reading that as an update in hand would offer the word itself as the
+    version to move to, which is how a machine that had just updated came to
+    say one was waiting.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["networkInterface"]["otaState"] = (
+        "SOMETHING_NEW"
+    )
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.state == "off"
+
+
+async def test_an_update_waiting_on_somebody_says_so(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    state = listed[0]["properties"]["reported"]["networkInterface"]
+    state["otaState"] = "READY_TO_UPDATE"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.state == "on"
+    assert firmware.attributes["in_progress"] is False
+
+
+async def test_an_update_running_says_it_is_running(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["networkInterface"]["otaState"] = (
+        "FW_UPDATE_IN_PROGRESS"
+    )
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.attributes["in_progress"] is True
+
+
+async def test_a_machine_keeping_its_update_state_somewhere_else_still_has_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The newer models keep a swUpdate group of their own.
+
+    They write the same states in camel case, and had no firmware entity at
+    all because only the network unit was looked at.
+    """
+    listed = _fixture("wm-appliances")
+    reported = listed[0]["properties"]["reported"]
+    del reported["networkInterface"]["otaState"]
+    del reported["networkInterface"]["swVersion"]
+    reported["swUpdate"] = {"swUpdateState": "updateAvailable"}
+    reported["swVersions"] = {"niu": {"ver": "v9.9.9"}}
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.state == "on"
+    assert firmware.attributes["installed_version"] == "v9.9.9"
+
+
 async def test_a_field_that_changed_platform_leaves_nothing_behind(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

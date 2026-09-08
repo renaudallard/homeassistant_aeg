@@ -26,12 +26,20 @@
 
 """Firmware an appliance is running, and whatever it is being offered.
 
-An appliance says what it is running and what its network unit is doing about
-an update, which is enough to say whether one is in hand. It does not say what
-version is on offer, so what it does say about the update stands in for that.
+An appliance says what it is running and what it is doing about an update,
+which is enough to say whether one is in hand. It does not say what version is
+on offer, so what it does say about the update stands in for that.
+
+Two vocabularies turn up. The network unit shouts its state and keeps it under
+networkInterface; the newer models keep a swUpdate group of their own and write
+the same states in camel case. Both are read, and the words of both are matched
+without regard to case.
 """
 
 from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.const import EntityCategory
@@ -43,13 +51,31 @@ from .capability import value_at
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity
 
-# Where the network unit keeps what it is running and what it is doing.
-STATE = "networkInterface/otaState"
-VERSION = "networkInterface/swVersion"
-OFFERED = "networkInterface/niuSwUpdateCurrentDescription"
+# Where an appliance keeps what it is doing about an update, what it is
+# running, and what it says about the update it has. The first of each that the
+# appliance reports is the one used.
+STATE = ("networkInterface/otaState", "swUpdate/swUpdateState")
+VERSION = ("networkInterface/swVersion", "swVersions/niu/ver")
+OFFERED = (
+    "networkInterface/niuSwUpdateCurrentDescription",
+    "swUpdate/swUpdateDetails/reason",
+)
 
-# Nothing in hand: whatever it is running is whatever there is.
-SETTLED = frozenset({"IDLE", "UPDATE_COMPLETE", "UPDATE_COMPLETED", "UPDATE_ABORT"})
+# An update in hand and waiting on something, whether on the appliance's own
+# schedule or on somebody authorising it.
+WAITING = frozenset(
+    {
+        "DESCRIPTION_AVAILABLE",
+        "DESCRIPTION_READY",
+        "READY_TO_UPDATE",
+        "WAITINGFORAUTHORIZATION",
+        # The same states as the newer models write them.
+        "UPDATEAVAILABLE",
+        "UPDATEDOWNLOADPENDING",
+        "UPDATEPENDING",
+        "WAITFORUSERAUTH",
+    }
+)
 
 # Something in hand and moving on its own.
 WORKING = frozenset(
@@ -59,8 +85,18 @@ WORKING = frozenset(
         "FW_DOWNLOADING",
         "FW_SIGNATURE_CHECK",
         "FW_UPDATE_IN_PROGRESS",
+        # The same states as the newer models write them.
+        "UPDATEDOWNLOADING",
+        "UPDATING",
     }
 )
+
+# Anything else is nothing in hand, and whatever it is running is whatever
+# there is: idle, a check that turned nothing up, an update that finished or
+# failed or was given up on, and any word a later firmware invents. Claiming
+# an update on a word we cannot read is the worse of the two ways to be wrong,
+# and that is how a machine which had just updated came to say one was waiting.
+IN_HAND = WAITING | WORKING
 
 
 async def async_setup_entry(
@@ -71,8 +107,17 @@ async def async_setup_entry(
         AegFirmware(coordinator, appliance_id)
         for appliance_id, appliance in coordinator.data.items()
         # Only an appliance that says what its network unit is doing.
-        if value_at(appliance.reported, STATE) is not None
+        if _first(appliance.reported, STATE) is not None
     )
+
+
+def _first(reported: Mapping[str, Any], paths: tuple[str, ...]) -> Any:
+    """What the appliance says, from the first of these it says anything at."""
+    for path in paths:
+        found = value_at(reported, path)
+        if found is not None:
+            return found
+    return None
 
 
 class AegFirmware(AegApplianceEntity, UpdateEntity):
@@ -89,9 +134,14 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
         super().__init__(coordinator, appliance_id)
         self._attr_unique_id = f"{appliance_id}-firmware"
 
+    def _says(self, paths: tuple[str, ...]) -> Any:
+        """What this appliance says, wherever it happens to keep it."""
+        appliance = self.appliance
+        return None if appliance is None else _first(appliance.reported, paths)
+
     @property
     def installed_version(self) -> str | None:
-        version = self.at(VERSION)
+        version = self._says(VERSION)
         return None if version is None else str(version)
 
     @property
@@ -100,15 +150,16 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
 
         It does not publish a version to come, so what it says about the update
         stands in for one, and its own word for what it is doing stands in for
-        that. Anything settled means what is running is all there is.
+        that. Any word that does not say an update is in hand, that one
+        included, means what is running is all there is.
         """
-        state = self.at(STATE)
-        if state is None or str(state).upper() in SETTLED:
+        state = self._says(STATE)
+        if state is None or str(state).upper() not in IN_HAND:
             return self.installed_version
-        offered = self.at(OFFERED)
+        offered = self._says(OFFERED)
         return str(offered) if offered else str(state)
 
     @property
     def in_progress(self) -> bool:
-        state = self.at(STATE)
+        state = self._says(STATE)
         return state is not None and str(state).upper() in WORKING
