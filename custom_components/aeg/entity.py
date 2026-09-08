@@ -40,7 +40,14 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .capability import Capability, is_housekeeping, platform_for, value_at
+from .capability import (
+    RUNNING,
+    STATE,
+    Capability,
+    is_housekeeping,
+    platform_for,
+    value_at,
+)
 from .const import DOMAIN
 from .coordinator import AegCoordinator, Appliance
 from .icons import icon_for
@@ -151,6 +158,23 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
     def appliance(self) -> Appliance | None:
         return self.coordinator.data.get(self._appliance_id)
 
+    def at(self, path: str) -> Any:
+        """What the appliance last said about one of its fields."""
+        appliance = self.appliance
+        return None if appliance is None else value_at(appliance.reported, path)
+
+    def override_for(self, path: str) -> Override:
+        """What the appliance says about one field in the state it is in."""
+        appliance = self.appliance
+        if appliance is None:
+            return Override()
+        return appliance.overrides.get(path, Override())
+
+    @property
+    def running(self) -> bool:
+        """Whether the appliance says it is doing something."""
+        return str(self.at(STATE)).upper() == RUNNING
+
     @property
     def reachable(self) -> bool:
         """Whether the cloud can still hear the appliance."""
@@ -221,17 +245,11 @@ class AegEntity(AegApplianceEntity):
     @property
     def override(self) -> Override:
         """What the appliance says about this field in the state it is in."""
-        appliance = self.appliance
-        if appliance is None:
-            return Override()
-        return appliance.overrides.get(self.capability.path, Override())
+        return self.override_for(self.capability.path)
 
     @property
     def reported(self) -> Any:
-        appliance = self.appliance
-        if appliance is None:
-            return None
-        return value_at(appliance.reported, self.capability.path)
+        return self.at(self.capability.path)
 
     async def send(self, value: Any) -> None:
         await self.coordinator.send(self._appliance_id, self.capability.path, value)

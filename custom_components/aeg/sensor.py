@@ -44,15 +44,7 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
-from .capability import (
-    RUNNING,
-    SENSOR,
-    STATE,
-    Capability,
-    counts_down,
-    is_duration,
-    value_at,
-)
+from .capability import SENSOR, Capability, counts_down, is_duration
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
@@ -185,10 +177,7 @@ class AegDuration(AegEntity, SensorEntity):
         length of the programme it is set to back where the time left was.
         Counting that down would show a wash that is not happening.
         """
-        appliance = self.appliance
-        if appliance is None:
-            return False
-        return str(value_at(appliance.reported, STATE)).upper() == RUNNING
+        return self.running
 
     def _stale_after(self) -> float:
         """How long a figure can be counted down from before it is guesswork.
@@ -257,13 +246,9 @@ class AegFinishesAt(AegEntity, SensorEntity):
         the length of its next programme where the time left was, and a finish
         worked out from that is for a wash nobody has started.
         """
-        appliance = self.appliance
-        running = appliance is not None and (
-            str(value_at(appliance.reported, STATE)).upper() == RUNNING
-        )
         seconds = self.reported
         usable = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
-        if not running or not usable or seconds < 0:
+        if not self.running or not usable or seconds < 0:
             self._at = None
             return
         # To the second: the appliance counts in seconds, and a finish that

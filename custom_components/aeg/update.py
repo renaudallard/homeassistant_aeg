@@ -33,8 +33,6 @@ version is on offer, so what it does say about the update stands in for that.
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -91,13 +89,9 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
         super().__init__(coordinator, appliance_id)
         self._attr_unique_id = f"{appliance_id}-firmware"
 
-    def _at(self, path: str) -> Any:
-        appliance = self.appliance
-        return None if appliance is None else value_at(appliance.reported, path)
-
     @property
     def installed_version(self) -> str | None:
-        version = self._at(VERSION)
+        version = self.at(VERSION)
         return None if version is None else str(version)
 
     @property
@@ -108,13 +102,13 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
         stands in for one, and its own word for what it is doing stands in for
         that. Anything settled means what is running is all there is.
         """
-        state = self._at(STATE)
+        state = self.at(STATE)
         if state is None or str(state).upper() in SETTLED:
             return self.installed_version
-        offered = self._at(OFFERED)
+        offered = self.at(OFFERED)
         return str(offered) if offered else str(state)
 
     @property
     def in_progress(self) -> bool:
-        state = self._at(STATE)
+        state = self.at(STATE)
         return state is not None and str(state).upper() in WORKING

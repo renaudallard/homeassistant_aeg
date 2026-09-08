@@ -47,7 +47,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import STATE, Capability, value_at
+from .capability import STATE, Capability
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity
 
@@ -132,10 +132,6 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             features |= ClimateEntityFeature.SWING_MODE
         self._attr_supported_features = features
 
-    def _at(self, path: str) -> Any:
-        appliance = self.appliance
-        return None if appliance is None else value_at(appliance.reported, path)
-
     @property
     def available(self) -> bool:
         # A thermostat is a control like any other, and there is nothing to
@@ -145,29 +141,29 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
 
     @property
     def hvac_mode(self) -> HVACMode | None:
-        if str(self._at(STATE)).upper() == "OFF":
+        if str(self.at(STATE)).upper() == "OFF":
             return HVACMode.OFF
-        running = self._at(MODE)
+        running = self.at(MODE)
         return MODES.get(str(running).upper()) if running is not None else None
 
     @property
     def current_temperature(self) -> float | None:
-        reading = self._at(AMBIENT)
+        reading = self.at(AMBIENT)
         return float(reading) if isinstance(reading, (int, float)) else None
 
     @property
     def target_temperature(self) -> float | None:
-        reading = self._at(TARGET)
+        reading = self.at(TARGET)
         return float(reading) if isinstance(reading, (int, float)) else None
 
     @property
     def fan_mode(self) -> str | None:
-        value = self._at(FAN)
+        value = self.at(FAN)
         return None if value is None else str(value)
 
     @property
     def swing_mode(self) -> str | None:
-        value = self._at(SWING)
+        value = self.at(SWING)
         return None if value is None else str(value)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
