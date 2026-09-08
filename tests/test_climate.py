@@ -38,7 +38,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.components.climate.const import HVACMode
-from homeassistant.const import CONF_COUNTRY, CONF_EMAIL
+from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -121,6 +121,21 @@ async def test_only_the_ways_of_running_it_knows_are_offered(
         HVACMode.FAN_ONLY,
         HVACMode.OFF,
     }
+
+
+async def test_a_thermostat_out_of_reach_cannot_be_set(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The parts it gathers up go unavailable, and it has to go with them."""
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["connectionState"] = "disconnected"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    climate = hass.states.get(THERMOSTAT)
+    assert climate is not None and climate.state == STATE_UNAVAILABLE
+    target = hass.states.get("number.clim_target_temperature")
+    assert target is not None and target.state == STATE_UNAVAILABLE
 
 
 async def test_a_washing_machine_is_not_a_thermostat(

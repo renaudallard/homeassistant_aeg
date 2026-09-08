@@ -133,6 +133,13 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         return None if appliance is None else value_at(appliance.reported, path)
 
     @property
+    def available(self) -> bool:
+        # A thermostat is a control like any other, and there is nothing to
+        # set on an appliance that cannot be reached. The parts it gathers up
+        # go unavailable there, and it would look broken staying behind.
+        return super().available and self.reachable
+
+    @property
     def hvac_mode(self) -> HVACMode | None:
         if str(self._at("applianceState")).upper() == "OFF":
             return HVACMode.OFF

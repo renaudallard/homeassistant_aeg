@@ -152,6 +152,12 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
         return self.coordinator.data.get(self._appliance_id)
 
     @property
+    def reachable(self) -> bool:
+        """Whether the cloud can still hear the appliance."""
+        appliance = self.appliance
+        return appliance is not None and appliance.connected
+
+    @property
     def device_info(self) -> DeviceInfo:
         appliance = self.appliance
         return DeviceInfo(
@@ -192,12 +198,6 @@ class AegEntity(AegApplianceEntity):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
             self._attr_entity_registry_enabled_default = False
-
-    @property
-    def reachable(self) -> bool:
-        """Whether the cloud can still hear the appliance."""
-        appliance = self.appliance
-        return appliance is not None and appliance.connected
 
     @property
     def available(self) -> bool:
