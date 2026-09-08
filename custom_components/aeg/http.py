@@ -96,6 +96,23 @@ SECRETS = frozenset(
     }
 )
 
+# A name can be a secret in one place and the answer in another. An appliance
+# reports what it is complaining about as a list of codes, and those are words
+# it picked from a list of its own: they are the one thing a report about a
+# machine misbehaving cannot do without. The code that arrives in a login is a
+# credential and shares nothing with them but the name, so what a field sits
+# under decides which of the two it is.
+OPENLY = {
+    "alert": frozenset({"code"}),
+    "alerts": frozenset({"code"}),
+}
+
+
+def _secret(key: str, under: str) -> bool:
+    """Whether a field is a secret where it turned up."""
+    named = key.lower()
+    return named in SECRETS and named not in OPENLY.get(under.lower(), frozenset())
+
 
 def _hidden(value: Any) -> Any:
     """What a secret is replaced by.
@@ -114,15 +131,23 @@ def _hidden(value: Any) -> Any:
     return "<hidden>"
 
 
-def redact(data: Any) -> Any:
-    """Copy a structure with every secret replaced by a note of its length."""
+def redact(data: Any, under: str = "") -> Any:
+    """Copy a structure with every secret replaced by a note of its length.
+
+    What a field sits under travels with it, since a couple of names mean one
+    thing in an appliance's report and another in a login.
+    """
     if isinstance(data, dict):
         return {
-            key: (_hidden(value) if str(key).lower() in SECRETS else redact(value))
+            key: (
+                _hidden(value) if _secret(str(key), under) else redact(value, str(key))
+            )
             for key, value in data.items()
         }
     if isinstance(data, list):
-        return [redact(item) for item in data]
+        # A list does not name anything, so its members are still under
+        # whatever the list itself was under.
+        return [redact(item, under) for item in data]
     return data
 
 

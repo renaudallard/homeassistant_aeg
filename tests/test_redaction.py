@@ -221,3 +221,37 @@ def test_a_secret_hidden_inside_a_list_is_still_hidden() -> None:
 def test_nothing_is_not_a_secret() -> None:
     """An absent field says nothing, so it is left saying nothing."""
     assert redact({"email": None, "password": ""}) == {"email": None, "password": ""}
+
+
+def test_what_the_appliance_is_complaining_about_stays_readable() -> None:
+    """The one thing a report about a misbehaving machine is written for."""
+    reported = redact(
+        {
+            "applianceState": "ALARM",
+            "alerts": [{"code": "WATER_LEAK"}, {"code": "DOOR_OPEN"}],
+        }
+    )
+    text = json.dumps(reported)
+    assert "WATER_LEAK" in text
+    assert "DOOR_OPEN" in text
+    assert "hidden" not in text
+
+
+def test_a_model_naming_its_alerts_in_the_singular_is_read_the_same() -> None:
+    assert redact({"alert": [{"code": "E20"}]}) == {"alert": [{"code": "E20"}]}
+
+
+def test_the_code_that_signs_someone_in_is_still_hidden() -> None:
+    """It shares nothing with an alert code but the name."""
+    form = redact({"code": "483920", "vToken": "a-token", "gmid": "an-id"})
+    assert "483920" not in json.dumps(form)
+
+
+def test_an_alert_hides_whatever_else_it_carries() -> None:
+    """Only the code is the appliance's own vocabulary."""
+    hidden = redact(
+        {"alerts": [{"code": "WATER_LEAK", "email": "someone@example.com"}]}
+    )
+    text = json.dumps(hidden)
+    assert "WATER_LEAK" in text
+    assert "someone@example.com" not in text
