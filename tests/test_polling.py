@@ -36,7 +36,9 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.aeg.const import DOMAIN
 from custom_components.aeg.coordinator import (
     SCAN_INTERVAL,
     SCAN_INTERVAL_STREAMING,
@@ -45,8 +47,8 @@ from custom_components.aeg.coordinator import (
 
 
 def _coordinator(hass: HomeAssistant) -> AegCoordinator:
-    entry = MagicMock()
-    entry.entry_id = "an-entry"
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
     return AegCoordinator(hass, entry, AsyncMock(), MagicMock())
 
 
