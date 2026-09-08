@@ -145,7 +145,9 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         offered = [
-            MODES[value] for value in self._offered(MODE) or () if value in MODES
+            MODES[value.upper()]
+            for value in self._offered(MODE) or ()
+            if value.upper() in MODES
         ]
         if HVACMode.OFF not in offered and self._turns("OFF") is not None:
             # It turns off by being told to rather than by a mode of its own.
@@ -227,12 +229,16 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             await self._turn(False)
             return
         for word, mapped in MODES.items():
-            if mapped is hvac_mode:
-                if self.hvac_mode is HVACMode.OFF:
-                    # A mode is no use to something that is not running.
-                    await self._turn(True)
-                await self.coordinator.send(self._appliance_id, MODE, word)
-                return
+            if mapped is not hvac_mode:
+                continue
+            spelling = self._spelling(MODE, word)
+            if spelling is None:
+                continue
+            if self.hvac_mode is HVACMode.OFF:
+                # A mode is no use to something that is not running.
+                await self._turn(True)
+            await self.coordinator.send(self._appliance_id, MODE, spelling)
+            return
 
     async def async_turn_on(self) -> None:
         await self._turn(True)
@@ -240,30 +246,42 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
     async def async_turn_off(self) -> None:
         await self._turn(False)
 
-    def _turns(self, word: str) -> str | None:
-        """The field that takes ON or OFF as a word, if either of them does.
+    def _spelling(self, path: str, word: str) -> str | None:
+        """How this appliance writes a value, whatever case it writes it in.
+
+        Most of them shout their values and one writes them in camel case, so
+        a value is matched without regard to case and sent back in the letters
+        the appliance itself used.
+        """
+        field = self._fields.get(path)
+        if field is None:
+            return None
+        return next((value for value in field.values if value.upper() == word), None)
+
+    def _turns(self, word: str) -> tuple[str, str] | None:
+        """The field that takes ON or OFF, and how the appliance writes it.
 
         Some appliances keep both among the modes they run in and some keep
         them as commands of their own. The mode is preferred, since that is
         the field the state is read back from.
         """
-        if word in self._fields[MODE].values:
-            return MODE
-        command = self._fields.get(COMMAND)
-        if command is not None and word in command.values:
-            return COMMAND
+        for path in (MODE, COMMAND):
+            spelling = self._spelling(path, word)
+            if spelling is not None:
+                return path, spelling
         return None
 
     async def _turn(self, on: bool) -> None:
         word = "ON" if on else "OFF"
-        field = self._turns(word)
-        if field is None:
+        found = self._turns(word)
+        if found is None:
             # Nothing to send it to. Turning on and off is only offered where
             # one of the two fields has the word, so this is not reachable
             # from a service call.
             _LOGGER.debug("this appliance has no way of being told %s", word)
             return
-        await self.coordinator.send(self._appliance_id, field, word)
+        field, spelling = found
+        await self.coordinator.send(self._appliance_id, field, spelling)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         wanted = kwargs.get(ATTR_TEMPERATURE)

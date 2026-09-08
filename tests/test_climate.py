@@ -36,6 +36,7 @@ import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -391,3 +392,76 @@ async def test_the_fan_and_the_swing_are_sent_as_they_come(
     )
     _, command = api.send_command.await_args.args
     assert command == {"verticalSwing": "ON"}
+
+
+def _lowercase_tree() -> dict[str, Any]:
+    """An air conditioner that writes its modes in camel case.
+
+    One of the trees the app ships does, and it names its commands the same
+    way. Reading them as written would leave a thermostat that knows what it
+    is doing and offers no way of changing it.
+    """
+    return {
+        "mode": {
+            "access": "readwrite",
+            "type": "string",
+            "values": {"auto": {}, "cool": {}, "fanOnly": {}},
+        },
+        "targetTemperatureC": {
+            "access": "readwrite",
+            "type": "temperature",
+            "min": 16,
+            "max": 30,
+            "step": 1,
+        },
+        "executeCommand": {
+            "access": "write",
+            "type": "string",
+            "values": {"off": {}, "on": {}},
+        },
+    }
+
+
+async def test_a_mode_is_read_whatever_case_it_is_written_in(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "cool"
+    api.appliances.return_value = listed
+    api.capabilities.return_value = _lowercase_tree()
+
+    await _setup(hass, entry, api)
+    climate = hass.states.get(THERMOSTAT)
+    assert climate is not None
+    assert climate.state == HVACMode.COOL
+    assert set(climate.attributes["hvac_modes"]) == {
+        HVACMode.AUTO,
+        HVACMode.COOL,
+        HVACMode.FAN_ONLY,
+        HVACMode.OFF,
+    }
+
+
+async def test_a_mode_is_sent_back_in_the_letters_the_appliance_uses(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "cool"
+    api.appliances.return_value = listed
+    api.capabilities.return_value = _lowercase_tree()
+    await _setup(hass, entry, api)
+
+    await hass.services.async_call(
+        "climate",
+        "set_hvac_mode",
+        {"entity_id": THERMOSTAT, "hvac_mode": HVACMode.FAN_ONLY},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"mode": "fanOnly"}
+
+    await hass.services.async_call(
+        "climate", "turn_off", {"entity_id": THERMOSTAT}, blocking=True
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"executeCommand": "off"}
