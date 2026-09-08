@@ -32,6 +32,7 @@ then says nothing on would otherwise leave an appliance looked at once every
 ten minutes.
 """
 
+import asyncio
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -50,6 +51,60 @@ def _coordinator(hass: HomeAssistant) -> AegCoordinator:
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     return AegCoordinator(hass, entry, AsyncMock(), MagicMock())
+
+
+class _Socket:
+    """A connection that stays open and says nothing."""
+
+    def __aiter__(self) -> "_Socket":
+        return self
+
+    async def __anext__(self) -> Any:
+        await asyncio.sleep(3600)
+        raise StopAsyncIteration
+
+
+class _Connection:
+    async def __aenter__(self) -> _Socket:
+        return _Socket()
+
+    async def __aexit__(self, *args: Any) -> bool:
+        return False
+
+
+class _Cloud:
+    """A cloud that accepts a connection and holds it open."""
+
+    def __init__(self) -> None:
+        self.opened = 0
+
+    def ws_connect(self, url: str, **kwargs: Any) -> _Connection:
+        self.opened += 1
+        return _Connection()
+
+
+async def test_the_entry_owns_the_stream(hass: HomeAssistant) -> None:
+    """It has to go when the entry does, so the entry is what holds it.
+
+    Reaching into the entry is the only way to see whose task it is, and whose
+    it is decides whether anything cancels it when the entry unloads.
+    """
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    api = AsyncMock()
+    api.authorization = AsyncMock(return_value="Bearer a-token")
+    api.seconds_until_renewal = MagicMock(return_value=43200.0)
+    cloud = _Cloud()
+    coordinator = AegCoordinator(hass, entry, api, cloud)  # type: ignore[arg-type]
+    coordinator.data = {"an-appliance": MagicMock()}
+
+    coordinator.start_stream("wss://ws.eu.ocp.electrolux.one")
+    await asyncio.sleep(0.05)
+    assert cloud.opened == 1
+    assert len(entry._background_tasks) == 1
+
+    await coordinator.stop_stream()
+    assert not entry._background_tasks
 
 
 async def test_opening_a_stream_is_not_reason_enough_to_ease_off(
