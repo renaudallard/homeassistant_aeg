@@ -51,6 +51,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import sys
 import time
 import traceback
@@ -113,6 +114,15 @@ async def sign_in(
     _ok("session token and secret present")
     _note("so targetEnv=mobile does yield a signable session")
     return session
+
+
+def _plain(name: str) -> str:
+    """A name fit to be part of a path.
+
+    The model comes from the cloud and goes into a filename, and a slash in
+    one would write the dump somewhere nobody asked for.
+    """
+    return re.sub(r"[^A-Za-z0-9._-]", "_", name).strip("._") or "appliance"
 
 
 def _dump(where: Path, name: str, data: Any) -> None:
@@ -205,8 +215,8 @@ async def check(email: str, country: str, dump: Path | None) -> int:
             _ok(f"{len(capabilities)} top level nodes")
             _note(", ".join(sorted(capabilities)[:12]))
             if dump is not None:
-                _dump(dump, f"{model}-capabilities", capabilities)
-                _dump(dump, f"{model}-state", await api.appliance(appliance_id))
+                _dump(dump, f"{_plain(model)}-capabilities", capabilities)
+                _dump(dump, f"{_plain(model)}-state", await api.appliance(appliance_id))
 
     return 0
 
