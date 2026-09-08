@@ -34,6 +34,8 @@ that description holds up against a real one.
 
 import copy
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -95,15 +97,29 @@ def api() -> AsyncMock:
     return mock
 
 
+@contextmanager
+def _cloud(api: AsyncMock) -> Iterator[MagicMock]:
+    """Stand in for the cloud, the calls and the stream alike.
+
+    Without the second of those every test here opens a websocket to the real
+    endpoint the entry names and waits on the network to refuse it.
+    """
+    with (
+        patch("custom_components.aeg.AegApi", return_value=api),
+        patch("custom_components.aeg.coordinator.AegStream", autospec=True) as stream,
+    ):
+        yield stream
+
+
 async def _setup(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) -> None:
-    with patch("custom_components.aeg.AegApi", return_value=api):
+    with _cloud(api):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
 
 async def _again(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) -> None:
     """Set the entry up a second time, with the cloud still stood in for."""
-    with patch("custom_components.aeg.AegApi", return_value=api):
+    with _cloud(api):
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -350,8 +366,7 @@ async def test_a_failed_setup_does_not_leave_the_stream_open(
 ) -> None:
     """An entry that did not load has no business holding a connection open."""
     with (
-        patch("custom_components.aeg.AegApi", return_value=api),
-        patch("custom_components.aeg.coordinator.AegStream", autospec=True) as stream,
+        _cloud(api) as stream,
         patch(
             "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups",
             side_effect=RuntimeError("a platform did not load"),
@@ -403,7 +418,7 @@ async def test_an_appliance_added_to_the_account_is_picked_up(
     second["applianceId"] = "a-second-machine"
     both.append(second)
     api.appliances.return_value = both
-    with patch("custom_components.aeg.AegApi", return_value=api):
+    with _cloud(api):
         freeze_time = dt_util.utcnow() + timedelta(minutes=1)
         async_fire_time_changed(hass, freeze_time)
         await hass.async_block_till_done()

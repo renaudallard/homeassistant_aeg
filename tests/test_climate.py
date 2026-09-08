@@ -33,8 +33,10 @@ air conditioner does what it is told.
 """
 
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.components.climate.const import HVACMode
@@ -93,8 +95,22 @@ def api() -> AsyncMock:
     return mock
 
 
+@contextmanager
+def _cloud(api: AsyncMock) -> Iterator[MagicMock]:
+    """Stand in for the cloud, the calls and the stream alike.
+
+    Without the second of those every test here opens a websocket to the real
+    endpoint the entry names and waits on the network to refuse it.
+    """
+    with (
+        patch("custom_components.aeg.AegApi", return_value=api),
+        patch("custom_components.aeg.coordinator.AegStream", autospec=True) as stream,
+    ):
+        yield stream
+
+
 async def _setup(hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock) -> None:
-    with patch("custom_components.aeg.AegApi", return_value=api):
+    with _cloud(api):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -156,7 +172,7 @@ async def test_the_fan_speeds_follow_the_mode_it_is_in(
     listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
     listed[0]["properties"]["reported"]["mode"] = "FANONLY"
     api.appliances.return_value = listed
-    with patch("custom_components.aeg.AegApi", return_value=api):
+    with _cloud(api):
         await hass.config_entries.async_reload(entry.entry_id)
         await hass.async_block_till_done()
 
