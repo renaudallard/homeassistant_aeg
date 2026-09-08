@@ -262,7 +262,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
     def start_stream(self, url: str) -> None:
         """Ask the cloud to push changes rather than waiting to be asked."""
-        if self._stream is not None or not url or not self.data:
+        entry = self.config_entry
+        if self._stream is not None or not url or not self.data or entry is None:
             return
         self._stream = AegStream(
             self._session,
@@ -273,7 +274,11 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             self._pushed,
             self._streaming,
         )
-        self._stream.start()
+        self._stream.start(
+            lambda watching: entry.async_create_background_task(
+                self.hass, watching, "AEG appliance stream"
+            )
+        )
 
     async def stop_stream(self) -> None:
         stream, self._stream = self._stream, None

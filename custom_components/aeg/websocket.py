@@ -40,7 +40,7 @@ import asyncio
 import contextlib
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from typing import Any
 
 import aiohttp
@@ -55,6 +55,11 @@ RECONNECT_DELAY = 5.0
 MINIMUM_LIFE = 60.0
 # Something is wrong rather than merely unlucky, so wait longer.
 RECONNECT_DELAY_UNEXPECTED = 30.0
+
+# How the caller makes a task of the watching. Home Assistant wants to know
+# about the ones a config entry owns, and nothing else in here knows that Home
+# Assistant exists.
+Spawn = Callable[[Coroutine[Any, Any, None]], "asyncio.Task[None]"]
 
 
 class AegStream:
@@ -83,9 +88,9 @@ class AegStream:
         # Whether the last attempt got as far as an open connection.
         self._opened = False
 
-    def start(self) -> None:
+    def start(self, spawn: Spawn) -> None:
         if self._task is None and self._appliance_ids:
-            self._task = asyncio.create_task(self._run())
+            self._task = spawn(self._run())
 
     async def stop(self) -> None:
         task, self._task = self._task, None

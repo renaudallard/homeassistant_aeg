@@ -96,7 +96,7 @@ async def test_it_opens_again_when_the_token_is_running_out() -> None:
         patch.object(websocket, "MINIMUM_LIFE", 0.01),
         patch.object(websocket, "RECONNECT_DELAY", 0.01),
     ):
-        stream.start()
+        stream.start(asyncio.create_task)
         await asyncio.sleep(0.2)
         await stream.stop()
 
@@ -118,7 +118,7 @@ async def test_it_stays_open_while_the_token_is_good() -> None:
         lambda message: None,
         lambda connected: None,
     )
-    stream.start()
+    stream.start(asyncio.create_task)
     await asyncio.sleep(0.2)
     await stream.stop()
 
@@ -136,7 +136,7 @@ async def test_it_says_which_appliances_to_watch() -> None:
         lambda message: None,
         lambda connected: None,
     )
-    stream.start()
+    stream.start(asyncio.create_task)
     await asyncio.sleep(0.05)
     await stream.stop()
 
@@ -170,7 +170,7 @@ async def test_a_handshake_the_cloud_refuses_is_not_retried_at_once() -> None:
         lambda connected: None,
     )
     with patch.object(websocket, "RECONNECT_DELAY", 0.01):
-        stream.start()
+        stream.start(asyncio.create_task)
         await asyncio.sleep(0.2)
         await stream.stop()
 
@@ -208,7 +208,7 @@ async def test_a_stream_that_never_works_says_so_once(
         caplog.at_level(logging.ERROR, logger="custom_components.aeg.websocket"),
         patch.object(websocket, "RECONNECT_DELAY_UNEXPECTED", 0.01),
     ):
-        stream.start()
+        stream.start(asyncio.create_task)
         await asyncio.sleep(0.2)
         await stream.stop()
 
