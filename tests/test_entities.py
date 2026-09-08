@@ -622,6 +622,25 @@ async def test_a_complaining_machine_says_what_is_wrong(
     assert state.attributes["alerts"] == ["DOOR", "UNBALANCED_LAUNDRY"]
 
 
+async def test_what_went_wrong_outlives_the_machine_going_quiet(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The moment someone looks is the moment after the machine turned off."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["alerts"] = ["UNBALANCED_LAUNDRY"]
+    listed[0]["connectionState"] = "disconnected"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    state = hass.states.get("binary_sensor.lave_linge_alerts")
+    assert state is not None
+    assert state.state == "on"
+    assert state.attributes["alerts"] == ["UNBALANCED_LAUNDRY"]
+    # The one entity that is meant to say the appliance has gone.
+    connection = hass.states.get("binary_sensor.lave_linge_connection")
+    assert connection is not None and connection.state == "off"
+
+
 async def test_a_richer_alert_is_not_thrown_away(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

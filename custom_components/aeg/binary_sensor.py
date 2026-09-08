@@ -77,6 +77,11 @@ class AegAlerts(AegEntity, BinarySensorEntity):
     The appliance reports a list of codes, empty when there is nothing wrong.
     One entity says whether anything is wrong, and carries the codes, which is
     more use than a sensor holding a list nobody can read.
+
+    An empty list is an answer, so this reads false rather than nothing, and it
+    outlives the appliance going quiet the way the other readings do. Whether a
+    wash ended in an error is exactly what someone comes looking for once the
+    machine has turned itself off.
     """
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
@@ -102,17 +107,6 @@ class AegAlerts(AegEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         return {"alerts": self._active}
-
-    @property
-    def available(self) -> bool:
-        # An empty list is an answer: nothing is wrong.
-        appliance = self.appliance
-        return (
-            self.coordinator.last_update_success
-            and appliance is not None
-            and appliance.connected
-            and self.reported is not None
-        )
 
 
 class AegConnection(AegApplianceEntity, BinarySensorEntity):
