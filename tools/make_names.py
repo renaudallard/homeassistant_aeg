@@ -47,10 +47,10 @@ from pathlib import Path
 sys.path.insert(0, ".")
 
 from custom_components.aeg.capability import parse, platform_for
-from custom_components.aeg.names import NAMES, key_for, readable
+from custom_components.aeg.names import NAMES, PLATFORMS_FOR, key_for, readable
 
 COMPONENT = Path("custom_components/aeg")
-TREES = ["tests/fixtures/wm-capabilities.json", "tmp/base/assets/*capabilities*.json"]
+TREES = ["tests/fixtures/*-capabilities.json", "tmp/base/assets/*capabilities*.json"]
 
 
 def _trees() -> list[Path]:
@@ -69,6 +69,19 @@ def _where() -> dict[str, set[str]]:
             if platform and readable(capability.name):
                 seen[key_for(capability.name)].add(platform)
     return seen
+
+
+def _lost(seen: dict[str, set[str]]) -> list[str]:
+    """Named fields that none of the trees to hand says anything about.
+
+    Most of the trees are the ones the app ships, and those live under tmp,
+    which is not in the repository. A checkout on its own sees only the two
+    the tests use, and writing what those alone say would quietly take the
+    text for two thirds of the named fields out of Home Assistant, and out of
+    every translation of it.
+    """
+    named = {key_for(field) for field in NAMES}
+    return sorted(key for key in PLATFORMS_FOR if key in named and key not in seen)
 
 
 def _write_names(seen: dict[str, set[str]]) -> None:
@@ -104,6 +117,13 @@ def main() -> int:
         print("no capability trees to read")
         return 1
     seen = _where()
+    if lost := _lost(seen):
+        print(f"nothing written: {len(trees)} trees to hand say nothing about")
+        print(f"{len(lost)} fields that are named and placed already:")
+        for key in lost:
+            print(f"  {key}")
+        print("unpack the app into tmp/base, or take the names out first")
+        return 1
     _write_names(seen)
     _write_strings(seen)
     print(f"{len(seen)} named fields, from {len(trees)} trees")

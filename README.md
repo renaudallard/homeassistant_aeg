@@ -266,6 +266,12 @@ problem.
 from every capability tree to hand, and writes both the table at the bottom of
 `names.py` and the entity text in `strings.json`. Run it after adding a name.
 
+Most of those trees are the ones the app ships, which live in `tmp/base` and
+are not in the repository, so a fresh checkout has only the two the tests use.
+It refuses to write anything when the trees to hand say nothing about a field
+that is already named and placed, rather than quietly dropping two thirds of
+the entity text and every translation of it.
+
 `tools/make_translations.py` writes every language file from
 `tools/translations.json`, which holds what each English string says in each
 language. The words are data rather than code, so translating does not mean
