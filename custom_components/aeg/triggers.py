@@ -187,7 +187,14 @@ def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> No
 def evaluate(
     capabilities: Sequence[Capability], reported: Mapping[str, Any]
 ) -> dict[str, Override]:
-    """Work out what every field will accept, given the state right now."""
+    """Work out what every field will accept, given the state right now.
+
+    A trigger with no condition on it is not applied. An oven ships two of
+    them, and they contradict each other over which commands it takes, so
+    whatever they are meant to say cannot be read out of them. Leaving them
+    alone means a field keeps what it describes, which is what it would have
+    done had the appliance not mentioned them.
+    """
     found: dict[str, Override] = {}
     for capability in capabilities:
         if not capability.triggers:
