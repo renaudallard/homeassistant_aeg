@@ -33,7 +33,7 @@ ten minutes.
 """
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
 
@@ -91,5 +91,25 @@ async def test_a_stream_that_drops_puts_it_back(hass: HomeAssistant) -> None:
     coordinator = _coordinator(hass)
     coordinator.update_interval = SCAN_INTERVAL_STREAMING
 
-    coordinator._streaming(False)
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._streaming(False)
+        await hass.async_block_till_done()
+
     assert coordinator.update_interval == SCAN_INTERVAL
+    # The look already scheduled is ten minutes out, so shortening the
+    # interval on its own leaves the appliance unwatched until it happens.
+    asked.assert_called_once()
+
+
+async def test_a_stream_that_drops_while_polling_asks_for_nothing(
+    hass: HomeAssistant,
+) -> None:
+    """Every reconnect says the stream dropped, and most of them change nothing."""
+    coordinator = _coordinator(hass)
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._streaming(False)
+        await hass.async_block_till_done()
+
+    assert coordinator.update_interval == SCAN_INTERVAL
+    asked.assert_not_called()

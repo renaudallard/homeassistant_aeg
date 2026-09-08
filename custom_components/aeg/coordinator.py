@@ -280,8 +280,13 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         an appliance being looked at once every ten minutes, which reads as an
         integration that has stopped working.
         """
-        if not connected:
-            self.update_interval = SCAN_INTERVAL
+        if connected or self.update_interval == SCAN_INTERVAL:
+            return
+        self.update_interval = SCAN_INTERVAL
+        # How often to ask is not when to ask next: the look already scheduled
+        # is still ten minutes out, and shortening the interval does not bring
+        # it forward. Asking now is what does.
+        self.hass.async_create_task(self.async_request_refresh())
 
     async def send(self, appliance_id: str, path: str, value: Any) -> None:
         """Send one field, nested the way the appliance reports it back.

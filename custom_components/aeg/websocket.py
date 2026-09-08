@@ -111,6 +111,8 @@ class AegStream:
                     # not a reason to wait before opening another.
                     delay = 0.0
             except asyncio.CancelledError:
+                # Being stopped is not the stream dropping, and whatever is
+                # stopping it does not want to hear that it has.
                 raise
             except aiohttp.ClientError as err:
                 _LOGGER.debug("the stream dropped: %s", err)
@@ -126,8 +128,7 @@ class AegStream:
                     _LOGGER.exception("the stream failed unexpectedly")
                     self._complained = True
                 delay = RECONNECT_DELAY_UNEXPECTED
-            finally:
-                self._on_connected(False)
+            self._on_connected(False)
             if delay:
                 await asyncio.sleep(delay)
 
