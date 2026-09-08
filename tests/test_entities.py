@@ -148,6 +148,26 @@ async def test_an_appliance_that_says_nothing_about_its_capabilities_is_asked(
     assert api.capabilities.await_count == 2
 
 
+async def test_a_tree_kept_by_another_version_is_asked_for_again(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    api: AsyncMock,
+    hass_storage: dict[str, Any],
+) -> None:
+    """Reading one again costs a call, and reading it wrong costs the entry."""
+    key = f"{DOMAIN}.{entry.entry_id}.capabilities"
+    hass_storage[key] = {
+        "version": 0,
+        "minor_version": 1,
+        "key": key,
+        "data": {"an-appliance": {"hash": "a-hash", "tree": {}, "seen": []}},
+    }
+
+    await _setup(hass, entry, api)
+    assert entry.state is ConfigEntryState.LOADED
+    api.capabilities.assert_awaited_once()
+
+
 async def test_the_appliance_loads(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

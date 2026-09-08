@@ -55,7 +55,8 @@ from .websocket import AegStream, apply
 _LOGGER = logging.getLogger(__name__)
 
 # Bump when a capability tree read from the store would no longer be
-# understood, so the next start fetches instead of trusting it.
+# understood. Anything written under another version is thrown away rather
+# than migrated, so the next start fetches instead of trusting it.
 STORE_VERSION = 1
 
 # What a group of settings says it is a setting of.
@@ -67,9 +68,29 @@ SCAN_INTERVAL = timedelta(seconds=30)
 SCAN_INTERVAL_STREAMING = timedelta(minutes=10)
 
 
-def capability_store(hass: HomeAssistant, entry: ConfigEntry) -> Store[dict[str, Any]]:
+class CapabilityStore(Store[dict[str, Any]]):
+    """What each appliance said it can do, kept between starts.
+
+    Nothing in here is worth migrating. A tree written under a version that
+    read it differently is thrown away and asked for again, which costs one
+    call per appliance and is the whole point of the version above.
+    """
+
+    async def _async_migrate_func(
+        self,
+        old_major_version: int,
+        old_minor_version: int,
+        old_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Keep nothing, so that everything is read afresh."""
+        return {}
+
+
+def capability_store(hass: HomeAssistant, entry: ConfigEntry) -> CapabilityStore:
     """Where an account's capability trees are kept between starts."""
-    return Store(hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}.capabilities")
+    return CapabilityStore(
+        hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}.capabilities"
+    )
 
 
 @dataclass
