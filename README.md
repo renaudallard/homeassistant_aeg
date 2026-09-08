@@ -263,7 +263,7 @@ the suite, and **Validate** runs HACS validation and hassfest. Neither of the
 latter two runs locally, so that workflow is the first sign of a manifest
 problem.
 
-### Checking a login by hand
+### Regenerating the names and the translations
 
 `tools/make_names.py` works out which platforms each named field turns up on,
 from every capability tree to hand, and writes both the table at the bottom of
@@ -280,6 +280,8 @@ the entity text and every translation of it.
 language. The words are data rather than code, so translating does not mean
 reading Python. It reports anything it had no words for and leaves that in
 English.
+
+### Checking a login by hand
 
 `tools/check_login.py` walks the whole login against a real account, from the
 provider lookup through to reading an appliance capability tree, and says which
