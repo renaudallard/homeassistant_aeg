@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "This account is already set up.",
-      "reauth_successful": "Signed in again successfully."
+      "reauth_successful": "Signed in again successfully.",
+      "unique_id_mismatch": "That is a different account. Sign in with the one this entry was set up for."
     }
   },
   "entity": {

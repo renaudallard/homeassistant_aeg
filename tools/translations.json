@@ -1089,6 +1089,16 @@
   "pl": "Kod nie został zaakceptowany. Mógł wygasnąć – w takim razie poproś o nowy.",
   "sv": "Koden godtogs inte. Den kan ha gått ut; begär i så fall en ny."
  },
+ "That is a different account. Sign in with the one this entry was set up for.": {
+  "da": "Det er en anden konto. Log ind med den, denne konfiguration blev oprettet til.",
+  "de": "Das ist ein anderes Konto. Melden Sie sich mit dem Konto an, für das dieser Eintrag eingerichtet wurde.",
+  "es": "Esa es una cuenta distinta. Inicia sesión con la cuenta para la que se configuró esta entrada.",
+  "fr": "Ce n'est pas le même compte. Connectez-vous avec celui pour lequel cette entrée a été créée.",
+  "it": "Questo è un account diverso. Accedi con quello per cui è stata configurata questa voce.",
+  "nl": "Dit is een ander account. Meld je aan met het account waarvoor dit item is ingesteld.",
+  "pl": "To jest inne konto. Zaloguj się na konto, dla którego skonfigurowano ten wpis.",
+  "sv": "Det är ett annat konto. Logga in med det konto som den här posten skapades för."
+ },
  "The account could not be signed in.": {
   "da": "Kontoen kunne ikke logges ind.",
   "de": "Das Konto konnte nicht angemeldet werden.",

@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "Det här kontot är redan konfigurerat.",
-      "reauth_successful": "Inloggad igen."
+      "reauth_successful": "Inloggad igen.",
+      "unique_id_mismatch": "Det är ett annat konto. Logga in med det konto som den här posten skapades för."
     }
   },
   "entity": {

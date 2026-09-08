@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "Dieses Konto ist bereits eingerichtet.",
-      "reauth_successful": "Erneute Anmeldung erfolgreich."
+      "reauth_successful": "Erneute Anmeldung erfolgreich.",
+      "unique_id_mismatch": "Das ist ein anderes Konto. Melden Sie sich mit dem Konto an, für das dieser Eintrag eingerichtet wurde."
     }
   },
   "entity": {

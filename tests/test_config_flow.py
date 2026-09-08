@@ -318,6 +318,45 @@ async def test_the_same_account_is_not_added_twice(
     assert result["reason"] == "already_configured"
 
 
+async def test_reauth_refuses_a_different_account(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """One account's tokens under another's name would take its appliances."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=EMAIL,
+        data={
+            CONF_EMAIL: EMAIL,
+            CONF_COUNTRY: COUNTRY,
+            CONF_BASE_URL: PROVIDER.http_base_url,
+            CONF_ACCESS_TOKEN: "a-stale-token",
+            CONF_REFRESH_TOKEN: "a-stale-refresh-token",
+            CONF_EXPIRES_AT: 0.0,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reauth_flow(hass)
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "password"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_EMAIL: "someone-else@example.com",
+                CONF_COUNTRY: COUNTRY,
+                CONF_PASSWORD: PASSWORD,
+            },
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "unique_id_mismatch"
+    # The entry is left as it was, stale tokens and all.
+    assert entry.data[CONF_EMAIL] == EMAIL
+    assert entry.data[CONF_ACCESS_TOKEN] == "a-stale-token"
+
+
 async def test_reauth_updates_the_entry_in_place(
     hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
 ) -> None:

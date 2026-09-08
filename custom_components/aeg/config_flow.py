@@ -254,6 +254,9 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         """Write the account into an entry, or back into the one it is for."""
         await self.async_set_unique_id(self._email.lower())
         if self.source == SOURCE_REAUTH:
+            # Signing in as somebody else would put one account's tokens under
+            # another's name and take its appliances with them.
+            self._abort_if_unique_id_mismatch()
             return self.async_update_reload_and_abort(
                 self._get_reauth_entry(), data=data
             )

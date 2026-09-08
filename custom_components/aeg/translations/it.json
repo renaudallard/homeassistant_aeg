@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "Questo account è già configurato.",
-      "reauth_successful": "Accesso effettuato di nuovo."
+      "reauth_successful": "Accesso effettuato di nuovo.",
+      "unique_id_mismatch": "Questo è un account diverso. Accedi con quello per cui è stata configurata questa voce."
     }
   },
   "entity": {

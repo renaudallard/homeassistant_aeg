@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "Ce compte est déjà configuré.",
-      "reauth_successful": "Reconnexion réussie."
+      "reauth_successful": "Reconnexion réussie.",
+      "unique_id_mismatch": "Ce n'est pas le même compte. Connectez-vous avec celui pour lequel cette entrée a été créée."
     }
   },
   "entity": {

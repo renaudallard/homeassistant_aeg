@@ -86,7 +86,8 @@ registered in.
 
 Tokens are written into the config entry and renewed in the background. If they
 stop working, Home Assistant asks you to sign in again rather than failing
-quietly.
+quietly. It has to be the same account: signing in as somebody else is refused
+rather than quietly pointing the entry at another household's appliances.
 
 ## What you get
 

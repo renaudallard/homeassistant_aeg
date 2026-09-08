@@ -49,7 +49,8 @@
     },
     "abort": {
       "already_configured": "To konto jest już skonfigurowane.",
-      "reauth_successful": "Ponowne logowanie powiodło się."
+      "reauth_successful": "Ponowne logowanie powiodło się.",
+      "unique_id_mismatch": "To jest inne konto. Zaloguj się na konto, dla którego skonfigurowano ten wpis."
     }
   },
   "entity": {
