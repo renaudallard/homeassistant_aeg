@@ -83,6 +83,12 @@ async def async_get_config_entry_diagnostics(
                         "access": override.access,
                         "values": list(override.values or ()),
                         "disabled": override.disabled,
+                        # What a number will take right now, which is not the
+                        # range the field describes and is what decides the
+                        # bounds somebody is being offered.
+                        "min": override.minimum,
+                        "max": override.maximum,
+                        "step": override.step,
                     }
                     for path, override in appliance.overrides.items()
                 },

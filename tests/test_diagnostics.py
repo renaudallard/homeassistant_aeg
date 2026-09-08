@@ -64,6 +64,11 @@ async def test_it_says_what_the_appliance_can_do(
     # about a button that will not press.
     assert "executeCommand" in machine["accepts_now"]
 
+    # And of one about a number that will not go where somebody wants it. The
+    # range a field describes is not the one being offered.
+    temperature = machine["accepts_now"]["userSelections/analogTemperature"]
+    assert set(temperature) == {"access", "values", "disabled", "min", "max", "step"}
+
 
 async def test_it_says_whether_the_stream_is_carrying_it(
     hass: HomeAssistant,
