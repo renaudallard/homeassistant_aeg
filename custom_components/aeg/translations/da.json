@@ -72,6 +72,9 @@
       }
     },
     "number": {
+      "display_light": {
+        "name": "Displaylysstyrke"
+      },
       "flap_position": {
         "name": "Lamelposition"
       },
@@ -255,9 +258,6 @@
       },
       "cycle_sub_phase": {
         "name": "Programtrin"
-      },
-      "display_light": {
-        "name": "Displaylysstyrke"
       },
       "do_not_disturb_end_time": {
         "name": "Forstyr ikke til"

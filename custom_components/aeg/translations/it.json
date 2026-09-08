@@ -72,6 +72,9 @@
       }
     },
     "number": {
+      "display_light": {
+        "name": "Luminosità del display"
+      },
       "flap_position": {
         "name": "Posizione del deflettore"
       },
@@ -255,9 +258,6 @@
       },
       "cycle_sub_phase": {
         "name": "Fase secondaria"
-      },
-      "display_light": {
-        "name": "Luminosità del display"
       },
       "do_not_disturb_end_time": {
         "name": "Non disturbare fino alle"

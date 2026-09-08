@@ -154,6 +154,28 @@ def test_a_number_needs_a_range_to_be_settable() -> None:
     assert platform_for(without) == SENSOR
 
 
+def test_a_range_says_how_to_set_a_field_whatever_it_calls_its_type() -> None:
+    """An air conditioner sets its display brightness from 0 to 100 in ones.
+
+    It types that field as a string, and reading the type rather than the
+    range made a field the appliance takes settings on into a reading nobody
+    could set.
+    """
+    worded = _one(
+        {
+            "displayLight": {
+                "access": "readwrite",
+                "type": "string",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+            }
+        }
+    )
+    assert platform_for(worded) == NUMBER
+    assert (worded.minimum, worded.maximum, worded.step) == (0.0, 100.0, 1.0)
+
+
 def test_readings_stay_readings() -> None:
     assert platform_for(
         _one({"runningTime": {"access": "read", "type": "number"}})

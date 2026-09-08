@@ -177,7 +177,11 @@ def platform_for(capability: Capability) -> str | None:
     # A range wins over a list of values. A number can carry both, where the
     # values are sentinels rather than the choice on offer: stopTime accepts
     # anything from 0 to 86400 and also -1, meaning no stop time is set.
-    if capability.kind in NUMERIC and capability.minimum is not None:
+    #
+    # The range is what says how to set a field, whatever the field calls its
+    # own type: an air conditioner takes a display brightness anywhere from 0
+    # to 100 in steps of 1 and calls it a string.
+    if capability.minimum is not None:
         return NUMBER if capability.writable else SENSOR
 
     if capability.values:

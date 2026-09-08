@@ -240,7 +240,7 @@ PLATFORMS_FOR: dict[str, frozenset[str]] = {
     "cycle_sub_phase": frozenset({"sensor"}),
     "default_extra_rinse": frozenset({"select"}),
     "detergent_type": frozenset({"select"}),
-    "display_light": frozenset({"select", "sensor"}),
+    "display_light": frozenset({"number", "select"}),
     "do_not_disturb_enabled": frozenset({"switch"}),
     "do_not_disturb_end_time": frozenset({"sensor"}),
     "do_not_disturb_start_time": frozenset({"sensor"}),

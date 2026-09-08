@@ -72,6 +72,9 @@
       }
     },
     "number": {
+      "display_light": {
+        "name": "Jasność wyświetlacza"
+      },
       "flap_position": {
         "name": "Pozycja żaluzji"
       },
@@ -255,9 +258,6 @@
       },
       "cycle_sub_phase": {
         "name": "Krok cyklu"
-      },
-      "display_light": {
-        "name": "Jasność wyświetlacza"
       },
       "do_not_disturb_end_time": {
         "name": "Nie przeszkadzać do"
