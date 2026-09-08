@@ -211,7 +211,13 @@ def _numbered(node: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     fields of each under it. An air conditioner writes its louvres as values
     of the group instead, with the fields under those. Both mean one member
     called 0, and both come out as the same paths.
+
+    Only a node that says it holds a structure is read this way. A field that
+    holds a value has values of its own, and one of those carrying properties
+    would otherwise take the field apart and leave nothing to set.
     """
+    if str(node.get("type", "")) not in STRUCTURED:
+        return {}
     values = node.get("values")
     if not isinstance(values, Mapping):
         return {}

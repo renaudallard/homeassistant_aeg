@@ -270,6 +270,28 @@ def test_a_field_with_every_value_set_aside_has_nothing_to_choose_between() -> N
     assert platform_for(nothing) == SENSOR
 
 
+def test_a_field_whose_values_carry_properties_is_still_a_field() -> None:
+    """Only a node that says it holds a structure is read as a group.
+
+    A value of a plain field can carry whatever the appliance likes, and
+    taking it apart on the strength of one key would leave nothing to set.
+    """
+    found = parse(
+        {
+            "fanSpeedSetting": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {
+                    "LOW": {},
+                    "HIGH": {"properties": {"note": {"access": "read"}}},
+                },
+            }
+        }
+    )
+    assert [capability.path for capability in found] == ["fanSpeedSetting"]
+    assert platform_for(found[0]) == SELECT
+
+
 def test_a_field_holding_a_structure_is_not_a_reading() -> None:
     """An air purifier carries a second list of alerts and types it as one.
 
