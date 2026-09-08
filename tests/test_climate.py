@@ -40,6 +40,7 @@ import pytest
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.aeg.const import (
@@ -136,6 +137,35 @@ async def test_a_thermostat_out_of_reach_cannot_be_set(
     assert climate is not None and climate.state == STATE_UNAVAILABLE
     target = hass.states.get("number.clim_target_temperature")
     assert target is not None and target.state == STATE_UNAVAILABLE
+
+
+async def test_the_fan_speeds_follow_the_mode_it_is_in(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """It drops TURBO from the fan speeds in its automatic and fan only modes."""
+    await _setup(hass, entry, api)
+    cooling = hass.states.get("select.clim_fan_speed")
+    assert cooling is not None
+    assert "TURBO" in cooling.attributes["options"]
+
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "FANONLY"
+    api.appliances.return_value = listed
+    with patch("custom_components.aeg.AegApi", return_value=api):
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+    limited = hass.states.get("select.clim_fan_speed")
+    assert limited is not None
+    assert limited.attributes["options"] == ["AUTO", "HIGH", "LOW", "MIDDLE", "QUIET"]
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": "select.clim_fan_speed", "option": "TURBO"},
+            blocking=True,
+        )
 
 
 async def test_a_washing_machine_is_not_a_thermostat(

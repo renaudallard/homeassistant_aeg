@@ -85,13 +85,35 @@ class AegSelect(AegEntity, SelectEntity):
         shown = numbering(capability.values)
         self._values = {shown.get(value, value): value for value in capability.values}
         self._shown = shown
-        self._attr_options = list(self._values)
 
     @property
     def available(self) -> bool:
         # Nothing to set on an appliance that cannot be reached, and nothing
         # to set on a field it will not take right now.
         return super().available and self.reachable and self.override.writable
+
+    @property
+    def options(self) -> list[str]:
+        """The values the appliance will take in the state it is in.
+
+        What a field accepts moves with the rest of the machine: an air
+        conditioner drops TURBO from its fan speeds in its automatic and fan
+        only modes. Offering one it has said it will not take only earns a
+        refused command.
+
+        Whatever it is set to now stays on the list even when the triggers
+        leave it off, since a reading nobody can see is no better than a
+        choice nobody can make.
+        """
+        allowed = self.override.values
+        if allowed is None:
+            return list(self._values)
+        current = self.current_option
+        return [
+            shown
+            for shown, value in self._values.items()
+            if value in allowed or shown == current
+        ]
 
     @property
     def current_option(self) -> str | None:

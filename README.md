@@ -121,7 +121,7 @@ looked at afterwards; the connection sensor is what says the machine has gone,
 rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Three details worth knowing, because they look like faults and are not:
+Four details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
@@ -130,6 +130,10 @@ Three details worth knowing, because they look like faults and are not:
   running, delayed, paused or has just ended. That is the appliance's own rule.
 - **Steam and stain go read-only below forty degrees**, on a cold wash
   included. That is the appliance's own rule as well.
+- **A select offers fewer choices in some states than in others.** An air
+  conditioner drops TURBO from its fan speeds in its automatic and fan only
+  modes, so the list shrinks with the mode. Whatever it is set to now stays
+  on the list either way.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter
