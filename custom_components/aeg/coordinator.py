@@ -332,10 +332,14 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         target = command
         segments = path.split("/")
         appliance = self.data.get(appliance_id)
+        # Which group we are in, written the way the appliance reports it, so
+        # that a group inside a group is looked up where it actually sits.
+        group = ""
         for segment in segments[:-1]:
+            group = f"{group}/{segment}" if group else segment
             target = target.setdefault(segment, {})
             if appliance is not None:
-                belongs_to = value_at(appliance.reported, f"{segment}/{PROGRAMME}")
+                belongs_to = value_at(appliance.reported, f"{group}/{PROGRAMME}")
                 if belongs_to is not None:
                     target[PROGRAMME] = belongs_to
         target[segments[-1]] = value

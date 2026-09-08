@@ -1246,6 +1246,29 @@ async def test_a_numbered_level_is_sent_back_as_the_appliance_names_it(
     assert command == {"waterHardness": "STEP_6"}
 
 
+async def test_a_group_inside_a_group_takes_its_own_programme(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """No appliance here nests them two deep, and the lookup has to hold if one does."""
+    await _setup(hass, entry, api)
+    coordinator = entry.runtime_data.coordinator
+    appliance_id = next(iter(coordinator.data))
+    reported = coordinator.data[appliance_id].reported
+    reported["outer"] = {
+        "programUID": "AN_OUTER_PROGRAMME",
+        "inner": {"programUID": "AN_INNER_PROGRAMME", "rinse": "ON"},
+    }
+
+    await coordinator.send(appliance_id, "outer/inner/rinse", "OFF")
+    _, command = api.send_command.await_args.args
+    assert command == {
+        "outer": {
+            "programUID": "AN_OUTER_PROGRAMME",
+            "inner": {"programUID": "AN_INNER_PROGRAMME", "rinse": "OFF"},
+        }
+    }
+
+
 async def test_a_nested_field_is_sent_back_nested(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
