@@ -161,6 +161,22 @@ def test_hides_the_client_identifiers_gigya_hands_out() -> None:
     assert "errorCode" in text
 
 
+def test_hides_a_session_the_answer_sets() -> None:
+    """Gigya hands its client identifiers out in a header as well as a body."""
+    text = json.dumps(
+        redact(
+            {
+                "Content-Type": "application/json",
+                "Set-Cookie": "gmid=gmid.ver4.AtLtiXua1w.55PlvD7cD8eh; Path=/",
+                "Server": "cloudflare",
+            }
+        )
+    )
+    assert "AtLtiXua1w" not in text
+    assert "application/json" in text
+    assert "cloudflare" in text
+
+
 def test_appliance_state_is_not_mistaken_for_a_profile_field() -> None:
     """A log with the appliance state redacted out would be useless."""
     text = json.dumps(

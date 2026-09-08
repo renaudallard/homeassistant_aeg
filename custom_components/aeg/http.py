@@ -49,7 +49,8 @@ TIMEOUT = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=CONNECT_TIMEOUT)
 
 # Anything under one of these names is a credential, a token, or says who the
 # account belongs to and which appliance is theirs. Debug logging is meant to be
-# pasted into a bug report, so none of it goes out in the clear.
+# pasted into a bug report, so none of it goes out in the clear, in a body or
+# in the headers either way along.
 #
 # "state" is deliberately absent: it is a profile field, but it is also what an
 # appliance calls the thing we most want to read in a log.
@@ -67,6 +68,7 @@ SECRETS = frozenset(
         "client_secret",
         "clientsecret",
         "code",
+        "cookie",
         "cookievalue",
         "email",
         "firstname",
@@ -85,6 +87,7 @@ SECRETS = frozenset(
         "refreshtoken",
         "sessionsecret",
         "sessiontoken",
+        "set-cookie",
         "sig",
         "ucid",
         "uid",
@@ -219,7 +222,7 @@ async def request(
         ) as response:
             status = response.status
             body = await response.read()
-            _LOGGER.debug("  <- %s %s", status, dict(response.headers))
+            _LOGGER.debug("  <- %s %s", status, redact(dict(response.headers)))
     except (aiohttp.ClientError, TimeoutError) as err:
         _LOGGER.debug("  <- did not answer: %s", err)
         raise AegConnectionError(f"{redact_url(url)} is unreachable: {err}") from err

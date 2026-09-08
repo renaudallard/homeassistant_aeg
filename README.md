@@ -165,8 +165,9 @@ seven. The appliance still hears the name it uses.
 The device page offers to download diagnostics. That carries the whole of what
 the appliance said about itself, what it is reporting, what it will accept
 right now, and whether the stream is carrying the updates or polling is. It is
-redacted the same way the logs are, so tokens, keys, the address on the account
-and the appliance's own identifier are replaced by a note of their length,
+redacted the same way the logs are, so tokens, keys, cookies, the address on
+the account and the appliance's own identifier are replaced by a note of their
+length,
 whether they arrived as text or as a number. What kind of appliance it is,
 what it is doing, and the codes for whatever it is complaining about all stay
 readable.
@@ -280,9 +281,10 @@ path instead.
     python tools/check_login.py you@example.com BE --dump tmp/appliances
 
 It logs every request and every answer. Everything that says who you are or
-which machine is yours is replaced by a note of how long it was, in bodies and
-in paths alike: tokens, keys, codes, the address, the name and town on the
-account, and the appliance ids. What kind of appliance it is and what it is
+which machine is yours is replaced by a note of how long it was, in bodies, in
+headers and in paths alike: tokens, keys, codes, the session cookies the
+identity service sets, the address, the name and town on the account, and the
+appliance ids. What kind of appliance it is and what it is
 doing stay readable, because a log without those is not worth keeping. That
 makes the output safe to paste into a bug report. Pass `-q` to log only
 failures.
