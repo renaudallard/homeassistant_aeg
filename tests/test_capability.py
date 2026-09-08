@@ -189,6 +189,49 @@ def test_what_is_wrong_is_a_problem_not_a_reading() -> None:
         assert platform_for(field) == BINARY_SENSOR
 
 
+def test_a_group_that_numbers_its_members_is_read_like_one_that_names_them() -> None:
+    """An air conditioner writes its louvres as a value of the group.
+
+    An air purifier writes its filters as a member of one, which was already
+    read. Both mean one member called 0 with fields under it, and the louvre
+    it can be set to swing on was going nowhere.
+    """
+    found = parse(
+        {
+            "airConditioner": {
+                "properties": {
+                    "louvers": {
+                        "type": "object",
+                        "values": {
+                            "0": {
+                                "properties": {
+                                    "mode": {
+                                        "access": "readwrite",
+                                        "type": "string",
+                                        "values": {"off": {}, "swing": {}},
+                                    },
+                                    "orientation": {
+                                        "access": "constant",
+                                        "type": "string",
+                                        "value": "vertical",
+                                    },
+                                }
+                            }
+                        },
+                    }
+                }
+            }
+        }
+    )
+    by_path = {capability.path: capability for capability in found}
+    assert set(by_path) == {
+        "airConditioner/louvers/0/mode",
+        "airConditioner/louvers/0/orientation",
+    }
+    assert platform_for(by_path["airConditioner/louvers/0/mode"]) == SELECT
+    assert platform_for(by_path["airConditioner/louvers/0/orientation"]) is None
+
+
 def test_a_field_holding_a_structure_is_not_a_reading() -> None:
     """An air purifier carries a second list of alerts and types it as one.
 

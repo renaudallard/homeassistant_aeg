@@ -132,6 +132,24 @@ def _capability(path: str, node: Mapping[str, Any]) -> Capability:
     )
 
 
+def _numbered(node: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    """The members of a group that numbers them rather than naming them.
+
+    An air purifier writes its filters as members of the group, with the
+    fields of each under it. An air conditioner writes its louvres as values
+    of the group instead, with the fields under those. Both mean one member
+    called 0, and both come out as the same paths.
+    """
+    values = node.get("values")
+    if not isinstance(values, Mapping):
+        return {}
+    return {
+        str(key): member["properties"]
+        for key, member in values.items()
+        if isinstance(member, Mapping) and isinstance(member.get("properties"), Mapping)
+    }
+
+
 def parse(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
     """Flatten a capability tree into the fields it describes."""
     found: list[Capability] = []
@@ -143,6 +161,11 @@ def parse(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
         if isinstance(properties, dict):
             # A grouping node holds nothing itself, only the fields under it.
             found.extend(parse(properties, path))
+            continue
+        numbered = _numbered(node)
+        if numbered:
+            for member, fields in numbered.items():
+                found.extend(parse(fields, f"{path}/{member}"))
             continue
         if "access" in node or "type" in node:
             found.append(_capability(path, node))
