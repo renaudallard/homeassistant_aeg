@@ -113,6 +113,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         # Which fields each appliance has been seen reporting, ever. A field
         # it describes and has never reported is one this model does not have.
         self._seen: dict[str, set[str]] = {}
+        # The listing read while setting up, waiting for the first update.
+        self._listed: list[dict[str, Any]] | None = None
 
     def seen(self, appliance_id: str) -> set[str]:
         """The fields this appliance has been known to report."""
@@ -132,7 +134,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         held = await self._store.async_load() or {}
         keeping: dict[str, Any] = {}
         try:
-            for entry in await self.api.appliances():
+            listed = await self.api.appliances()
+            for entry in listed:
                 appliance_id = str(entry.get("applianceId", ""))
                 if not appliance_id:
                     continue
@@ -161,6 +164,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 }
                 self._capabilities[appliance_id] = capabilities
                 self._seen[appliance_id] = seen
+            # The account has just been listed, and the first update follows
+            # this at once, so it reads what arrived here rather than asking
+            # for the same answer again.
+            self._listed = listed
         except AegAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except AegError as err:
@@ -171,12 +178,14 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             await self._store.async_save(keeping)
 
     async def _async_update_data(self) -> dict[str, Appliance]:
-        try:
-            listed = await self.api.appliances()
-        except AegAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
-        except AegError as err:
-            raise UpdateFailed(str(err)) from err
+        listed, self._listed = self._listed, None
+        if listed is None:
+            try:
+                listed = await self.api.appliances()
+            except AegAuthError as err:
+                raise ConfigEntryAuthFailed(str(err)) from err
+            except AegError as err:
+                raise UpdateFailed(str(err)) from err
 
         appliances: dict[str, Appliance] = {}
         for entry in listed:

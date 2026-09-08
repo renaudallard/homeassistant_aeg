@@ -155,6 +155,9 @@ async def test_the_appliance_loads(
     assert entry.state is ConfigEntryState.LOADED
     # Capabilities describe the model, not its state, so they are read once.
     api.capabilities.assert_awaited_once()
+    # And the account is listed once, not once to read what each appliance can
+    # do and again for what it is doing a moment later.
+    api.appliances.assert_awaited_once()
 
 
 async def test_it_becomes_one_device_with_entities_on_every_platform(
