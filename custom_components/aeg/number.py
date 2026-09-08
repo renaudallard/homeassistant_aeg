@@ -29,14 +29,13 @@
 from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
 from .capability import NUMBER, Capability
 from .coordinator import AegCoordinator
-from .entity import AegEntity, fields
+from .entity import AegEntity, degrees, fields
 
 
 async def async_setup_entry(
@@ -63,7 +62,7 @@ class AegNumber(AegEntity, NumberEntity):
         if capability.step:
             self._attr_native_step = capability.step
         if capability.kind == "temperature":
-            self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+            self._attr_native_unit_of_measurement = degrees(capability)
 
     @property
     def available(self) -> bool:

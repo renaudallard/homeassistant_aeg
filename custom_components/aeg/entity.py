@@ -36,7 +36,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from homeassistant.const import EntityCategory
+from homeassistant.const import EntityCategory, UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -75,6 +75,19 @@ def pretty(name: str) -> str:
         for word in parts[1:]
     ]
     return " ".join(readable)
+
+
+def degrees(capability: Capability) -> UnitOfTemperature:
+    """Which scale a temperature is on.
+
+    An appliance writes the scale into the field name and describes both where
+    it has both, as ambientTemperatureC beside ambientTemperatureF. Reading one
+    as the other is a reading wrong by fifty degrees, and wrong again once Home
+    Assistant converts it for somebody who works in the other one.
+    """
+    if capability.name.endswith("F"):
+        return UnitOfTemperature.FAHRENHEIT
+    return UnitOfTemperature.CELSIUS
 
 
 def carried(appliance: Appliance, capability: Capability) -> bool:

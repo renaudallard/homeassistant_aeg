@@ -122,7 +122,7 @@ looked at afterwards; the connection sensor is what says the machine has gone,
 rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Four details worth knowing, because they look like faults and are not:
+Five details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
@@ -134,7 +134,12 @@ Four details worth knowing, because they look like faults and are not:
 - **A select offers fewer choices in some states than in others.** An air
   conditioner drops TURBO from its fan speeds in its automatic and fan only
   modes, so the list shrinks with the mode. Whatever it is set to now stays
-  on the list either way.
+  on the list either way. The thermostat gathering the same fields up offers
+  the same choices.
+- **An appliance can report a temperature twice**, once in each scale, and it
+  writes the scale into the field name. Both are read on the scale they are
+  on, so two readings that look like the same room temperature under different
+  names are the same reading, and agree once Home Assistant has converted them.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter

@@ -38,7 +38,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.components.climate.const import HVACMode
-from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, STATE_UNAVAILABLE
+from homeassistant.const import (
+    CONF_COUNTRY,
+    CONF_EMAIL,
+    STATE_UNAVAILABLE,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -212,6 +217,28 @@ async def test_a_fan_speed_it_will_not_change_offers_only_where_it_stands(
             blocking=True,
         )
     api.send_command.assert_not_awaited()
+
+
+async def test_a_reading_in_fahrenheit_is_not_read_as_celsius(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The appliance describes both scales and says which is which."""
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["ambientTemperatureF"] = 79.7
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    celsius = hass.states.get("sensor.clim_room_temperature")
+    assert celsius is not None
+    assert celsius.attributes["unit_of_measurement"] == UnitOfTemperature.CELSIUS
+    assert float(celsius.state) == 26.5
+
+    # Home Assistant is set to celsius here, so the fahrenheit reading arrives
+    # converted rather than as the number the appliance said.
+    fahrenheit = hass.states.get("sensor.clim_room_temperature_2")
+    assert fahrenheit is not None
+    assert fahrenheit.attributes["unit_of_measurement"] == UnitOfTemperature.CELSIUS
+    assert float(fahrenheit.state) == 26.5
 
 
 async def test_a_washing_machine_is_not_a_thermostat(

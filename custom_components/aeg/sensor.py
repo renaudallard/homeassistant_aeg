@@ -37,7 +37,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfTemperature, UnitOfTime
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
@@ -46,7 +46,7 @@ from homeassistant.util import dt as dt_util
 from . import AegConfigEntry
 from .capability import SENSOR, Capability, counts_down, is_duration
 from .coordinator import AegCoordinator
-from .entity import AegEntity, fields
+from .entity import AegEntity, degrees, fields
 
 
 async def async_setup_entry(
@@ -80,7 +80,7 @@ class AegSensor(AegEntity, SensorEntity):
             self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
         elif capability.kind == "temperature":
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
-            self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+            self._attr_native_unit_of_measurement = degrees(capability)
             self._attr_state_class = SensorStateClass.MEASUREMENT
         elif capability.values and capability.kind == "string":
             # The appliance lists what this field can say, so let the frontend
