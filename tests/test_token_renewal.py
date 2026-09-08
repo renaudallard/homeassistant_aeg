@@ -143,3 +143,22 @@ async def test_a_refusal_that_is_not_about_the_account_is_still_worth_retrying(
     with pytest.raises(AegConnectionError) as refused:
         await auth.refresh(Tokens("an-access-token", "a-refresh-token", 0.0))
     assert not isinstance(refused.value, AegAuthError)
+
+
+async def test_an_answer_that_worked_is_not_read_as_a_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The reason a call was refused only means anything on a refusal."""
+    auth = _answering(
+        monkeypatch,
+        200,
+        {
+            "accessToken": "a-new-token",
+            "refreshToken": "a-new-refresh-token",
+            "expiresIn": 43200,
+            "oneAccountError": "invalid_grant",
+        },
+    )
+
+    renewed = await auth.refresh(Tokens("an-access-token", "a-refresh-token", 0.0))
+    assert renewed.access_token == "a-new-token"

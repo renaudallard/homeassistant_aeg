@@ -109,7 +109,7 @@ def _detail(payload: Any) -> str:
     return text[:300]
 
 
-def _turned_down(payload: Any) -> bool:
+def _turned_down(status: int, payload: Any) -> bool:
     """Whether a refusal is about the account rather than about the request.
 
     A refresh token OneAccount will not take again is turned down with a 400
@@ -117,8 +117,13 @@ def _turned_down(payload: Any) -> bool:
     everywhere else. The app reads that field alongside the status and treats
     the two alike, so an entry holding a pair that has gone stale asks for a
     new sign in rather than retrying a call that cannot come good.
+
+    Only a refusal is read this way. An answer that worked is an answer that
+    worked, whatever else it happens to carry.
     """
-    return isinstance(payload, dict) and payload.get(ONE_ACCOUNT_ERROR) == INVALID_GRANT
+    if status < 400 or not isinstance(payload, dict):
+        return False
+    return bool(payload.get(ONE_ACCOUNT_ERROR) == INVALID_GRANT)
 
 
 def _jwt_country(id_token: str) -> str | None:
@@ -219,7 +224,7 @@ class AegAuth:
         )
         if status == 429:
             raise AegTooManyRequests(f"OneAccount is throttling: {_detail(payload)}")
-        if status in (401, 403) or _turned_down(payload):
+        if status in (401, 403) or _turned_down(status, payload):
             raise AegAuthError(
                 f"OneAccount rejected the credentials ({status}): {_detail(payload)}"
             )
