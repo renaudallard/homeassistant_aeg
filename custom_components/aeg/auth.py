@@ -121,6 +121,28 @@ def _jwt_country(id_token: str) -> str | None:
     return str(country) if country else None
 
 
+def _lifetime(payload: dict[str, Any]) -> float:
+    """How long a token is good for, in seconds.
+
+    A lifetime that is missing, or that arrives as something no number can be
+    read out of, is treated as none at all: the pair is then due for renewal
+    the moment it is used rather than being sent anywhere on a guess. Reading
+    it is the one step here that can fail over the shape of an answer rather
+    than over the credentials, and everything above expects the errors of this
+    module rather than those of the standard library.
+    """
+    given = payload.get("expiresIn")
+    if given is None:
+        given = payload.get("expires_in")
+    if given is None:
+        return 0.0
+    try:
+        return float(given)
+    except (TypeError, ValueError):
+        _LOGGER.debug("could not read how long the token lasts from %r", given)
+        return 0.0
+
+
 def _tokens_from(payload: dict[str, Any]) -> Tokens:
     # v1 names its fields the way the rest of the API does, in camelCase. The
     # v2 endpoint the app uses answers in snake_case, which is the only reason
@@ -129,13 +151,10 @@ def _tokens_from(payload: dict[str, Any]) -> Tokens:
     refresh_token = payload.get("refreshToken") or payload.get("refresh_token")
     if not access_token or not refresh_token:
         raise AegAuthError("OneAccount did not return a token pair")
-    # A missing lifetime is treated as already expired, so the next call
-    # refreshes rather than sending a token we cannot reason about.
-    expires_in = float(payload.get("expiresIn") or payload.get("expires_in") or 0)
     return Tokens(
         access_token=str(access_token),
         refresh_token=str(refresh_token),
-        expires_at=time.time() + expires_in,
+        expires_at=time.time() + _lifetime(payload),
     )
 
 

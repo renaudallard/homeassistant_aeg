@@ -31,6 +31,7 @@ and snake_case from the v2 endpoint the app uses.
 """
 
 import time
+from typing import Any
 
 import pytest
 
@@ -71,6 +72,24 @@ def test_a_pair_with_no_lifetime_is_already_stale() -> None:
     """Better to renew a token we cannot reason about than to send it."""
     tokens = _tokens_from({"accessToken": "a", "refreshToken": "b"})
     assert tokens.expired
+
+
+def test_a_lifetime_that_is_not_a_number_is_no_lifetime() -> None:
+    """Everything above here expects this module's own errors, not float's."""
+    unreadable: list[Any] = ["soon", {"in": 60}, [], ""]
+    for given in unreadable:
+        tokens = _tokens_from(
+            {"accessToken": "a", "refreshToken": "b", "expiresIn": given}
+        )
+        assert tokens.expired, f"{given!r} was read as a lifetime"
+
+
+def test_a_lifetime_written_as_words_is_still_read() -> None:
+    """The v2 answer sends it as a string."""
+    tokens = _tokens_from(
+        {"accessToken": "a", "refreshToken": "b", "expiresIn": "43200"}
+    )
+    assert not tokens.expired
 
 
 def test_a_missing_half_is_refused() -> None:
