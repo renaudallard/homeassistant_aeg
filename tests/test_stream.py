@@ -126,3 +126,37 @@ def test_a_group_nested_two_deep_is_still_merged() -> None:
     held: dict[str, Any] = {"a": {"b": {"keep": 1, "change": 1}}}
     merge(held, "a", {"b": {"change": 2}})
     assert held == {"a": {"b": {"keep": 1, "change": 2}}}
+
+
+def test_a_metric_with_no_value_leaves_what_we_hold_alone() -> None:
+    """Blanking a field takes every entity on it down until the next look."""
+    state = {"an-appliance": {"applianceState": "RUNNING", "timeToEnd": 4080}}
+    touched = apply(
+        _message(
+            "an-appliance",
+            [
+                {"Name": "applianceState", "Timestamp": "2026-09-07T00:00:00Z"},
+                {
+                    "Name": "timeToEnd",
+                    "Value": None,
+                    "Timestamp": "2026-09-07T00:00:00Z",
+                },
+            ],
+        ),
+        state,
+    )
+    assert touched == set()
+    assert state["an-appliance"] == {"applianceState": "RUNNING", "timeToEnd": 4080}
+
+
+def test_a_group_arriving_empty_is_not_a_group_that_has_gone() -> None:
+    held = {"analogTemperature": "40_CELSIUS", "analogSpinSpeed": "1400_RPM"}
+    state = {"an-appliance": {"userSelections": dict(held)}}
+    apply(
+        _message(
+            "an-appliance",
+            [{"Name": "userSelections", "Value": None}],
+        ),
+        state,
+    )
+    assert state["an-appliance"]["userSelections"] == held

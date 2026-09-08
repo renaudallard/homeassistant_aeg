@@ -179,7 +179,16 @@ def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]
             continue
         for metric in entry.get("Metrics") or []:
             name = metric.get("Name")
-            if isinstance(name, str):
-                merge(reported, name, metric.get("Value"))
-                touched.add(appliance_id)
+            if not isinstance(name, str):
+                continue
+            if "Value" not in metric or metric["Value"] is None:
+                # A metric carrying no value is not the appliance saying the
+                # field is empty. Writing the nothing in would blank what it
+                # last said and take every entity on that field down until
+                # the next look, which is ten minutes off while the stream is
+                # carrying us.
+                _LOGGER.debug("%s arrived with no value, keeping what we hold", name)
+                continue
+            merge(reported, name, metric["Value"])
+            touched.add(appliance_id)
     return touched
