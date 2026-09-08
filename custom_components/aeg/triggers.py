@@ -191,6 +191,24 @@ def holds(
     return _compare(operator, reading.value, right, reading.order)
 
 
+def _stricter(held: str | None, given: str | None) -> str | None:
+    """The narrower of two things the triggers say a field's access is.
+
+    Anything saying a field cannot be written wins over anything saying it
+    can, the way anything saying it is gone already wins over anything saying
+    it is not. An air conditioner ships two rules for its sleep mode which
+    contradict each other in four of the modes it runs in, and nothing in the
+    tree says which was meant, so the one offering no control is taken: a
+    control that is missing is a smaller wrong than one the appliance refuses.
+
+    Nothing at all is the weakest of the three, since that is a rule with
+    nothing to say about access rather than one allowing everything.
+    """
+    if held is None or given is None:
+        return held if given is None else given
+    return held if "write" not in held else given
+
+
 def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> None:
     held = into.get(path, Override())
     values = held.values
@@ -208,12 +226,13 @@ def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> No
     if isinstance(change.get("disabled"), bool):
         # Anything saying a field is gone wins over anything saying it is not.
         disabled = bool(change["disabled"]) or bool(disabled)
-    access = change.get("access", held.access)
+    access = change.get("access")
     if access == "default":
-        # The appliance saying "default" means it is not overriding at all.
+        # The appliance saying "default" means it is not overriding at all,
+        # which is not the same as it saying the field can be written.
         access = None
     into[path] = Override(
-        access=str(access) if access is not None else None,
+        access=_stricter(held.access, str(access) if access is not None else None),
         values=values,
         disabled=disabled,
     )

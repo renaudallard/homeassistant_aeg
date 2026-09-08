@@ -327,3 +327,98 @@ def test_a_condition_reading_a_field_the_appliance_lacks_is_not_guessed_at() -> 
     state = {"userSelections": {"phaseAdvance": "WET_AGITATION_NORMAL"}}
 
     assert evaluate(capabilities, state) == {}
+
+
+def _sleep_rules(order: tuple[str, str]) -> list[Capability]:
+    """The two rules the air conditioner carries for its sleep mode.
+
+    One holds outside SMART and the other outside COOL, so in DRY both hold
+    at once and each says something different about the same field. The order
+    is the order the tree lists them in.
+    """
+    return [
+        Capability(
+            path="mode",
+            access="readwrite",
+            kind="string",
+            values=("COOL", "DRY", "SMART"),
+            triggers=(
+                {
+                    "condition": {
+                        "operand_1": "value",
+                        "operand_2": "SMART",
+                        "operator": "ne",
+                    },
+                    "action": {"sleepMode": {"access": order[0]}},
+                },
+                {
+                    "condition": {
+                        "operand_1": "value",
+                        "operand_2": "COOL",
+                        "operator": "ne",
+                    },
+                    "action": {"sleepMode": {"access": order[1]}},
+                },
+            ),
+        ),
+        Capability(path="sleepMode", access="readwrite", kind="string"),
+    ]
+
+
+def test_two_rules_disagreeing_over_a_field_leave_it_read_only() -> None:
+    """Both rules hold while it is drying, and they say different things.
+
+    Taking whichever came last put the answer in the hands of the order the
+    appliance happened to list them in: written the other way round, the field
+    came out writable and the appliance did the refusing.
+    """
+    for order in (("readwrite", "read"), ("read", "readwrite")):
+        drying = evaluate(_sleep_rules(order), {"mode": "DRY"})["sleepMode"]
+        assert drying.access == "read", order
+        assert drying.writable is False, order
+
+
+def test_one_rule_holding_on_its_own_is_still_the_one_that_counts() -> None:
+    """Only the rule that excludes SMART holds while it is cooling.
+
+    Nothing is being resolved there, so the answer is whatever that rule says,
+    read only or not.
+    """
+    cooling = evaluate(_sleep_rules(("readwrite", "read")), {"mode": "COOL"})
+    assert cooling["sleepMode"].writable is True
+    cooling = evaluate(_sleep_rules(("read", "readwrite")), {"mode": "COOL"})
+    assert cooling["sleepMode"].writable is False
+
+
+def test_a_rule_with_nothing_to_say_about_access_does_not_open_a_field_up() -> None:
+    """A washing machine writes that as "default" on its start time."""
+    capabilities = [
+        Capability(
+            path="applianceState",
+            access="read",
+            kind="string",
+            values=("PAUSED",),
+            triggers=(
+                {
+                    "condition": {
+                        "operand_1": "value",
+                        "operand_2": "PAUSED",
+                        "operator": "eq",
+                    },
+                    "action": {"startTime": {"access": "read"}},
+                },
+                {
+                    "condition": {
+                        "operand_1": "value",
+                        "operand_2": "PAUSED",
+                        "operator": "eq",
+                    },
+                    "action": {"startTime": {"access": "default"}},
+                },
+            ),
+        ),
+        Capability(path="startTime", access="readwrite", kind="number"),
+    ]
+
+    paused = evaluate(capabilities, {"applianceState": "PAUSED"})
+    assert paused["startTime"].writable is False
