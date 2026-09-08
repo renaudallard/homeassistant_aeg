@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Czas suszenia powietrzem"
       },
-      "alerts": {
-        "name": "Alerty"
-      },
       "ambient_temperature_c": {
         "name": "Temperatura pokojowa"
       },

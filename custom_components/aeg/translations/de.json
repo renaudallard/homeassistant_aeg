@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Lufttrocknungszeit"
       },
-      "alerts": {
-        "name": "Warnungen"
-      },
       "ambient_temperature_c": {
         "name": "Raumtemperatur"
       },

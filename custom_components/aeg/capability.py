@@ -64,9 +64,12 @@ RUNNING = "RUNNING"
 # Some models name the type in the singular and some in the plural.
 ALERTS = frozenset({"alert", "alerts"})
 
-# Types that group other nodes and hold nothing themselves. Their fields appear
-# beside them with the group written into the key, as "userSelections/rinse".
-GROUPING = frozenset({"container", "object", "careMaintenance", "complex"})
+# Types that hold no reading of their own. A group holds other nodes, and its
+# fields appear beside it with the group written into the key, as
+# "userSelections/rinse". A list holds a structure, and there is nothing an
+# entity can show for one: an air purifier carries a second list of alerts
+# typed this way, beside the one it types as alerts.
+STRUCTURED = frozenset({"array", "careMaintenance", "complex", "container", "object"})
 
 # Groups that describe the machine's own housekeeping rather than the wash.
 # Their fields are worth having but not worth showing by default.
@@ -155,11 +158,12 @@ def platform_for(capability: Capability) -> str | None:
     """Which kind of entity a field should become, or none at all.
 
     A constant never changes and a disabled field is one this model does not
-    have, so neither is worth an entity. Groupings hold nothing themselves.
+    have, so neither is worth an entity. Nor is a field holding a structure,
+    which has no single reading to show.
     """
     if capability.disabled or capability.access == "constant":
         return None
-    if capability.kind in GROUPING:
+    if capability.kind in STRUCTURED:
         return None
 
     if capability.writable and not capability.readable:

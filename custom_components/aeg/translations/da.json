@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Lufttørringstid"
       },
-      "alerts": {
-        "name": "Alarmer"
-      },
       "ambient_temperature_c": {
         "name": "Rumtemperatur"
       },

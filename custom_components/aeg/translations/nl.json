@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Luchtdroogtijd"
       },
-      "alerts": {
-        "name": "Waarschuwingen"
-      },
       "ambient_temperature_c": {
         "name": "Kamertemperatuur"
       },

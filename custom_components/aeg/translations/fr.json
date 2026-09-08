@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Temps de séchage à l'air"
       },
-      "alerts": {
-        "name": "Alertes"
-      },
       "ambient_temperature_c": {
         "name": "Température ambiante"
       },

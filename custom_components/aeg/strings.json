@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Air drying time"
       },
-      "alerts": {
-        "name": "Alerts"
-      },
       "ambient_temperature_c": {
         "name": "Room temperature"
       },

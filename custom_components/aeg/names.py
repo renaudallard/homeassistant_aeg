@@ -208,7 +208,7 @@ PLATFORMS_FOR: dict[str, frozenset[str]] = {
     "air_dry_duration": frozenset({"sensor"}),
     "air_quality_light": frozenset({"select"}),
     "alert_sounds_enabled": frozenset({"switch"}),
-    "alerts": frozenset({"binary_sensor", "sensor"}),
+    "alerts": frozenset({"binary_sensor"}),
     "ambient_temperature_c": frozenset({"sensor"}),
     "ambient_temperature_f": frozenset({"sensor"}),
     "analog_spin_speed": frozenset({"select"}),

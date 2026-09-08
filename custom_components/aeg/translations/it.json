@@ -205,9 +205,6 @@
       "air_dry_duration": {
         "name": "Tempo di asciugatura all'aria"
       },
-      "alerts": {
-        "name": "Avvisi"
-      },
       "ambient_temperature_c": {
         "name": "Temperatura ambiente"
       },

@@ -189,6 +189,18 @@ def test_what_is_wrong_is_a_problem_not_a_reading() -> None:
         assert platform_for(field) == BINARY_SENSOR
 
 
+def test_a_field_holding_a_structure_is_not_a_reading() -> None:
+    """An air purifier carries a second list of alerts and types it as one.
+
+    A list cannot be shown as a state, so an entity on it would have sat
+    unknown for as long as the appliance was there. The alerts it types as
+    alerts are the ones that say anything, and it has those too.
+    """
+    listed = _one({"airPurifier": {"alerts": {"access": "read", "type": "array"}}})
+    assert listed.path == "airPurifier/alerts"
+    assert platform_for(listed) is None
+
+
 def test_nothing_is_made_of_what_cannot_change_or_is_not_there() -> None:
     constant = _one(
         {"model": {"access": "constant", "type": "string", "value": "EWX1493A"}}
