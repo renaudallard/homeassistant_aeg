@@ -320,6 +320,26 @@ async def test_a_group_of_settings_going_missing_takes_nothing_down(
     assert after == before
 
 
+async def test_a_failed_setup_does_not_leave_the_stream_open(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An entry that did not load has no business holding a connection open."""
+    with (
+        patch("custom_components.aeg.AegApi", return_value=api),
+        patch("custom_components.aeg.coordinator.AegStream", autospec=True) as stream,
+        patch(
+            "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups",
+            side_effect=RuntimeError("a platform did not load"),
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    stream.return_value.start.assert_called_once()
+    stream.return_value.stop.assert_awaited_once()
+
+
 async def test_an_account_that_answers_with_nothing_takes_nothing_down(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

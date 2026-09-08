@@ -113,6 +113,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     coordinator.start_stream(await _stream_url(hass, entry, auth))
+    # A platform that fails to set up leaves the entry unloaded, and Home
+    # Assistant runs these before it gives up, so a connection to the cloud
+    # cannot outlive the entry that opened it.
+    entry.async_on_unload(coordinator.stop_stream)
 
     entry.runtime_data = AegData(api=api, coordinator=coordinator)
     _forget_what_is_gone(hass, entry, coordinator)
@@ -174,6 +178,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: AegConfigEntry) -> None
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
-    """Unload an AEG account."""
+    """Unload an AEG account.
+
+    The stream goes first, and again afterwards through the callback above,
+    which does nothing the second time. Stopping it here rather than leaving
+    it to that keeps a pushed change from arriving while the entities it would
+    be about are being taken away.
+    """
     await entry.runtime_data.coordinator.stop_stream()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
