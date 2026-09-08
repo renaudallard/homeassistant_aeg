@@ -473,6 +473,52 @@ async def test_an_appliance_a_listing_left_out_keeps_its_entities(
     assert after == before
 
 
+async def test_an_appliance_a_listing_left_out_is_not_started_over(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Its entities outlive the listing, and have to outlive the one after.
+
+    What each appliance has been seen reporting is what says a field is one
+    the model does not have. Forgetting it for an appliance that was left out
+    would take its entities away the next time it was listed while idle, which
+    is the same mistake one step further along.
+    """
+    both = _fixture("wm-appliances")
+    second = copy.deepcopy(both[0])
+    second["applianceId"] = "a-second-machine"
+    both.append(second)
+    api.appliances.return_value = both
+    await _setup(hass, entry, api)
+
+    registry = er.async_get(hass)
+
+    def standing() -> set[str]:
+        return {
+            e.entity_id
+            for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if e.unique_id.startswith("a-second-machine-")
+        }
+
+    before = standing()
+    assert before
+
+    # Left out of one listing.
+    api.appliances.return_value = _fixture("wm-appliances")
+    await _again(hass, entry, api)
+
+    # Then listed again, off and saying almost nothing, the way a machine sits
+    # between washes.
+    idle = copy.deepcopy(both)
+    idle[1]["properties"]["reported"] = {
+        "applianceState": "OFF",
+        "applianceInfo": {"applianceType": "WM", "capabilityHash": "a-hash"},
+    }
+    api.appliances.return_value = idle
+    await _again(hass, entry, api)
+
+    assert standing() == before
+
+
 async def test_the_entities_built_on_a_field_are_kept_with_it(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

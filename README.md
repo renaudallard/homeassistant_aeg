@@ -118,7 +118,8 @@ A capability tree covers a range of models, so it describes fields a given
 machine does not have. Those get no entity, and one left over from an earlier
 version is taken away, but only once the appliance has been reachable and has
 never reported the field. An appliance that is asleep or quiet keeps
-everything it has, and so does one the account left out of a listing.
+everything it has, and so does one the account left out of a listing, along
+with the record of what it has been seen reporting.
 
 Every appliance also gets a **connection** sensor. When the cloud stops calling
 an appliance reachable, what it last said stays readable, so a wash can be

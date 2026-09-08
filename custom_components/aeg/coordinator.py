@@ -153,7 +153,12 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         needs more than the answer in hand.
         """
         held = await self._store.async_load() or {}
-        keeping: dict[str, Any] = {}
+        # An appliance this listing did not mention keeps what is held for it,
+        # for the same reason its entities do. Starting it over would lose the
+        # fields it has been seen reporting, and the next listing that had it
+        # back while it was idle would read that as a machine which had never
+        # had them and take them away.
+        keeping: dict[str, Any] = dict(held)
         try:
             listed = await self.api.appliances()
             for entry in listed:
@@ -195,7 +200,6 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             raise UpdateFailed(str(err)) from err
 
         if keeping != held:
-            # Also drops whatever belonged to an appliance that has gone.
             await self._store.async_save(keeping)
 
     async def _async_update_data(self) -> dict[str, Appliance]:
