@@ -47,7 +47,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from .capability import Capability, value_at
+from .capability import Capability, number, value_at
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -79,6 +79,9 @@ class Override:
     access: str | None = None
     values: tuple[str, ...] | None = None
     disabled: bool | None = None
+    minimum: float | None = None
+    maximum: float | None = None
+    step: float | None = None
 
     def allows(self, command: str) -> bool:
         """Whether a command is one this field will take right now.
@@ -225,6 +228,25 @@ def _on_offer(target: Capability | None) -> bool:
     return target is not None and target.writable and not target.readable
 
 
+def _bounds(change: Mapping[str, Any]) -> tuple[Any, Any, Any]:
+    """The range a change gives a field, however it writes it.
+
+    An oven names the three the way a capability does. An air conditioner
+    writes them as one list instead, in the order a range is read in.
+    """
+    given = change.get("range")
+    if isinstance(given, Sequence) and not isinstance(given, str) and len(given) == 3:
+        return given[0], given[1], given[2]
+    return change.get("min"), change.get("max"), change.get("step")
+
+
+def _narrower(held: float | None, given: float | None, wider: bool) -> float | None:
+    """Whichever of two bounds lets less through."""
+    if held is None or given is None:
+        return held if given is None else given
+    return max(held, given) if wider else min(held, given)
+
+
 def _fold(
     into: dict[str, Override],
     path: str,
@@ -252,10 +274,17 @@ def _fold(
         # The appliance saying "default" means it is not overriding at all,
         # which is not the same as it saying the field can be written.
         access = None
+    least, most, step = _bounds(change)
     into[path] = Override(
         access=_stricter(held.access, str(access) if access is not None else None),
         values=values,
         disabled=disabled,
+        # A range narrows the way everything else here does. The step is taken
+        # as given: nothing in the trees hands one field two of them, and
+        # there is no reading out of two which was meant.
+        minimum=_narrower(held.minimum, number(least), wider=True),
+        maximum=_narrower(held.maximum, number(most), wider=False),
+        step=number(step) if step is not None else held.step,
     )
 
 

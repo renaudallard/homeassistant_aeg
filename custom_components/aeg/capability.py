@@ -114,7 +114,8 @@ class Capability:
         return self.path.rsplit("/", 1)[-1]
 
 
-def _number(value: Any) -> float | None:
+def number(value: Any) -> float | None:
+    """A figure, if that is what it is. A flag is not one."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return float(value)
@@ -195,9 +196,9 @@ def _capability(path: str, node: Mapping[str, Any]) -> Capability:
         access=str(node.get("access", "read")),
         kind=str(node.get("type", "")),
         values=_on_offer(node),
-        minimum=_number(node.get("min")),
-        maximum=_number(node.get("max")),
-        step=_number(node.get("step")),
+        minimum=number(node.get("min")),
+        maximum=number(node.get("max")),
+        step=number(node.get("step")),
         disabled=bool(node.get("disabled", False)),
         triggers=tuple(node.get("triggers") or ()),
         offers=_offers(node),

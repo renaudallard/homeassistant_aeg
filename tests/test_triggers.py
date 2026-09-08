@@ -36,7 +36,7 @@ from typing import Any
 import pytest
 
 from custom_components.aeg.capability import Capability, parse
-from custom_components.aeg.triggers import Override, evaluate, holds
+from custom_components.aeg.triggers import Override, _fold, evaluate, holds
 
 FIXTURES = Path(__file__).parent / "fixtures"
 COMMANDS = ("OFF", "ON", "START", "PAUSE", "RESUME", "STOPRESET")
@@ -566,3 +566,61 @@ def test_a_value_that_is_not_the_one_selected_says_nothing() -> None:
     capabilities = parse(tree)
     assert evaluate(capabilities, {"mode": "cool"}) == {}
     assert evaluate(capabilities, {}) == {}
+
+
+def test_a_value_can_narrow_the_range_a_number_takes() -> None:
+    """An oven takes 30 to 230 in general and 110 to 130 on one programme.
+
+    It names the three the way a capability does; an air conditioner writes
+    them as one list in the order a range is read in, and both mean the same.
+    """
+    named = parse(
+        {
+            "program": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {
+                    "BREAD": {
+                        "targetTemperatureC": {
+                            "access": "readwrite",
+                            "min": 110.0,
+                            "max": 130.0,
+                            "step": 5.0,
+                        }
+                    }
+                },
+            },
+            "targetTemperatureC": {
+                "access": "readwrite",
+                "type": "temperature",
+                "min": 30.0,
+                "max": 230.0,
+                "step": 5.0,
+            },
+        }
+    )
+    baking = evaluate(named, {"program": "BREAD"})["targetTemperatureC"]
+    assert (baking.minimum, baking.maximum, baking.step) == (110.0, 130.0, 5.0)
+
+    listed = parse(
+        {
+            "mode": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {
+                    "dry": {"actions": {"targetTemperature": {"range": [23, 23, 1]}}}
+                },
+            },
+            "targetTemperature": {"access": "readwrite", "type": "temperature"},
+        }
+    )
+    drying = evaluate(listed, {"mode": "dry"})["targetTemperature"]
+    assert (drying.minimum, drying.maximum, drying.step) == (23.0, 23.0, 1.0)
+
+
+def test_two_rules_giving_a_range_leave_the_narrower_one() -> None:
+    """Nothing in the trees does, but a range narrows the way the rest does."""
+    into: dict[str, Override] = {}
+    _fold(into, "heat", {"min": 30, "max": 230})
+    _fold(into, "heat", {"min": 110, "max": 130})
+    assert (into["heat"].minimum, into["heat"].maximum) == (110.0, 130.0)

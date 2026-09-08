@@ -103,14 +103,6 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         self._fields = fields
         self._attr_unique_id = f"{appliance_id}-climate"
 
-        target = fields[TARGET]
-        if target.minimum is not None:
-            self._attr_min_temp = target.minimum
-        if target.maximum is not None:
-            self._attr_max_temp = target.maximum
-        if target.step:
-            self._attr_target_temperature_step = target.step
-
         features = ClimateEntityFeature.TARGET_TEMPERATURE
         if self._turns("OFF") is not None:
             features |= ClimateEntityFeature.TURN_OFF
@@ -174,6 +166,34 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         # set on an appliance that cannot be reached. The parts it gathers up
         # go unavailable there, and it would look broken staying behind.
         return super().available and self.reachable
+
+    @property
+    def min_temp(self) -> float:
+        """The lowest it will take, which moves with the rest of the machine.
+
+        The number entity on the same field offers the same, so the two of
+        them cannot fall out of step.
+        """
+        return self._bound("minimum", super().min_temp)
+
+    @property
+    def max_temp(self) -> float:
+        return self._bound("maximum", super().max_temp)
+
+    @property
+    def target_temperature_step(self) -> float | None:
+        return (
+            self.override_for(TARGET).step
+            or self._fields[TARGET].step
+            or super().target_temperature_step
+        )
+
+    def _bound(self, which: str, fallback: float) -> float:
+        for holder in (self.override_for(TARGET), self._fields[TARGET]):
+            bound = getattr(holder, which)
+            if bound is not None:
+                return float(bound)
+        return fallback
 
     @property
     def hvac_mode(self) -> HVACMode | None:

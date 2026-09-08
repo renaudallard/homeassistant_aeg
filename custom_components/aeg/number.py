@@ -55,12 +55,6 @@ class AegNumber(AegEntity, NumberEntity):
         self, coordinator: AegCoordinator, appliance_id: str, capability: Capability
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
-        if capability.minimum is not None:
-            self._attr_native_min_value = capability.minimum
-        if capability.maximum is not None:
-            self._attr_native_max_value = capability.maximum
-        if capability.step:
-            self._attr_native_step = capability.step
         if capability.kind == "temperature":
             self._attr_native_unit_of_measurement = degrees(capability)
 
@@ -69,6 +63,33 @@ class AegNumber(AegEntity, NumberEntity):
         # Nothing to set on an appliance that cannot be reached, and nothing
         # to set on a field it will not take right now.
         return super().available and self.reachable and self.override.writable
+
+    @property
+    def native_min_value(self) -> float:
+        """The lowest it will take, which moves with the rest of the machine.
+
+        An oven takes a temperature anywhere from 30 to 230 in general and
+        between 110 and 130 on one of its programmes. What a capability
+        describes is what the model can do; what the appliance says it will
+        take right now is what to offer.
+        """
+        if self.override.minimum is not None:
+            return self.override.minimum
+        if self.capability.minimum is not None:
+            return self.capability.minimum
+        return super().native_min_value
+
+    @property
+    def native_max_value(self) -> float:
+        if self.override.maximum is not None:
+            return self.override.maximum
+        if self.capability.maximum is not None:
+            return self.capability.maximum
+        return super().native_max_value
+
+    @property
+    def native_step(self) -> float | None:
+        return self.override.step or self.capability.step or super().native_step
 
     @property
     def native_value(self) -> float | None:
