@@ -219,6 +219,18 @@ async def test_it_becomes_one_device_with_entities_on_every_platform(
     }
 
 
+async def test_the_washing_machine_comes_out_as_the_readme_says(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The README quotes these, and a quoted number goes stale on its own."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+
+    assert len(entities) == 74
+    assert len([e for e in entities if not e.disabled]) == 54
+
+
 async def test_the_wash_is_shown_and_the_housekeeping_is_not(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

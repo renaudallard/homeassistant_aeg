@@ -105,10 +105,11 @@ rather than quietly pointing the entry at another household's appliances.
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
 
-A washing machine comes out as about 67 entities with 47 of them shown: the
+A washing machine comes out as 74 entities with 54 of them shown: the
 programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
-manager, the door, and buttons for on, off, start, pause, resume and reset.
-Enable the rest from the device page if you want them.
+manager, the door, and buttons for on, off, start, pause, resume, reset and
+clearing the personalised cycle. Enable the rest from the device page if you
+want them.
 
 An appliance added to the account turns up on the next look, which loads the
 entry again to read what the new one can do.
