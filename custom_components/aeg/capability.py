@@ -40,7 +40,7 @@ into the key as "userSelections/analogTemperature". Some are nested under a
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 # What a node becomes. These are Home Assistant platform names, kept as plain
@@ -96,6 +96,9 @@ class Capability:
     step: float | None = None
     disabled: bool = False
     triggers: tuple[Any, ...] = ()
+    # What each value of this field says the rest of the appliance will
+    # accept, by the path of the field each change is about.
+    offers: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @property
     def readable(self) -> bool:
@@ -117,6 +120,56 @@ def _number(value: Any) -> float | None:
     return float(value)
 
 
+# What a change to another field can say. It carries these whether it arrives
+# on a trigger or under a value, and only the first three are read: an
+# appliance is the one that decides a default, and nothing here rewrites what
+# a field is or what range it takes.
+CHANGES = frozenset({"access", "values", "disabled", "default", "range", "type"})
+
+
+def _changes(node: Mapping[str, Any], prefix: str, into: dict[str, Any]) -> None:
+    """Flatten what one value says into the path of each field and its change."""
+    for key, child in node.items():
+        # A value's own "disabled" says the value is not on offer, which is
+        # about the value rather than about another field.
+        if not isinstance(child, Mapping):
+            continue
+        path = f"{prefix}/{key}" if prefix else str(key)
+        if not child or set(child) & CHANGES:
+            into[path] = dict(child)
+        else:
+            _changes(child, path, into)
+
+
+def _offers(node: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    """What each value of a field says the rest of the appliance will accept.
+
+    Picking a value can change what other fields take, and an appliance says
+    so under the value itself rather than as a trigger: a washing machine
+    fixes the temperature of its eco programme that way, and offers six spin
+    speeds on one programme where it offers three on another.
+
+    Two spellings turn up. A washing machine and an oven write the changes
+    straight into the value, each keyed by the full path of the field it is
+    about. An air conditioner, an air purifier and a robot vacuum wrap them in
+    an "actions" object and nest the path instead. Both end up as the same
+    paths, and both mean what a trigger firing on that value would mean.
+    """
+    values = node.get("values")
+    if not isinstance(values, Mapping):
+        return {}
+    offers: dict[str, dict[str, Any]] = {}
+    for name, member in values.items():
+        if not isinstance(member, Mapping):
+            continue
+        actions = member.get("actions")
+        found: dict[str, Any] = {}
+        _changes(actions if isinstance(actions, Mapping) else member, "", found)
+        if found:
+            offers[str(name)] = found
+    return offers
+
+
 def _capability(path: str, node: Mapping[str, Any]) -> Capability:
     values = node.get("values")
     return Capability(
@@ -129,6 +182,7 @@ def _capability(path: str, node: Mapping[str, Any]) -> Capability:
         step=_number(node.get("step")),
         disabled=bool(node.get("disabled", False)),
         triggers=tuple(node.get("triggers") or ()),
+        offers=_offers(node),
     )
 
 

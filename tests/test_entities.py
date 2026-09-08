@@ -770,8 +770,15 @@ async def test_readings_carry_the_reported_value(
     assert programme.state == "COTTON_PR_ECO40-60"
     assert "COTTON_PR_ECO40-60" in programme.attributes["options"]
 
+    # The eco programme fixes the temperature at forty and says so, so the
+    # control goes with it and only the one value is left on the list.
     temperature = hass.states.get(entities["userSelections/analogTemperature"])
-    assert temperature is not None and temperature.state == "40_CELSIUS"
+    assert temperature is not None
+    assert temperature.state == "unavailable"
+    assert temperature.attributes["options"] == ["40_CELSIUS"]
+
+    spin = hass.states.get(entities["userSelections/analogSpinSpeed"])
+    assert spin is not None and spin.state == "1400_RPM"
 
 
 async def test_a_reading_the_appliance_did_not_list_is_still_shown(
@@ -1294,8 +1301,8 @@ async def test_a_nested_field_is_sent_back_nested(
         "select",
         "select_option",
         {
-            "entity_id": entities["userSelections/analogTemperature"],
-            "option": "60_CELSIUS",
+            "entity_id": entities["userSelections/analogSpinSpeed"],
+            "option": "1200_RPM",
         },
         blocking=True,
     )
@@ -1305,7 +1312,7 @@ async def test_a_nested_field_is_sent_back_nested(
     assert command == {
         "userSelections": {
             "programUID": "COTTON_PR_ECO40-60",
-            "analogTemperature": "60_CELSIUS",
+            "analogSpinSpeed": "1200_RPM",
         }
     }
 

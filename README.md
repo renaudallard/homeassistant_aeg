@@ -127,7 +127,7 @@ looked at afterwards; the connection sensor is what says the machine has gone,
 rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Five details worth knowing, because they look like faults and are not:
+Six details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
@@ -143,6 +143,12 @@ Five details worth knowing, because they look like faults and are not:
   modes, so the list shrinks with the mode. Whatever it is set to now stays
   on the list either way. The thermostat gathering the same fields up offers
   the same choices.
+- **The programme decides what the rest of the wash will take.** A washing
+  machine offers six spin speeds on one programme and three on another, and
+  the eco programme fixes the temperature at forty and turns economy on, so
+  those two controls go unavailable while it is selected. That is the
+  appliance's own rule, written into the programme rather than into the
+  field, and picking another programme hands the controls back.
 - **An appliance can report a temperature twice**, once in each scale, and it
   writes the scale into the field name. Both are read on the scale they are
   on, so two readings that look like the same room temperature under different

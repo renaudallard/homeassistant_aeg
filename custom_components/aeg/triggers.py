@@ -243,6 +243,12 @@ def evaluate(
 ) -> dict[str, Override]:
     """Work out what every field will accept, given the state right now.
 
+    An appliance says this in two places. A trigger watches a field and fires
+    on a condition; a value of a field says what the rest of the appliance
+    accepts while it is the one selected. The second is how a washing machine
+    fixes the temperature of its eco programme and narrows the spin speeds a
+    programme offers, and it means the same as a trigger firing on that value.
+
     A trigger with no condition on it is not applied. An oven ships two of
     them, and they contradict each other over which commands it takes, so
     whatever they are meant to say cannot be read out of them. Leaving them
@@ -257,9 +263,10 @@ def evaluate(
     }
     found: dict[str, Override] = {}
     for capability in capabilities:
-        if not capability.triggers:
-            continue
-        value = value_at(reported, capability.path)
+        value = elsewhere[capability.path].value
+        for path, change in capability.offers.get(str(value), {}).items():
+            if isinstance(change, Mapping):
+                _fold(found, path, change)
         for trigger in capability.triggers:
             if not isinstance(trigger, Mapping):
                 continue

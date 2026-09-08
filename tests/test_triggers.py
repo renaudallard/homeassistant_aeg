@@ -422,3 +422,110 @@ def test_a_rule_with_nothing_to_say_about_access_does_not_open_a_field_up() -> N
 
     paused = evaluate(capabilities, {"applianceState": "PAUSED"})
     assert paused["startTime"].writable is False
+
+
+def test_a_value_says_what_the_rest_of_the_appliance_accepts() -> None:
+    """A washing machine fixes the temperature of its eco programme.
+
+    It writes that under the programme rather than as a trigger: the field is
+    marked disabled and left with the one value the programme runs at. Picking
+    another programme hands it back with the values that one offers.
+    """
+    tree = {
+        "userSelections/programUID": {
+            "access": "readwrite",
+            "type": "string",
+            "values": {
+                "ECO": {
+                    "userSelections/analogTemperature": {
+                        "access": "readwrite",
+                        "default": "40_CELSIUS",
+                        "disabled": True,
+                        "values": {"40_CELSIUS": {}},
+                    }
+                },
+                "COTTONS": {
+                    "userSelections/analogTemperature": {
+                        "access": "readwrite",
+                        "disabled": False,
+                        "values": {"40_CELSIUS": {}, "60_CELSIUS": {}},
+                    }
+                },
+            },
+        },
+        "userSelections/analogTemperature": {
+            "access": "readwrite",
+            "type": "string",
+            "values": {"40_CELSIUS": {}, "60_CELSIUS": {}, "COLD": {}},
+        },
+    }
+    capabilities = parse(tree)
+
+    eco = evaluate(capabilities, {"userSelections": {"programUID": "ECO"}})
+    fixed = eco["userSelections/analogTemperature"]
+    assert fixed.writable is False
+    assert fixed.values == ("40_CELSIUS",)
+
+    cottons = evaluate(capabilities, {"userSelections": {"programUID": "COTTONS"}})
+    offered = cottons["userSelections/analogTemperature"]
+    assert offered.writable is True
+    assert offered.values == ("40_CELSIUS", "60_CELSIUS")
+
+
+def test_a_value_can_wrap_what_it_says_in_actions() -> None:
+    """An air conditioner nests the path instead of writing it out.
+
+    Same meaning, so it comes out as the same paths: in its automatic mode the
+    fan speed is read only and set to automatic with it.
+    """
+    tree = {
+        "airConditioner": {
+            "properties": {
+                "mode": {
+                    "access": "readwrite",
+                    "type": "string",
+                    "values": {
+                        "auto": {
+                            "actions": {
+                                "airConditioner": {
+                                    "fanMode": {
+                                        "access": "read",
+                                        "values": {"auto": {}},
+                                    }
+                                }
+                            }
+                        },
+                        "cool": {},
+                    },
+                },
+                "fanMode": {
+                    "access": "readwrite",
+                    "type": "string",
+                    "values": {"auto": {}, "high": {}, "low": {}},
+                },
+            }
+        }
+    }
+    capabilities = parse(tree)
+
+    automatic = evaluate(capabilities, {"airConditioner": {"mode": "auto"}})
+    fan = automatic["airConditioner/fanMode"]
+    assert fan.writable is False
+    assert fan.values == ("auto",)
+
+    cooling = evaluate(capabilities, {"airConditioner": {"mode": "cool"}})
+    assert "airConditioner/fanMode" not in cooling
+
+
+def test_a_value_that_is_not_the_one_selected_says_nothing() -> None:
+    tree = {
+        "mode": {
+            "access": "readwrite",
+            "type": "string",
+            "values": {"auto": {"fan": {"disabled": True}}, "cool": {}},
+        },
+        "fan": {"access": "readwrite", "type": "boolean"},
+    }
+    capabilities = parse(tree)
+    assert evaluate(capabilities, {"mode": "cool"}) == {}
+    assert evaluate(capabilities, {}) == {}
