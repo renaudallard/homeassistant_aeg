@@ -93,6 +93,27 @@ def fields(coordinator: AegCoordinator, platform: str) -> list[tuple[str, Capabi
     ]
 
 
+def lacks(coordinator: AegCoordinator, appliance: Appliance, field: Capability) -> bool:
+    """Whether this model is known not to have a field its tree describes.
+
+    A capability tree covers a range of models, so it lists fields a given
+    machine does not have, and an entity for one of those is worth taking away.
+
+    A field missing from what the appliance last said is a different thing. A
+    machine that has dropped off the network, or one that has gone quiet about
+    a whole group of settings, is not saying it lacks anything, and reading it
+    that way took the entities off an appliance that was merely asleep. So the
+    only fields given up on are the ones it has never once reported, and
+    nothing is given up on while it is out of reach.
+    """
+    if not field.readable:
+        # A command is never reported back, so there is nothing to look for.
+        return False
+    if not appliance.connected or not appliance.reported:
+        return False
+    return field.path not in coordinator.seen(appliance.id)
+
+
 def provided(coordinator: AegCoordinator) -> set[str]:
     """Every field this account has entities for, by the id they start with.
 
@@ -109,7 +130,9 @@ def provided(coordinator: AegCoordinator) -> set[str]:
         ids.add(f"{appliance_id}-firmware")
         ids.add(f"{appliance_id}-climate")
         for capability in appliance.capabilities:
-            if platform_for(capability) is None or not carried(appliance, capability):
+            if platform_for(capability) is None or lacks(
+                coordinator, appliance, capability
+            ):
                 continue
             ids.add(f"{appliance_id}-{capability.path}")
     return ids

@@ -109,6 +109,12 @@ programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume and reset.
 Enable the rest from the device page if you want them.
 
+A capability tree covers a range of models, so it describes fields a given
+machine does not have. Those get no entity, and one left over from an earlier
+version is taken away, but only once the appliance has been reachable and has
+never reported the field. An appliance that is asleep or quiet keeps
+everything it has.
+
 Every appliance also gets a **connection** sensor. When the cloud stops calling
 an appliance reachable, what it last said stays readable, so a wash can be
 looked at afterwards; the connection sensor is what says the machine has gone,

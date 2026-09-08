@@ -110,6 +110,13 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         self._store = capability_store(hass, entry)
         self._stream: AegStream | None = None
         self._capabilities: dict[str, list[Capability]] = {}
+        # Which fields each appliance has been seen reporting, ever. A field
+        # it describes and has never reported is one this model does not have.
+        self._seen: dict[str, set[str]] = {}
+
+    def seen(self, appliance_id: str) -> set[str]:
+        """The fields this appliance has been known to report."""
+        return self._seen.get(appliance_id, set())
 
     async def _async_setup(self) -> None:
         """Read what each appliance can do, once.
@@ -117,6 +124,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         An appliance publishes a hash of its own capabilities alongside them,
         which is what makes keeping the last one worth anything: the tree is
         fetched again only when that hash says it is worth fetching.
+
+        What it has reported is kept alongside, because a field missing from
+        one answer is not a field the model lacks, and telling those two apart
+        needs more than the answer in hand.
         """
         held = await self._store.async_load() or {}
         keeping: dict[str, Any] = {}
@@ -134,8 +145,22 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 else:
                     tree = await self.api.capabilities(appliance_id)
                     _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
-                keeping[appliance_id] = {"hash": fingerprint, "tree": tree}
-                self._capabilities[appliance_id] = parse(tree)
+                capabilities = parse(tree)
+                seen = (
+                    {str(path) for path in known.get("seen") or ()} if known else set()
+                )
+                seen |= {
+                    capability.path
+                    for capability in capabilities
+                    if value_at(reported, capability.path) is not None
+                }
+                keeping[appliance_id] = {
+                    "hash": fingerprint,
+                    "tree": tree,
+                    "seen": sorted(seen),
+                }
+                self._capabilities[appliance_id] = capabilities
+                self._seen[appliance_id] = seen
         except AegAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except AegError as err:

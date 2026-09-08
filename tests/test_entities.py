@@ -254,6 +254,72 @@ async def test_what_an_earlier_version_left_behind_is_taken_away(
     assert registry.async_get(stale.entity_id) is None
 
 
+async def test_a_field_never_reported_is_still_taken_away(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The machine describes a whole group of settings it does not have."""
+    registry = er.async_get(hass)
+    appliance = _fixture("wm-appliances")[0]["applianceId"]
+    stale = registry.async_get_or_create(
+        "select",
+        DOMAIN,
+        f"{appliance}-cyclePersonalization/analogTemperature",
+        config_entry=entry,
+        suggested_object_id="lave_linge_never_reported",
+    )
+
+    await _setup(hass, entry, api)
+    assert registry.async_get(stale.entity_id) is None
+
+
+async def test_an_appliance_that_has_gone_quiet_keeps_its_entities(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine at the end of a cycle turns itself off.
+
+    Starting up while it is off used to read its silence as a machine that
+    had never had any of those fields, and take every one of them away.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    before = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert before
+
+    quiet = _fixture("wm-appliances")
+    quiet[0]["properties"]["reported"] = {}
+    quiet[0]["connectionState"] = "disconnected"
+    api.appliances.return_value = quiet
+    await _again(hass, entry, api)
+
+    after = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert after == before
+
+
+async def test_a_group_of_settings_going_missing_takes_nothing_down(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Reachable, talking, and saying nothing about the wash settings."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    before = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+
+    partial = _fixture("wm-appliances")
+    del partial[0]["properties"]["reported"]["userSelections"]
+    api.appliances.return_value = partial
+    await _again(hass, entry, api)
+
+    after = {
+        e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert after == before
+
+
 async def test_an_account_that_answers_with_nothing_takes_nothing_down(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
