@@ -1325,6 +1325,27 @@ async def test_a_field_of_its_own_is_sent_on_its_own(
     assert command == {"waterHardness": "STEP_6"}
 
 
+async def test_a_whole_number_is_sent_whole(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Home Assistant hands every number over as a fraction.
+
+    The appliance counts its seconds in whole ones and reports them that way,
+    so 7200.0 is the same figure written a way it never writes it. 7200.0
+    compares equal to 7200, so the type is what has to be looked at.
+    """
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": "number.lave_linge_finish_in", "value": 7200},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"stopTime": 7200}
+    assert isinstance(command["stopTime"], int)
+
+
 async def test_a_flag_the_appliance_words_is_sent_in_its_words(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

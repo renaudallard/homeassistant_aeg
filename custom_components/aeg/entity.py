@@ -86,6 +86,17 @@ def degrees(capability: Capability) -> UnitOfTemperature:
     return UnitOfTemperature.CELSIUS
 
 
+def as_set(value: float) -> float | int:
+    """A number in the shape the appliance sends it in.
+
+    Home Assistant hands every number over as a fraction, and an appliance
+    that counts its degrees and its seconds in whole ones reports them whole.
+    Sending 22.0 where it said 22 is the same reading written a way it never
+    writes it, so a whole number goes back whole.
+    """
+    return int(value) if value.is_integer() else value
+
+
 def carried(appliance: Appliance, capability: Capability) -> bool:
     """Whether this appliance actually has the field it describes.
 

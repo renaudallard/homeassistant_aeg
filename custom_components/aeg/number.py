@@ -35,7 +35,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import AegConfigEntry
 from .capability import NUMBER, Capability
 from .coordinator import AegCoordinator
-from .entity import AegEntity, degrees, fields
+from .entity import AegEntity, as_set, degrees, fields
 
 
 async def async_setup_entry(
@@ -76,5 +76,4 @@ class AegNumber(AegEntity, NumberEntity):
         return float(value) if isinstance(value, (int, float)) else None
 
     async def async_set_native_value(self, value: float) -> None:
-        # Whole numbers go back as integers, since that is how they arrived.
-        await self.send(int(value) if value.is_integer() else value)
+        await self.send(as_set(value))

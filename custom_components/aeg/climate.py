@@ -49,7 +49,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import AegConfigEntry
 from .capability import STATE, Capability
 from .coordinator import AegCoordinator
-from .entity import AegApplianceEntity
+from .entity import AegApplianceEntity, as_set
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -248,7 +248,9 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         wanted = kwargs.get(ATTR_TEMPERATURE)
         if wanted is not None:
-            await self.coordinator.send(self._appliance_id, TARGET, float(wanted))
+            await self.coordinator.send(
+                self._appliance_id, TARGET, as_set(float(wanted))
+            )
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         await self.coordinator.send(self._appliance_id, FAN, fan_mode)

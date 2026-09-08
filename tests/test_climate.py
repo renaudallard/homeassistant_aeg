@@ -304,7 +304,11 @@ async def test_setting_the_temperature_says_so_in_degrees(
         blocking=True,
     )
     _, command = api.send_command.await_args.args
-    assert command == {"targetTemperatureC": 19.0}
+    # Whole, the way the appliance reports it and the way the number entity
+    # on the same field sends it. 19.0 compares equal to 19, so the type is
+    # what has to be looked at.
+    assert command == {"targetTemperatureC": 19}
+    assert isinstance(command["targetTemperatureC"], int)
 
 
 async def test_choosing_a_way_of_running_it_says_so_in_its_own_word(
