@@ -122,10 +122,12 @@ def number(value: Any) -> float | None:
 
 
 # What a change to another field can say. It carries these whether it arrives
-# on a trigger or under a value, and only the first three are read: an
-# appliance is the one that decides a default, and nothing here rewrites what
-# a field is or what range it takes.
-CHANGES = frozenset({"access", "values", "disabled", "default", "range", "type"})
+# on a trigger or under a value. Naming all of them is what tells a change
+# from a group of them, so one writing only a range is read as the change it
+# is rather than walked into as though it held fields of its own.
+CHANGES = frozenset(
+    {"access", "values", "disabled", "default", "range", "type", "min", "max", "step"}
+)
 
 
 def _changes(node: Mapping[str, Any], prefix: str, into: dict[str, Any]) -> None:

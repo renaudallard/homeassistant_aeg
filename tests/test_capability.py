@@ -270,6 +270,26 @@ def test_a_field_with_every_value_set_aside_has_nothing_to_choose_between() -> N
     assert platform_for(nothing) == SENSOR
 
 
+def test_a_change_that_writes_only_a_range_is_read_as_one() -> None:
+    """What tells a change from a group of them is the keys it uses.
+
+    Every one of them is named, so a change saying nothing but how far a
+    number goes is not walked into as though it held fields of its own.
+    """
+    found = parse(
+        {
+            "program": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {"BREAD": {"targetTemperatureC": {"min": 110, "max": 130}}},
+            }
+        }
+    )
+    assert found[0].offers == {
+        "BREAD": {"targetTemperatureC": {"min": 110, "max": 130}}
+    }
+
+
 def test_a_field_whose_values_carry_properties_is_still_a_field() -> None:
     """Only a node that says it holds a structure is read as a group.
 
