@@ -257,6 +257,29 @@ async def test_a_reading_in_fahrenheit_is_not_read_as_celsius(
     assert float(fahrenheit.state) == 26.5
 
 
+async def test_a_temperature_the_appliance_words_is_not_read_as_degrees(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A field that lists what it can say holds a word, not a reading."""
+    tree = json.loads((FIXTURES / "ac-capabilities.json").read_text())
+    tree["comfortTemperature"] = {
+        "access": "read",
+        "type": "temperature",
+        "values": {"COLD": {}, "WARM": {}},
+    }
+    api.capabilities.return_value = tree
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["comfortTemperature"] = "COLD"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    worded = hass.states.get("sensor.clim_comfort_temperature")
+    assert worded is not None
+    assert worded.state == "COLD"
+    assert "unit_of_measurement" not in worded.attributes
+    assert "device_class" not in worded.attributes
+
+
 async def test_a_washing_machine_is_not_a_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

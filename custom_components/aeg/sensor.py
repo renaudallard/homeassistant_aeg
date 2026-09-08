@@ -75,7 +75,11 @@ class AegSensor(AegEntity, SensorEntity):
         if is_duration(capability):
             self._attr_device_class = SensorDeviceClass.DURATION
             self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
-        elif capability.kind == "temperature":
+        elif capability.kind == "temperature" and not capability.values:
+            # A field that lists what it can say holds a word rather than a
+            # reading, and a wash set to COLD is not a number of degrees.
+            # Home Assistant reads a temperature as one and complains on every
+            # update about anything that is not.
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = degrees(capability)
             self._attr_state_class = SensorStateClass.MEASUREMENT
