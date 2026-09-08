@@ -133,17 +133,23 @@ def _forget_what_is_gone(
     including the ones it does not have, and those stay in the register until
     something removes them.
 
-    Knowing of nothing is not the same as knowing there is nothing. An account
-    that answered with an empty list, for a moment or for good, would otherwise
-    take every entity on it down, so it is left alone instead.
+    Knowing of nothing is not the same as knowing there is nothing. Only the
+    appliances this account has just listed are compared against what they
+    describe: a listing that arrived without one of them, for a moment or for
+    good, is not the account saying that appliance has gone, and taking its
+    entities away would take the history and the automations on them too.
     """
     keep = provided(coordinator)
-    if not keep:
-        _LOGGER.debug("nothing to compare against, so nothing is dropped")
-        return
+    listed = tuple(coordinator.data)
     registry = er.async_get(hass)
     for existing in er.async_entries_for_config_entry(registry, entry.entry_id):
         unique_id = existing.unique_id
+        if not any(unique_id.startswith(f"{one}-") for one in listed):
+            _LOGGER.debug(
+                "leaving %s alone, this listing said nothing of its appliance",
+                existing.entity_id,
+            )
+            continue
         if unique_id in keep or any(
             unique_id.startswith(f"{field}-") for field in keep
         ):

@@ -32,6 +32,7 @@ what the appliance says about itself, so this is the check that the reading of
 that description holds up against a real one.
 """
 
+import copy
 import json
 from datetime import timedelta
 from pathlib import Path
@@ -241,10 +242,11 @@ async def test_what_an_earlier_version_left_behind_is_taken_away(
 ) -> None:
     """Entities already in the register outlive a change of mind about them."""
     registry = er.async_get(hass)
+    appliance = _fixture("wm-appliances")[0]["applianceId"]
     stale = registry.async_get_or_create(
         "select",
         DOMAIN,
-        "an-appliance-cyclePersonalization/analogTemperature",
+        f"{appliance}-aFieldNothingDescribesAnyMore",
         config_entry=entry,
         suggested_object_id="lave_linge_stale",
     )
@@ -357,6 +359,37 @@ async def test_an_account_that_answers_with_nothing_takes_nothing_down(
 
     after = {
         e.entity_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert after == before
+
+
+async def test_an_appliance_a_listing_left_out_keeps_its_entities(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """One appliance missing is not the account saying it has gone."""
+    both = _fixture("wm-appliances")
+    second = copy.deepcopy(both[0])
+    second["applianceId"] = "a-second-machine"
+    both.append(second)
+    api.appliances.return_value = both
+    await _setup(hass, entry, api)
+
+    registry = er.async_get(hass)
+    before = {
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.startswith("a-second-machine-")
+    }
+    assert before
+
+    # The account answers with the other machine and nothing else.
+    api.appliances.return_value = _fixture("wm-appliances")
+    await _again(hass, entry, api)
+
+    after = {
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.startswith("a-second-machine-")
     }
     assert after == before
 
