@@ -251,12 +251,14 @@ integration. The decompiled app and the scratch work live in `tmp/`, which is
 not tracked, as is the app package itself.
 
 The tests load a real washing machine, dumped from an account with the
-identifiers removed, and check what comes out of it. Nothing in them touches
-the network: the cloud is stood in for at the two classes that talk to it, the
-calls and the stream alike. The config flow tests
-drive the real Home Assistant flow machinery with the cloud mocked at the two
-classes the flow talks to, so they cover which step follows which, what lands
-in the config entry, and which message a failure puts on the form.
+identifiers removed, and check what comes out of it. The config flow tests
+drive the real Home Assistant flow machinery, so they cover which step follows
+which, what lands in the config entry, and which message a failure puts on the
+form.
+
+Nothing in them touches the network. The cloud is stood in for wherever it is
+talked to: the calls, the connection it pushes changes over, and the two
+classes the config flow signs in through.
 
 Two workflows run on every push: **Tests** runs the lint, the type check and
 the suite, and **Validate** runs HACS validation and hassfest. Neither of the
