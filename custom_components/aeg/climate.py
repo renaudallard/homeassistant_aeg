@@ -103,12 +103,6 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         self._fields = fields
         self._attr_unique_id = f"{appliance_id}-climate"
 
-        offered = [MODES[value] for value in fields[MODE].values if value in MODES]
-        if HVACMode.OFF not in offered and self._turns("OFF") is not None:
-            # It turns off by being told to rather than by a mode of its own.
-            offered.append(HVACMode.OFF)
-        self._attr_hvac_modes = offered
-
         target = fields[TARGET]
         if target.minimum is not None:
             self._attr_min_temp = target.minimum
@@ -124,13 +118,55 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             features |= ClimateEntityFeature.TURN_ON
         fan = fields.get(FAN)
         if fan and fan.values:
-            self._attr_fan_modes = list(fan.values)
             features |= ClimateEntityFeature.FAN_MODE
         swing = fields.get(SWING)
         if swing and swing.values:
-            self._attr_swing_modes = list(swing.values)
             features |= ClimateEntityFeature.SWING_MODE
         self._attr_supported_features = features
+
+    def _offered(self, path: str) -> list[str] | None:
+        """What one of the gathered fields will take in the state it is in.
+
+        An appliance says what a field accepts right now as well as what it
+        accepts in general: an air conditioner drops TURBO from its fan speeds
+        in its automatic and fan only modes, and will not take a fan speed at
+        all while it is drying. Offering one it has said it will not take only
+        earns a refused command.
+
+        Whatever it is set to now stays on the list, since a reading nobody
+        can see is no better than a choice nobody can make.
+        """
+        field = self._fields.get(path)
+        if field is None or not field.values:
+            return None
+        current = self.at(path)
+        override = self.override_for(path)
+        if not override.writable:
+            # Nothing to choose between, so only where it stands is offered.
+            return [] if current is None else [str(current)]
+        return [
+            value
+            for value in field.values
+            if override.allows(value) or value == current
+        ]
+
+    @property
+    def hvac_modes(self) -> list[HVACMode]:
+        offered = [
+            MODES[value] for value in self._offered(MODE) or () if value in MODES
+        ]
+        if HVACMode.OFF not in offered and self._turns("OFF") is not None:
+            # It turns off by being told to rather than by a mode of its own.
+            offered.append(HVACMode.OFF)
+        return offered
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        return self._offered(FAN)
+
+    @property
+    def swing_modes(self) -> list[str] | None:
+        return self._offered(SWING)
 
     @property
     def available(self) -> bool:

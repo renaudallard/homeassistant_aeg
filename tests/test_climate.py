@@ -168,6 +168,52 @@ async def test_the_fan_speeds_follow_the_mode_it_is_in(
         )
 
 
+async def test_the_thermostat_offers_the_same_fan_speeds_as_the_select(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The thermostat is the same fields, so it takes the same values."""
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "FANONLY"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    climate = hass.states.get(THERMOSTAT)
+    assert climate is not None
+    assert climate.attributes["fan_modes"] == ["AUTO", "HIGH", "LOW", "MIDDLE", "QUIET"]
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "climate",
+            "set_fan_mode",
+            {"entity_id": THERMOSTAT, "fan_mode": "TURBO"},
+            blocking=True,
+        )
+    api.send_command.assert_not_awaited()
+
+
+async def test_a_fan_speed_it_will_not_change_offers_only_where_it_stands(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Drying takes no fan speed at all, so there is nothing to choose."""
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "DRY"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    climate = hass.states.get(THERMOSTAT)
+    assert climate is not None
+    assert climate.attributes["fan_modes"] == ["AUTO"]
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "climate",
+            "set_fan_mode",
+            {"entity_id": THERMOSTAT, "fan_mode": "TURBO"},
+            blocking=True,
+        )
+    api.send_command.assert_not_awaited()
+
+
 async def test_a_washing_machine_is_not_a_thermostat(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
