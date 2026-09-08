@@ -115,13 +115,15 @@ looked at afterwards; the connection sensor is what says the machine has gone,
 rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Two details worth knowing, because they look like faults and are not:
+Three details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
   remote start, and the app greys the same buttons out.
 - **Water hardness and the softener mode go read-only** while a cycle is
   running, delayed, paused or has just ended. That is the appliance's own rule.
+- **Steam and stain go read-only below forty degrees**, on a cold wash
+  included. That is the appliance's own rule as well.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter

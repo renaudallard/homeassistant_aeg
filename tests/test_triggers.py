@@ -114,7 +114,7 @@ def test_settings_freeze_while_a_cycle_runs(
 def test_a_cold_wash_will_not_take_steam(
     machine: tuple[list[Any], dict[str, Any]],
 ) -> None:
-    """Comparing values by where the appliance listed them, not by spelling."""
+    """Below forty degrees the machine sets steam and stain aside itself."""
     capabilities, state = machine
     cold = _in(state, remoteControl="ENABLED", analogTemperature="20_CELSIUS")
     overrides = evaluate(capabilities, cold)
@@ -125,6 +125,17 @@ def test_a_cold_wash_will_not_take_steam(
     warmer = evaluate(capabilities, warm)
     assert warmer["userSelections/steamValue"].writable
     assert warmer["userSelections/EWX1493A_stain"].writable
+
+
+def test_the_coldest_wash_of_all_will_not_take_steam(
+    machine: tuple[list[Any], dict[str, Any]],
+) -> None:
+    """COLD is listed after 95_CELSIUS and is colder than any of them."""
+    capabilities, state = machine
+    cold = _in(state, remoteControl="ENABLED", analogTemperature="COLD")
+    overrides = evaluate(capabilities, cold)
+    assert not overrides["userSelections/steamValue"].writable
+    assert not overrides["userSelections/EWX1493A_stain"].writable
 
 
 def test_a_condition_can_be_two_conditions() -> None:
@@ -142,13 +153,40 @@ def test_a_condition_can_be_two_conditions() -> None:
     assert not holds(both, "A", ())
 
 
-def test_values_are_ordered_by_where_they_were_listed() -> None:
-    order = ("COLD", "20_CELSIUS", "40_CELSIUS", "60_CELSIUS", "100_CELSIUS")
+def test_values_are_ordered_by_the_number_they_spell_out() -> None:
+    """The cloud lists them alphabetically, so the list order says nothing."""
+    order = ("20_CELSIUS", "40_CELSIUS", "60_CELSIUS", "100_CELSIUS", "COLD")
     below = {"operand_1": "value", "operand_2": "40_CELSIUS", "operator": "lt"}
     assert holds(below, "20_CELSIUS", order)
     assert not holds(below, "60_CELSIUS", order)
-    # Spelling would put a hundred below twenty; the appliance knows better.
+    # Alphabetically a hundred sits between ten and twenty.
     assert not holds(below, "100_CELSIUS", order)
+
+
+def test_a_word_with_no_number_sits_below_the_numbers() -> None:
+    """COLD is listed last and is the coldest wash there is."""
+    order = ("20_CELSIUS", "40_CELSIUS", "95_CELSIUS", "COLD")
+    below = {"operand_1": "value", "operand_2": "40_CELSIUS", "operator": "lt"}
+    at_least = {"operand_1": "value", "operand_2": "40_CELSIUS", "operator": "ge"}
+    assert holds(below, "COLD", order)
+    assert not holds(at_least, "COLD", order)
+
+
+def test_a_spin_speed_is_read_as_a_speed() -> None:
+    """Listed as 0, 1000, 1200, 1400, 400, 600, 800, which is not a scale."""
+    order = ("0_RPM", "1000_RPM", "1200_RPM", "1400_RPM", "400_RPM", "800_RPM")
+    below = {"operand_1": "value", "operand_2": "1000_RPM", "operator": "lt"}
+    assert holds(below, "400_RPM", order)
+    assert holds(below, "800_RPM", order)
+    assert not holds(below, "1400_RPM", order)
+
+
+def test_a_field_of_plain_words_keeps_the_order_it_came_in() -> None:
+    """Nothing to order them by, so nothing is invented."""
+    order = ("STEAM_MAX", "STEAM_MED", "STEAM_MIN")
+    below = {"operand_1": "value", "operand_2": "STEAM_MED", "operator": "lt"}
+    assert holds(below, "STEAM_MAX", order)
+    assert not holds(below, "STEAM_MIN", order)
 
 
 def test_default_means_the_appliance_is_not_overriding() -> None:

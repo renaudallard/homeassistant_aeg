@@ -38,6 +38,7 @@ access, the values they will take, or whether they are there at all.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -47,6 +48,10 @@ from .capability import Capability, value_at
 _LOGGER = logging.getLogger(__name__)
 
 ORDERED = ("lt", "le", "gt", "ge")
+
+# The number a value spells out, as in the 20 of 20_CELSIUS or the 1400 of
+# 1400_RPM.
+NUMBER = re.compile(r"\d+")
 
 
 @dataclass(frozen=True)
@@ -70,13 +75,37 @@ class Override:
         return self.access is None or "write" in self.access
 
 
-def _rank(value: Any, order: Sequence[str]) -> float | None:
-    """Where a value sits, so that two of them can be compared.
+def _measure(value: str) -> float | None:
+    """The number a word spells out, if it spells one out at all."""
+    found = NUMBER.search(value)
+    return float(found.group()) if found else None
 
-    Words are ordered by where the appliance listed them, not alphabetically:
-    it knows that thirty degrees is less than forty, and a machine offering a
-    hundred would not survive being sorted as text.
+
+def _scale(order: Sequence[str]) -> tuple[str, ...]:
+    """Put a field's values in the order it means them, not the one they came in.
+
+    The cloud lists them alphabetically. A spin speed arrives as 0, 1000, 1200,
+    1400, 400, 600, 800 and a temperature ends on COLD, so where a value sits
+    in the list says nothing about which of two is the larger.
+
+    A value that spells out a number is ordered by that number. One that does
+    not keeps the order it came in and sits below the rest, which is where the
+    words on these fields belong: COLD is under every temperature and DISABLED
+    under every spin speed. A field whose values are all words is left as it
+    came, there being nothing to order it by.
     """
+    measured = [(value, _measure(value)) for value in order]
+    numbered = sorted(
+        (number, value) for value, number in measured if number is not None
+    )
+    return (
+        *(value for value, number in measured if number is None),
+        *(value for _, value in numbered),
+    )
+
+
+def _rank(value: Any, order: Sequence[str]) -> float | None:
+    """Where a value sits on a scale, so that two of them can be compared."""
     if isinstance(value, bool):
         return None
     if isinstance(value, (int, float)):
@@ -92,7 +121,8 @@ def _compare(operator: str, left: Any, right: Any, order: Sequence[str]) -> bool
     if operator == "ne":
         return bool(left != right)
     if operator in ORDERED:
-        first, second = _rank(left, order), _rank(right, order)
+        scale = _scale(order)
+        first, second = _rank(left, scale), _rank(right, scale)
         if first is None or second is None:
             return False
         if operator == "lt":
