@@ -112,6 +112,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 await self._prepare()
                 session = await self._login_with_password(user_input[CONF_PASSWORD])
+                account = await self._account(session)
             except AegAuthError as err:
                 _LOGGER.warning("signing in failed: %s", err)
                 errors["base"] = (
@@ -126,7 +127,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("unexpected failure while signing in")
                 errors["base"] = "unknown"
             else:
-                return await self._create(session)
+                return await self._finish(account)
         return self.async_show_form(
             step_id="password",
             data_schema=_account_schema(self._email, self._country, True),
@@ -169,6 +170,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 session = await self._login_with_code(user_input[CONF_CODE])
+                account = await self._account(session)
             except AegAuthError as err:
                 _LOGGER.warning("the code was not accepted: %s", err)
                 errors["base"] = "invalid_code"
@@ -179,7 +181,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("unexpected failure while checking the code")
                 errors["base"] = "unknown"
             else:
-                return await self._create(session)
+                return await self._finish(account)
         return self.async_show_form(
             step_id="code",
             data_schema=vol.Schema({vol.Required(CONF_CODE): str}),
@@ -221,15 +223,24 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             raise AegConnectionError("the account lookup did not finish")
         return await self._client.login_with_otp(code, self._vtoken, self._ids)
 
-    async def _create(self, session: GigyaSession) -> ConfigFlowResult:
-        """Trade the Gigya session for tokens and write the entry."""
-        if self._client is None or self._ids is None or self._provider is None:
-            return self.async_abort(reason="unknown")
-        if self._auth is None:
-            return self.async_abort(reason="unknown")
+    async def _account(self, session: GigyaSession) -> dict[str, Any]:
+        """Trade the Gigya session for tokens, and shape what an entry holds.
+
+        Everything here can fail on the way, so it is done where the step can
+        still show the form again. Writing the entry is not: refusing to add
+        the same account twice is done by raising, and that would be caught
+        here and reported as something having gone wrong.
+        """
+        if (
+            self._client is None
+            or self._ids is None
+            or self._provider is None
+            or self._auth is None
+        ):
+            raise AegConnectionError("the account lookup did not finish")
         id_token = await self._client.jwt(session, self._ids)
         tokens = await self._auth.exchange(id_token)
-        data = {
+        return {
             CONF_EMAIL: self._email,
             CONF_COUNTRY: self._country,
             CONF_BASE_URL: self._provider.http_base_url,
@@ -238,6 +249,9 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             CONF_REFRESH_TOKEN: tokens.refresh_token,
             CONF_EXPIRES_AT: tokens.expires_at,
         }
+
+    async def _finish(self, data: dict[str, Any]) -> ConfigFlowResult:
+        """Write the account into an entry, or back into the one it is for."""
         await self.async_set_unique_id(self._email.lower())
         if self.source == SOURCE_REAUTH:
             return self.async_update_reload_and_abort(

@@ -245,6 +245,53 @@ async def test_a_bad_code_can_be_retyped(
     assert result["errors"] == {"base": "invalid_code"}
 
 
+async def test_a_blip_after_signing_in_can_be_retried(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """The tokens are collected after the password is accepted."""
+    auth.exchange.side_effect = AegConnectionError("the service is having a moment")
+    flow_id = await start(hass)
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            flow_id, {"next_step_id": "password"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {CONF_EMAIL: EMAIL, CONF_COUNTRY: COUNTRY, CONF_PASSWORD: PASSWORD},
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["errors"] == {"base": "cannot_connect"}
+
+        # The same form, and the account goes in once the service is back.
+        auth.exchange.side_effect = None
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {CONF_EMAIL: EMAIL, CONF_COUNTRY: COUNTRY, CONF_PASSWORD: PASSWORD},
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+async def test_a_blip_after_the_code_is_accepted_can_be_retried(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """A mailed code is spent once, so losing the flow here costs the most."""
+    client.jwt.side_effect = AegConnectionError("the service is having a moment")
+    flow_id = await start(hass)
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            flow_id, {"next_step_id": "email_code"}
+        )
+        await hass.config_entries.flow.async_configure(
+            flow_id, {CONF_EMAIL: EMAIL, CONF_COUNTRY: COUNTRY}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            flow_id, {CONF_CODE: "483920"}
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "code"
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
 async def test_the_same_account_is_not_added_twice(
     hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
 ) -> None:
