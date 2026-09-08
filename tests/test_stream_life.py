@@ -33,8 +33,11 @@ looks exactly like a quiet appliance.
 """
 
 import asyncio
+import logging
 from typing import Any
 from unittest.mock import patch
+
+import pytest
 
 from custom_components.aeg import websocket
 from custom_components.aeg.websocket import AegStream
@@ -140,3 +143,43 @@ async def test_it_says_which_appliances_to_watch() -> None:
         '[{"applianceId": "one"}, {"applianceId": "two"}]'
     )
     assert session.opened[0]["version"] == "2"
+
+
+class _Broken:
+    """A session that cannot open a connection at all."""
+
+    def __init__(self) -> None:
+        self.tried = 0
+
+    def ws_connect(self, url: str, **kwargs: Any) -> _Connection:
+        self.tried += 1
+        raise RuntimeError("no route to the cloud")
+
+
+async def test_a_stream_that_never_works_says_so_once(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A URL kept from an account that has moved would fill the log."""
+    session = _Broken()
+    stream = AegStream(
+        session,  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        _authorization,
+        lambda: 43200.0,
+        ["an-appliance"],
+        lambda message: None,
+        lambda connected: None,
+    )
+    with (
+        caplog.at_level(logging.ERROR, logger="custom_components.aeg.websocket"),
+        patch.object(websocket, "RECONNECT_DELAY_UNEXPECTED", 0.01),
+    ):
+        stream.start()
+        await asyncio.sleep(0.2)
+        await stream.stop()
+
+    assert session.tried > 1
+    complaints = [
+        record for record in caplog.records if record.levelno >= logging.ERROR
+    ]
+    assert len(complaints) == 1

@@ -78,6 +78,8 @@ class AegStream:
         self._on_message = on_message
         self._on_connected = on_connected
         self._task: asyncio.Task[None] | None = None
+        # Whether the last failure has already been written out in full.
+        self._complained = False
 
     def start(self) -> None:
         if self._task is None and self._appliance_ids:
@@ -113,7 +115,16 @@ class AegStream:
             except aiohttp.ClientError as err:
                 _LOGGER.debug("the stream dropped: %s", err)
             except Exception:
-                _LOGGER.exception("the stream failed unexpectedly")
+                # A stream that is never going to work, a URL kept from an
+                # account that has moved being the way that happens, would
+                # otherwise write a traceback every half minute for as long as
+                # the entry is loaded. The first one says what is wrong and
+                # the rest only say it again, so they go to debug.
+                if self._complained:
+                    _LOGGER.debug("the stream failed again", exc_info=True)
+                else:
+                    _LOGGER.exception("the stream failed unexpectedly")
+                    self._complained = True
                 delay = RECONNECT_DELAY_UNEXPECTED
             finally:
                 self._on_connected(False)
@@ -138,6 +149,8 @@ class AegStream:
                 len(self._appliance_ids),
                 renew_in,
             )
+            # It opened, so the next thing to go wrong is worth reading.
+            self._complained = False
             self._on_connected(True)
             try:
                 async with asyncio.timeout(renew_in):
