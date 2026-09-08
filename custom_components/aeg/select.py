@@ -46,20 +46,24 @@ LEVEL = re.compile(r"^[A-Z][A-Z_]*_(\d+)$")
 def numbering(values: tuple[str, ...]) -> dict[str, str]:
     """Number a scale, if that is what these values are.
 
-    A field can name the first few steps and number the rest: a washing
-    machine sets its water hardness to SOFT, MEDIUM, HARD and then STEP_4 up
-    to STEP_7, which is one scale of seven whichever way it says it. The
-    numbered ones say where they sit, so if each lands on its own place the
-    whole list is a scale and every value is shown as its place in it.
+    A value that is a name and a number says where it sits, so a field whose
+    values all say so is shown as the places they name.
+
+    A field that names some of its steps and numbers the rest says nothing
+    about where the named ones go. The cloud hands values over in alphabetical
+    order, so a washing machine offering SOFT, MEDIUM and HARD before STEP_4
+    lists them as HARD, MEDIUM, SOFT, and numbering off that order puts the
+    softest setting at the top of the scale and sends HARD to anyone asking
+    for the first step. Nothing in what the appliance says puts those three
+    back in order, so they keep the words it uses for them.
     """
-    placed = [
-        (place, LEVEL.match(value)) for place, value in enumerate(values, start=1)
-    ]
-    numbered = [(place, found) for place, found in placed if found]
-    if len(numbered) < 2:
+    steps = [LEVEL.match(value) for value in values]
+    if len(steps) < 2 or not all(steps):
         return {}
-    if any(int(found.group(1)) != place for place, found in numbered):
-        # The numbers do not line up, so they count something else.
+    numbered = [int(step.group(1)) for step in steps if step is not None]
+    if numbered != list(range(1, len(values) + 1)):
+        # The numbers do not land on their own places, so they count
+        # something else.
         return {}
     return {value: str(place) for place, value in enumerate(values, start=1)}
 

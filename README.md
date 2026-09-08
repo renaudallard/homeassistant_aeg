@@ -57,9 +57,9 @@ model nobody has tried works the same way as the one this was written against.
   slower rate to catch whatever a dropped connection missed.
 - **Readable readings** — a duration gets a second reading written as a clock,
   and the time left to a cycle counts down by the second rather than waiting to
-  be told. There is a **finishes at** timestamp beside it. A numbered scale
-  reads as its numbers, and whatever the machine is complaining about arrives
-  as one problem sensor with the codes.
+  be told. There is a **finishes at** timestamp beside it. A scale whose steps
+  say their own numbers reads as those numbers, and whatever the machine is
+  complaining about arrives as one problem sensor with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
 - **Kept between starts** — a capability tree is fifty kilobytes and describes
@@ -159,10 +159,15 @@ a state every second while a cycle runs, so exclude
 keeping. The finishes at timestamp says the same thing and writes nothing
 between updates.
 
-A value that is a name and a number is a step in a scale. Water hardness is
-seven steps, and a washing machine names the first three and numbers the rest;
-where the numbered steps land on their own place the whole list reads one to
-seven. The appliance still hears the name it uses.
+A value that is a name and a number is a step in a scale, and a field whose
+values all say their own number is shown as those numbers. The appliance still
+hears the name it uses.
+
+A field that names some of its steps and numbers the rest keeps the words it
+uses for all of them. Water hardness is seven steps with the first three named,
+and the cloud hands values over in alphabetical order, so they arrive as HARD,
+MEDIUM, SOFT and nothing in them says which is the first step. Numbering them
+off the order they came in would offer the hardest setting as one of seven.
 
 ## Reporting a problem
 

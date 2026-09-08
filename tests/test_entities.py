@@ -1217,29 +1217,39 @@ async def test_a_time_the_machine_does_not_have_reads_as_nothing(
     assert clock.state == "unknown"
 
 
-async def test_a_numbered_level_reads_as_its_number(
+async def test_a_scale_that_names_some_steps_keeps_the_words_it_uses(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
-    """Water hardness is one scale of seven, whatever it calls each step.
+    """Water hardness is one scale of seven that names its first three steps.
 
-    This machine names the first three and numbers the rest, and the numbered
-    ones land on their own place, so the whole of it reads as one to seven.
+    The cloud lists values alphabetically, so those three arrive as HARD,
+    MEDIUM, SOFT and nothing says which of them is the first step. Numbering
+    them off the order they came in would offer the hardest setting as one of
+    seven, so they are shown as the appliance writes them.
     """
     await _setup(hass, entry, api)
     hardness = hass.states.get("select.lave_linge_water_hardness")
     assert hardness is not None
-    assert hardness.attributes["options"] == ["1", "2", "3", "4", "5", "6", "7"]
-    assert hardness.state == "4"
+    assert hardness.attributes["options"] == [
+        "HARD",
+        "MEDIUM",
+        "SOFT",
+        "STEP_4",
+        "STEP_5",
+        "STEP_6",
+        "STEP_7",
+    ]
+    assert hardness.state == "STEP_4"
 
 
-async def test_a_numbered_level_is_sent_back_as_the_appliance_names_it(
+async def test_a_level_is_sent_back_as_the_appliance_names_it(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
     await _setup(hass, entry, api)
     await hass.services.async_call(
         "select",
         "select_option",
-        {"entity_id": "select.lave_linge_water_hardness", "option": "6"},
+        {"entity_id": "select.lave_linge_water_hardness", "option": "STEP_6"},
         blocking=True,
     )
     _, command = api.send_command.await_args.args
@@ -1308,7 +1318,7 @@ async def test_a_field_of_its_own_is_sent_on_its_own(
     await hass.services.async_call(
         "select",
         "select_option",
-        {"entity_id": "select.lave_linge_water_hardness", "option": "6"},
+        {"entity_id": "select.lave_linge_water_hardness", "option": "STEP_6"},
         blocking=True,
     )
     _, command = api.send_command.await_args.args

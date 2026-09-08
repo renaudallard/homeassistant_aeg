@@ -26,28 +26,35 @@
 
 """Tests for reading a scale of values as the numbers it is.
 
-A field can name the first few steps and number the rest. The washing machine
-here sets water hardness to SOFT, MEDIUM, HARD and then STEP_4 up to STEP_7,
-which the dex confirms is one scale: it carries STEP_1, STEP_2 and STEP_3 too,
-for models that number all seven.
+A value that names its own number says where it sits. One that does not says
+nothing, and the order the cloud hands values over in is alphabetical, so it
+cannot stand in: the washing machine here sets water hardness to SOFT, MEDIUM
+and HARD before STEP_4 up to STEP_7, and lists them as HARD, MEDIUM, SOFT,
+STEP_4 and on. The dex has all eleven steps in the order they are meant, and
+puts SOFT first and HARD third.
 """
 
 from custom_components.aeg.select import numbering
 
 
-def test_a_scale_that_names_its_first_steps_is_still_a_scale() -> None:
-    scale = numbering(
-        ("SOFT", "MEDIUM", "HARD", "STEP_4", "STEP_5", "STEP_6", "STEP_7")
+def test_a_scale_that_names_some_of_its_steps_is_left_alone() -> None:
+    """The order they arrive in is alphabetical, so it is not the scale.
+
+    Numbering off it would show HARD as the first of seven and send it to
+    anyone asking for the softest water there is.
+    """
+    assert (
+        numbering(("HARD", "MEDIUM", "SOFT", "STEP_4", "STEP_5", "STEP_6", "STEP_7"))
+        == {}
     )
-    assert scale == {
-        "SOFT": "1",
-        "MEDIUM": "2",
-        "HARD": "3",
-        "STEP_4": "4",
-        "STEP_5": "5",
-        "STEP_6": "6",
-        "STEP_7": "7",
-    }
+
+
+def test_a_scale_with_a_word_at_the_end_of_it_is_left_alone() -> None:
+    """A washing machine offers two extra rinses and no extra rinse.
+
+    Numbering these would offer off as the third and highest of them.
+    """
+    assert numbering(("EXTRA_RINSE_1", "EXTRA_RINSE_2", "EXTRA_RINSE_OFF")) == {}
 
 
 def test_a_scale_that_numbers_every_step() -> None:
