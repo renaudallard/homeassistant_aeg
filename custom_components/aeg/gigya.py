@@ -60,12 +60,11 @@ _SDK_VERSION = "Android_7.1.2"
 
 _random = SystemRandom()
 
-# Gigya reports failures by code, and a caller has to act on a few of them. The
-# names are the ones the SDK bundled with the app uses, except the credential
-# error, which the app maps but the SDK does not name.
+# Gigya reports failures by code, and this is the one a caller has to act on:
+# a config flow has to tell a wrong password from an account that cannot be
+# signed into that way at all. The SDK bundled with the app does not name it,
+# though the app maps it.
 INVALID_CREDENTIALS = 403042
-ACCOUNT_PENDING_REGISTRATION = 206001
-ACCOUNT_PENDING_VERIFICATION = 206002
 
 
 @dataclass(frozen=True)

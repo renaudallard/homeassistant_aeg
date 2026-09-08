@@ -91,7 +91,6 @@ class Capability:
     minimum: float | None = None
     maximum: float | None = None
     step: float | None = None
-    default: Any = None
     disabled: bool = False
     triggers: tuple[Any, ...] = ()
 
@@ -125,7 +124,6 @@ def _capability(path: str, node: Mapping[str, Any]) -> Capability:
         minimum=_number(node.get("min")),
         maximum=_number(node.get("max")),
         step=_number(node.get("step")),
-        default=node.get("default"),
         disabled=bool(node.get("disabled", False)),
         triggers=tuple(node.get("triggers") or ()),
     )
