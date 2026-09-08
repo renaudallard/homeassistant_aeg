@@ -260,3 +260,70 @@ def test_two_triggers_offering_values_keep_the_order_they_came_in() -> None:
 
 def test_an_unknown_operator_is_not_guessed_at() -> None:
     assert not holds({"operand_1": "value", "operand_2": 1, "operator": "wat"}, 1, ())
+
+
+def _watching(condition: dict[str, Any], target: str) -> list[Capability]:
+    """A field whose trigger changes another, on the condition given."""
+    return [
+        Capability(
+            path="userSelections/phaseAdvance",
+            access="readwrite",
+            kind="string",
+            values=("WET_AGITATION_NORMAL", "WET_AGITATION_SHORT"),
+            triggers=(
+                {"condition": condition, "action": {target: {"disabled": True}}},
+            ),
+        ),
+        Capability(
+            path="latamProgramCoordinator",
+            access="read",
+            kind="string",
+            values=("WASHERS_DUVET", "WASHERS_WHITE"),
+        ),
+        Capability(path=target, access="readwrite", kind="boolean"),
+    ]
+
+
+def test_a_condition_can_read_a_field_other_than_its_own() -> None:
+    """A second washing machine sets its options off the programme it is on.
+
+    Thirty-nine of its triggers name another field this way, and reading the
+    name of that field rather than what it says left every one of them false:
+    the options it sets aside for a duvet wash stayed on offer, and the machine
+    was the one refusing them.
+    """
+    condition = {
+        "operand_1": {
+            "operand_1": "value",
+            "operand_2": "WET_AGITATION_NORMAL",
+            "operator": "eq",
+        },
+        "operand_2": {
+            "operand_1": "latamProgramCoordinator",
+            "operand_2": "WASHERS_DUVET",
+            "operator": "eq",
+        },
+        "operator": "and",
+    }
+    capabilities = _watching(condition, "userSelections/rinse")
+    state = {
+        "userSelections": {"phaseAdvance": "WET_AGITATION_NORMAL"},
+        "latamProgramCoordinator": "WASHERS_DUVET",
+    }
+
+    assert evaluate(capabilities, state)["userSelections/rinse"].disabled is True
+
+    on_another_programme = {**state, "latamProgramCoordinator": "WASHERS_WHITE"}
+    assert "userSelections/rinse" not in evaluate(capabilities, on_another_programme)
+
+
+def test_a_condition_reading_a_field_the_appliance_lacks_is_not_guessed_at() -> None:
+    condition = {
+        "operand_1": "somethingElse",
+        "operand_2": "WASHERS_DUVET",
+        "operator": "eq",
+    }
+    capabilities = _watching(condition, "userSelections/rinse")
+    state = {"userSelections": {"phaseAdvance": "WET_AGITATION_NORMAL"}}
+
+    assert evaluate(capabilities, state) == {}

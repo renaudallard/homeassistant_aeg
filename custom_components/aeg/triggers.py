@@ -33,6 +33,10 @@ it is running, and will not take a steam setting at all below forty degrees.
 A trigger hangs off the field it watches. Its condition compares that field's
 current value against something, and its action changes other fields: their
 access, the values they will take, or whether they are there at all.
+
+A condition usually reads the field the trigger hangs off, which is what it
+calls "value". It can name another field of the same appliance instead, and
+then it is that field's reading that decides.
 """
 
 from __future__ import annotations
@@ -52,6 +56,20 @@ ORDERED = ("lt", "le", "gt", "ge")
 # The number a value spells out, as in the 20 of 20_CELSIUS or the 1400 of
 # 1400_RPM.
 NUMBER = re.compile(r"\d+")
+
+
+@dataclass(frozen=True)
+class Reading:
+    """What one field of an appliance says, and the scale it says it on.
+
+    A condition can name a field other than the one its trigger hangs off, so
+    what every field is reading has to be to hand while the triggers are
+    worked out. The values come along because comparing two of them for order
+    means knowing what order they go in.
+    """
+
+    value: Any
+    order: Sequence[str]
 
 
 @dataclass(frozen=True)
@@ -141,19 +159,36 @@ def _compare(operator: str, left: Any, right: Any, order: Sequence[str]) -> bool
     return False
 
 
-def holds(condition: Any, value: Any, order: Sequence[str]) -> bool:
-    """Whether a condition is true of a field's current value."""
+def holds(
+    condition: Any,
+    value: Any,
+    order: Sequence[str],
+    elsewhere: Mapping[str, Reading] | None = None,
+) -> bool:
+    """Whether a condition is true of a field's current value.
+
+    A leaf that says "value" reads the field the trigger hangs off. One that
+    names another field is judged on what that field is reading, which is what
+    the appliance's other readings are here for.
+    """
     if not isinstance(condition, Mapping):
         return False
     operator = str(condition.get("operator", ""))
     left = condition.get("operand_1")
     right = condition.get("operand_2")
     if operator in ("and", "or"):
-        first = holds(left, value, order)
-        second = holds(right, value, order)
+        first = holds(left, value, order, elsewhere)
+        second = holds(right, value, order, elsewhere)
         return (first and second) if operator == "and" else (first or second)
-    # A leaf condition reads the field the trigger hangs off.
-    return _compare(operator, value if left == "value" else left, right, order)
+    if left == "value":
+        return _compare(operator, value, right, order)
+    reading = (elsewhere or {}).get(str(left))
+    if reading is None:
+        # Nothing to read it out of, so there is no judging the condition and
+        # the field it would have changed keeps what it describes.
+        _LOGGER.debug("a trigger reads %s, which this appliance does not have", left)
+        return False
+    return _compare(operator, reading.value, right, reading.order)
 
 
 def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> None:
@@ -195,6 +230,12 @@ def evaluate(
     alone means a field keeps what it describes, which is what it would have
     done had the appliance not mentioned them.
     """
+    # What every field is reading, since a condition can name one other than
+    # the field its own trigger hangs off.
+    elsewhere = {
+        capability.path: Reading(value_at(reported, capability.path), capability.values)
+        for capability in capabilities
+    }
     found: dict[str, Override] = {}
     for capability in capabilities:
         if not capability.triggers:
@@ -203,7 +244,7 @@ def evaluate(
         for trigger in capability.triggers:
             if not isinstance(trigger, Mapping):
                 continue
-            if not holds(trigger.get("condition"), value, capability.values):
+            if not holds(trigger.get("condition"), value, capability.values, elsewhere):
                 continue
             action = trigger.get("action")
             if not isinstance(action, Mapping):
