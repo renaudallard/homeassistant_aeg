@@ -36,6 +36,15 @@ import json
 from pathlib import Path
 from typing import Any
 
+# Reasons Home Assistant aborts with on the flow's behalf. It asks for them by
+# calling a helper rather than by naming them, so they appear nowhere in the
+# flow itself and cannot be read out of it the way the rest are.
+IMPLIED_ABORTS = {
+    "already_configured": "_abort_if_unique_id_configured",
+    "reauth_successful": "async_update_reload_and_abort",
+    "unique_id_mismatch": "_abort_if_unique_id_mismatch",
+}
+
 ROOT = Path(__file__).resolve().parent.parent
 COMPONENT = ROOT / "custom_components" / "aeg"
 FLOW = COMPONENT / "config_flow.py"
@@ -94,6 +103,33 @@ def _error_keys(tree: ast.Module) -> set[str]:
     return found
 
 
+def _called(tree: ast.Module) -> set[str]:
+    """Every method the flow calls, by name."""
+    return {
+        node.func.attr
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    }
+
+
+def _abort_reasons(tree: ast.Module) -> set[str]:
+    """Every reason the flow can abort with, named or implied."""
+    found = {
+        keyword.value.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        for keyword in node.keywords
+        if keyword.arg == "reason"
+        and isinstance(keyword.value, ast.Constant)
+        and isinstance(keyword.value.value, str)
+    }
+    called = _called(tree)
+    # A helper called without a reason of its own aborts with its default.
+    return found | {
+        reason for reason, helper in IMPLIED_ABORTS.items() if helper in called
+    }
+
+
 def test_every_step_has_text() -> None:
     steps = _strings()["config"]["step"]
     missing = sorted(_step_ids(_flow()) - set(steps))
@@ -106,14 +142,23 @@ def test_every_error_has_text() -> None:
     assert not missing, f"error keys with no text: {missing}"
 
 
+def test_every_abort_has_text() -> None:
+    """An abort with no text puts the bare reason in front of the user."""
+    aborts = _strings()["config"]["abort"]
+    missing = sorted(_abort_reasons(_flow()) - set(aborts))
+    assert not missing, f"abort reasons with no text: {missing}"
+
+
 def test_no_unused_text() -> None:
-    """Text left behind after a step or an error key is dropped."""
+    """Text left behind after a step, an error key or an abort is dropped."""
     tree = _flow()
     strings = _strings()
     stale_steps = sorted(set(strings["config"]["step"]) - _step_ids(tree) - {"user"})
     stale_errors = sorted(set(strings["config"]["error"]) - _error_keys(tree))
+    stale_aborts = sorted(set(strings["config"]["abort"]) - _abort_reasons(tree))
     assert not stale_steps, f"text for steps that are gone: {stale_steps}"
     assert not stale_errors, f"text for error keys that are gone: {stale_errors}"
+    assert not stale_aborts, f"text for aborts that are gone: {stale_aborts}"
 
 
 def test_menu_options_have_labels() -> None:
