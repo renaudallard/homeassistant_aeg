@@ -35,7 +35,7 @@ from typing import Any
 
 import pytest
 
-from custom_components.aeg.capability import parse
+from custom_components.aeg.capability import Capability, parse
 from custom_components.aeg.triggers import Override, evaluate, holds
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -195,6 +195,36 @@ def test_default_means_the_appliance_is_not_overriding() -> None:
     assert Override(disabled=True).allows("START") is False
     assert Override(values=("START",)).allows("STOPRESET") is False
     assert Override(values=("START",)).allows("START") is True
+
+
+def test_two_triggers_offering_values_keep_the_order_they_came_in() -> None:
+    """These end up in front of someone as a list, so the order has to hold."""
+    capability = Capability(
+        path="fan",
+        access="readwrite",
+        kind="string",
+        values=("LOW", "HIGH", "TURBO"),
+        triggers=(
+            {
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "LOW",
+                    "operator": "eq",
+                },
+                "action": {"$self": {"values": {"LOW": {}, "HIGH": {}}}},
+            },
+            {
+                "condition": {
+                    "operand_1": "value",
+                    "operand_2": "LOW",
+                    "operator": "eq",
+                },
+                "action": {"$self": {"values": {"HIGH": {}, "TURBO": {}}}},
+            },
+        ),
+    )
+    override = evaluate([capability], {"fan": "LOW"})["fan"]
+    assert override.values == ("LOW", "HIGH", "TURBO")
 
 
 def test_an_unknown_operator_is_not_guessed_at() -> None:

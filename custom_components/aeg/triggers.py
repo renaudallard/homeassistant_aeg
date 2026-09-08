@@ -155,9 +155,15 @@ def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> No
     held = into.get(path, Override())
     values = held.values
     if isinstance(change.get("values"), Mapping):
-        # Two triggers can each allow a command, so take both.
+        # Two triggers can each allow a command, so take both, keeping the
+        # order they were offered in. A set gave them back in a different
+        # order on every start, and these are read as a list of choices.
         offered = tuple(change["values"])
-        values = offered if values is None else tuple({*values, *offered})
+        values = (
+            offered
+            if values is None
+            else values + tuple(value for value in offered if value not in values)
+        )
     disabled = held.disabled
     if isinstance(change.get("disabled"), bool):
         # Anything saying a field is gone wins over anything saying it is not.
