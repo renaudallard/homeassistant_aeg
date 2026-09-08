@@ -113,10 +113,13 @@ class AegStream:
         while True:
             delay = RECONNECT_DELAY
             self._opened = False
+            # Whether what ended the connection was our own doing.
+            planned = False
             try:
                 if await self._listen():
                     # It ended because the token was running out, which is
                     # not a reason to wait before opening another.
+                    planned = True
                     delay = 0.0
             except asyncio.CancelledError:
                 # Being stopped is not the stream dropping, and whatever is
@@ -142,7 +145,12 @@ class AegStream:
                     _LOGGER.exception("the stream failed unexpectedly")
                     self._complained = True
                 delay = RECONNECT_DELAY_UNEXPECTED
-            self._on_connected(False)
+            if not planned:
+                # Closing a connection to open it with a fresh token is not
+                # the stream dropping. Saying it was puts the account back on
+                # being asked every half minute until something is pushed,
+                # which on a quiet appliance is a long time to ask for nothing.
+                self._on_connected(False)
             if delay:
                 await asyncio.sleep(delay)
 

@@ -107,6 +107,37 @@ async def test_it_opens_again_when_the_token_is_running_out() -> None:
     )
 
 
+async def test_opening_again_for_a_fresh_token_is_not_a_drop() -> None:
+    """The account is looked at every half minute while the stream is down.
+
+    A connection closed to pick up a new token is coming straight back, so
+    saying it dropped would put a quiet appliance back on being asked every
+    half minute for as long as it stayed quiet.
+    """
+    session = _Session()
+    said: list[bool] = []
+    stream = AegStream(
+        session,  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        _authorization,
+        lambda: 0.0,
+        ["an-appliance"],
+        lambda message: None,
+        said.append,
+    )
+    with (
+        patch.object(websocket, "MINIMUM_LIFE", 0.01),
+        patch.object(websocket, "RECONNECT_DELAY", 0.01),
+    ):
+        stream.start(asyncio.create_task)
+        await asyncio.sleep(0.2)
+        await stream.stop()
+
+    assert len(session.opened) > 1, "the token should have run the connection out"
+    assert said, "opening one should have been reported"
+    assert all(said), f"a planned reconnect was reported as a drop: {said}"
+
+
 async def test_it_stays_open_while_the_token_is_good() -> None:
     session = _Session()
     stream = AegStream(
