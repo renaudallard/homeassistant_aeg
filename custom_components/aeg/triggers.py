@@ -63,8 +63,13 @@ class Override:
     disabled: bool | None = None
 
     def allows(self, command: str) -> bool:
-        """Whether a command is one this field will take right now."""
-        if self.disabled:
+        """Whether a command is one this field will take right now.
+
+        There are two ways an appliance says it will take none of them. A
+        washing machine sets the field aside; an oven leaves it there and
+        makes it read only, which is a refusal all the same.
+        """
+        if not self.writable:
             return False
         return self.values is None or command in self.values
 

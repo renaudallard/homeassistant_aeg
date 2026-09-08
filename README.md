@@ -130,7 +130,9 @@ Five details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
-  remote start, and the app greys the same buttons out.
+  remote start, and the app greys the same buttons out. They also go
+  unavailable wherever the appliance says it will take no command at all, as an
+  oven does while it is waiting out a delayed start.
 - **Water hardness and the softener mode go read-only** while a cycle is
   running, delayed, paused or has just ended. That is the appliance's own rule.
 - **Steam and stain go read-only below forty degrees**, on a cold wash

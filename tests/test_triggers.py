@@ -88,6 +88,37 @@ def test_a_paused_machine_can_be_resumed_or_reset(
     assert _commands(capabilities, paused) == ["RESUME", "STOPRESET"]
 
 
+def test_a_command_field_made_read_only_takes_nothing() -> None:
+    """An oven on a delayed start says so this way rather than by disabling."""
+    capabilities = parse(
+        {
+            "applianceState": {
+                "access": "read",
+                "type": "string",
+                "values": {"DELAYED_START": {}, "READY_TO_START": {}},
+                "triggers": [
+                    {
+                        "action": {"executeCommand": {"access": "read"}},
+                        "condition": {
+                            "operand_1": "value",
+                            "operand_2": "DELAYED_START",
+                            "operator": "eq",
+                        },
+                    }
+                ],
+            },
+            "executeCommand": {
+                "access": "write",
+                "type": "string",
+                "values": {"START": {}, "STOPRESET": {}},
+            },
+        }
+    )
+    assert _commands(capabilities, {"applianceState": "DELAYED_START"}) == []
+    # In any other state nothing overrides it, so it takes what it describes.
+    assert "START" in _commands(capabilities, {"applianceState": "READY_TO_START"})
+
+
 def test_nothing_is_accepted_while_remote_control_is_not_enabled(
     machine: tuple[list[Any], dict[str, Any]],
 ) -> None:
