@@ -209,19 +209,40 @@ def _stricter(held: str | None, given: str | None) -> str | None:
     return held if "write" not in held else given
 
 
-def _fold(into: dict[str, Override], path: str, change: Mapping[str, Any]) -> None:
+def _on_offer(target: Capability | None) -> bool:
+    """Whether a field's values are commands offered rather than a choice.
+
+    A field that is only written is never read back, so every rule that names
+    it is saying which of its commands can be sent right now, and two of them
+    are two offers: a washing machine in its anticrease hold can be stopped
+    because of the phase it is in and paused because of the state it is in,
+    and both belong in front of somebody.
+
+    A field that can be read holds one of its values. A rule saying which it
+    may hold is a limit rather than an offer, so two of them are two limits
+    and what is left is what both allow.
+    """
+    return target is not None and target.writable and not target.readable
+
+
+def _fold(
+    into: dict[str, Override],
+    path: str,
+    change: Mapping[str, Any],
+    target: Capability | None = None,
+) -> None:
     held = into.get(path, Override())
     values = held.values
     if isinstance(change.get("values"), Mapping):
-        # Two triggers can each allow a command, so take both, keeping the
-        # order they were offered in. A set gave them back in a different
-        # order on every start, and these are read as a list of choices.
+        # The order they came in is kept either way. A set gave them back in a
+        # different order on every start, and these are read as a list.
         offered = tuple(change["values"])
-        values = (
-            offered
-            if values is None
-            else values + tuple(value for value in offered if value not in values)
-        )
+        if values is None:
+            values = offered
+        elif _on_offer(target):
+            values = values + tuple(value for value in offered if value not in values)
+        else:
+            values = tuple(value for value in values if value in offered)
     disabled = held.disabled
     if isinstance(change.get("disabled"), bool):
         # Anything saying a field is gone wins over anything saying it is not.
@@ -261,12 +282,13 @@ def evaluate(
         capability.path: Reading(value_at(reported, capability.path), capability.values)
         for capability in capabilities
     }
+    known = {capability.path: capability for capability in capabilities}
     found: dict[str, Override] = {}
     for capability in capabilities:
         value = elsewhere[capability.path].value
         for path, change in capability.offers.get(str(value), {}).items():
             if isinstance(change, Mapping):
-                _fold(found, path, change)
+                _fold(found, path, change, known.get(path))
         for trigger in capability.triggers:
             if not isinstance(trigger, Mapping):
                 continue
@@ -278,5 +300,5 @@ def evaluate(
             for target, change in action.items():
                 if isinstance(change, Mapping):
                     path = capability.path if target == "$self" else str(target)
-                    _fold(found, path, change)
+                    _fold(found, path, change, known.get(path))
     return found

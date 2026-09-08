@@ -228,13 +228,13 @@ def test_default_means_the_appliance_is_not_overriding() -> None:
     assert Override(values=("START",)).allows("START") is True
 
 
-def test_two_triggers_offering_values_keep_the_order_they_came_in() -> None:
-    """These end up in front of someone as a list, so the order has to hold."""
-    capability = Capability(
-        path="fan",
+def _saying(target: str, first: tuple[str, ...], second: tuple[str, ...]) -> Capability:
+    """A field whose two rules both fire and each name a set of values."""
+    return Capability(
+        path="mode",
         access="readwrite",
         kind="string",
-        values=("LOW", "HIGH", "TURBO"),
+        values=("LOW",),
         triggers=(
             {
                 "condition": {
@@ -242,7 +242,7 @@ def test_two_triggers_offering_values_keep_the_order_they_came_in() -> None:
                     "operand_2": "LOW",
                     "operator": "eq",
                 },
-                "action": {"$self": {"values": {"LOW": {}, "HIGH": {}}}},
+                "action": {target: {"values": {value: {} for value in first}}},
             },
             {
                 "condition": {
@@ -250,12 +250,49 @@ def test_two_triggers_offering_values_keep_the_order_they_came_in() -> None:
                     "operand_2": "LOW",
                     "operator": "eq",
                 },
-                "action": {"$self": {"values": {"HIGH": {}, "TURBO": {}}}},
+                "action": {target: {"values": {value: {} for value in second}}},
             },
         ),
     )
-    override = evaluate([capability], {"fan": "LOW"})["fan"]
-    assert override.values == ("LOW", "HIGH", "TURBO")
+
+
+def test_two_rules_naming_commands_offer_both() -> None:
+    """A command field is never read back, so each rule is an offer.
+
+    A washing machine in its anticrease hold can be stopped because of the
+    phase it is in and paused because of the state it is in, and both belong
+    in front of somebody. The order they came in is kept: a set gave them back
+    differently on every start.
+    """
+    commands = Capability(path="executeCommand", access="write", kind="string")
+    watcher = _saying("executeCommand", ("PAUSE",), ("STOPRESET", "PAUSE"))
+
+    override = evaluate([watcher, commands], {"mode": "LOW"})["executeCommand"]
+    assert override.values == ("PAUSE", "STOPRESET")
+    assert override.allows("PAUSE") and override.allows("STOPRESET")
+
+
+def test_two_rules_naming_choices_leave_what_both_allow() -> None:
+    """An air conditioner narrows its fan speeds two ways at once.
+
+    The mode it runs in takes AUTO and TURBO off in fan only, and energy
+    saving takes TURBO off whenever it is on. Each names the whole set it
+    allows, so offering the two together offered a speed neither of them did.
+    """
+    fan = Capability(
+        path="fanSpeedSetting",
+        access="readwrite",
+        kind="string",
+        values=("AUTO", "HIGH", "LOW", "MIDDLE", "TURBO"),
+    )
+    watcher = _saying(
+        "fanSpeedSetting",
+        ("HIGH", "LOW", "MIDDLE"),
+        ("AUTO", "HIGH", "LOW", "MIDDLE"),
+    )
+
+    override = evaluate([watcher, fan], {"mode": "LOW"})["fanSpeedSetting"]
+    assert override.values == ("HIGH", "LOW", "MIDDLE")
 
 
 def test_an_unknown_operator_is_not_guessed_at() -> None:
