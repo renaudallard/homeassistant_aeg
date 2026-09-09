@@ -47,7 +47,7 @@ from .capability import (
     platform_for,
     value_at,
 )
-from .const import DOMAIN
+from .const import CONF_BRAND, DOMAIN, brand_for
 from .coordinator import AegCoordinator, Appliance
 from .icons import icon_for
 from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, key_for, readable
@@ -213,9 +213,13 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
     @property
     def device_info(self) -> DeviceInfo:
         appliance = self.appliance
+        # What the appliance says it is, and failing that the brand the
+        # account signs in as, which is the only other thing there is to say.
+        entry = self.coordinator.config_entry
+        account = brand_for(entry.data.get(CONF_BRAND) if entry else None).name
         return DeviceInfo(
             identifiers={(DOMAIN, self._appliance_id)},
-            manufacturer="AEG",
+            manufacturer=(appliance.made_by if appliance else None) or account,
             name=appliance.name if appliance else "AEG appliance",
             model=appliance.sold_as if appliance else None,
             model_id=appliance.product_number if appliance else None,

@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG-konto",
+        "title": "AEG- eller Electrolux-konto",
         "description": "Hvordan logger du ind på denne konto? En konto uden adgangskode kan kun nås med en kode sendt på e-mail.",
         "menu_options": {
           "password": "Med en adgangskode",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Log ind med adgangskode",
-        "description": "Brug samme adresse og adgangskode som i AEG-appen.",
+        "description": "Brug den samme adresse og adgangskode som i appen.",
         "data": {
           "email": "E-mailadresse",
           "country": "Land",
-          "password": "Adgangskode"
+          "password": "Adgangskode",
+          "brand": "Mærke"
         },
         "data_description": {
-          "country": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på."
+          "country": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på.",
+          "brand": "Den app, kontoen blev oprettet i. En konto hører til ét mærke og kan ikke logges ind på som det andet."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "Der sendes en kode til denne adresse.",
         "data": {
           "email": "E-mailadresse",
-          "country": "Land"
+          "country": "Land",
+          "brand": "Mærke"
         },
         "data_description": {
-          "country": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på."
+          "country": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på.",
+          "brand": "Den app, kontoen blev oprettet i. En konto hører til ét mærke og kan ikke logges ind på som det andet."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Kunne ikke nå AEG-tjenesten. Kontrollér din forbindelse og prøv igen.",
+      "cannot_connect": "Kunne ikke nå tjenesten. Kontroller din forbindelse, og prøv igen.",
       "invalid_auth": "Kontoen kunne ikke logges ind.",
       "invalid_password": "Forkert e-mailadresse eller adgangskode. Hvis kontoen ikke har en adgangskode, så gå tilbage og log ind med en kode sendt på e-mail.",
       "invalid_code": "Koden blev ikke accepteret. Den kan være udløbet; bed i så fald om en ny.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Logget ind igen.",
       "unique_id_mismatch": "Det er en anden konto. Log ind med den, denne konfiguration blev oprettet til.",
       "reconfigure_successful": "Logget ind igen."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

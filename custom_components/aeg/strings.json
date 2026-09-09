@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG account",
+        "title": "AEG or Electrolux account",
         "description": "How do you sign in to this account? An account with no password can only be reached with a code sent by email.",
         "menu_options": {
           "password": "With a password",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Sign in with a password",
-        "description": "Use the same address and password as the AEG app.",
+        "description": "Use the same address and password as the app.",
         "data": {
           "email": "Email address",
           "country": "Country",
-          "password": "Password"
+          "password": "Password",
+          "brand": "Brand"
         },
         "data_description": {
-          "country": "The country the account was registered in, which decides which server holds your appliances."
+          "country": "The country the account was registered in, which decides which server holds your appliances.",
+          "brand": "The app the account was created in. An account belongs to one brand and cannot be signed in to as the other."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "A code will be sent to this address.",
         "data": {
           "email": "Email address",
-          "country": "Country"
+          "country": "Country",
+          "brand": "Brand"
         },
         "data_description": {
-          "country": "The country the account was registered in, which decides which server holds your appliances."
+          "country": "The country the account was registered in, which decides which server holds your appliances.",
+          "brand": "The app the account was created in. An account belongs to one brand and cannot be signed in to as the other."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Could not reach the AEG service. Check your connection and try again.",
+      "cannot_connect": "Could not reach the service. Check your connection and try again.",
       "invalid_auth": "The account could not be signed in.",
       "invalid_password": "Wrong email address or password. If this account has no password, go back and sign in with a code sent by email.",
       "invalid_code": "That code was not accepted. It may have expired, in which case request a new one.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Signed in again successfully.",
       "unique_id_mismatch": "That is a different account. Sign in with the one this entry was set up for.",
       "reconfigure_successful": "Signed in again successfully."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

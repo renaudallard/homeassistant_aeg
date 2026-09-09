@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG-account",
+        "title": "AEG- of Electrolux-account",
         "description": "Hoe meldt u zich aan bij dit account? Een account zonder wachtwoord is alleen bereikbaar met een code die per e-mail wordt verzonden.",
         "menu_options": {
           "password": "Met een wachtwoord",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Aanmelden met wachtwoord",
-        "description": "Gebruik hetzelfde adres en wachtwoord als in de AEG-app.",
+        "description": "Gebruik hetzelfde adres en wachtwoord als in de app.",
         "data": {
           "email": "E-mailadres",
           "country": "Land",
-          "password": "Wachtwoord"
+          "password": "Wachtwoord",
+          "brand": "Merk"
         },
         "data_description": {
-          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan."
+          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan.",
+          "brand": "De app waarin het account is aangemaakt. Een account hoort bij één merk en kan niet als het andere inloggen."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "Er wordt een code naar dit adres gestuurd.",
         "data": {
           "email": "E-mailadres",
-          "country": "Land"
+          "country": "Land",
+          "brand": "Merk"
         },
         "data_description": {
-          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan."
+          "country": "Het land waarin het account is geregistreerd, dat bepaalt op welke server uw apparaten staan.",
+          "brand": "De app waarin het account is aangemaakt. Een account hoort bij één merk en kan niet als het andere inloggen."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Kan de AEG-service niet bereiken. Controleer uw verbinding en probeer het opnieuw.",
+      "cannot_connect": "Kon de service niet bereiken. Controleer je verbinding en probeer het opnieuw.",
       "invalid_auth": "Aanmelden bij het account is mislukt.",
       "invalid_password": "Verkeerd e-mailadres of wachtwoord. Als dit account geen wachtwoord heeft, ga terug en meld u aan met een code per e-mail.",
       "invalid_code": "Die code is niet geaccepteerd. Mogelijk is hij verlopen; vraag dan een nieuwe aan.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Opnieuw aangemeld.",
       "unique_id_mismatch": "Dit is een ander account. Meld je aan met het account waarvoor dit item is ingesteld.",
       "reconfigure_successful": "Opnieuw aangemeld."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

@@ -57,6 +57,7 @@ from custom_components.aeg import async_remove_config_entry_device
 from custom_components.aeg.const import (
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
+    CONF_BRAND,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
@@ -1732,3 +1733,35 @@ async def test_a_device_can_be_deleted_once_the_account_has_dropped_it(
     api.appliances.return_value = []
     await entry.runtime_data.coordinator.async_refresh()
     assert await async_remove_config_entry_device(hass, entry, device)
+
+
+async def test_the_manufacturer_is_what_the_appliance_says_it_is(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+    assert _the_device(hass, entry).manufacturer == "AEG"
+
+
+async def test_an_appliance_that_says_nothing_takes_the_account_brand(
+    hass: HomeAssistant, hass_storage: dict[str, Any], api: AsyncMock
+) -> None:
+    """An Electrolux account with an appliance that will not say what it is."""
+    elsewhere = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="someone@example.com",
+        data={
+            CONF_EMAIL: "someone@example.com",
+            CONF_COUNTRY: "BE",
+            CONF_BRAND: "electrolux",
+            CONF_BASE_URL: "https://api.eu.ocp.electrolux.one",
+            CONF_WS_URL: "wss://ws.eu.ocp.electrolux.one",
+            CONF_ACCESS_TOKEN: "an-access-token",
+            CONF_REFRESH_TOKEN: "a-refresh-token",
+            CONF_EXPIRES_AT: 4102444800.0,
+        },
+    )
+    elsewhere.add_to_hass(hass)
+    api.appliance_info.return_value = {}
+
+    await _setup(hass, elsewhere, api)
+    assert _the_device(hass, elsewhere).manufacturer == "Electrolux"

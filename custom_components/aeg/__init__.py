@@ -48,10 +48,12 @@ from .auth import AegAuth, Tokens
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
+    CONF_BRAND,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
     DOMAIN,
+    brand_for,
 )
 from .coordinator import AegCoordinator, capability_store
 from .entity import provided
@@ -86,7 +88,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     """Set up an AEG account."""
     session = async_get_clientsession(hass)
     country = entry.data[CONF_COUNTRY]
-    auth = AegAuth(session, country, entry.data[CONF_BASE_URL])
+    # Entries made before there were two of them hold no brand and are AEG.
+    brand = brand_for(entry.data.get(CONF_BRAND))
+    auth = AegAuth(session, country, entry.data[CONF_BASE_URL], brand)
     tokens = Tokens(
         access_token=entry.data[CONF_ACCESS_TOKEN],
         refresh_token=entry.data[CONF_REFRESH_TOKEN],
@@ -106,7 +110,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
         )
 
     api = AegApi(
-        session, auth, tokens, entry.data[CONF_BASE_URL], country, on_tokens=store
+        session,
+        auth,
+        tokens,
+        entry.data[CONF_BASE_URL],
+        country,
+        on_tokens=store,
+        brand=brand,
     )
 
     # The first refresh reads what every appliance can do and what it is

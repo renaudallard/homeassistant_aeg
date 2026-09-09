@@ -44,7 +44,13 @@ import aiohttp
 
 from . import http
 from .auth import AegAuth, Tokens
-from .const import API_KEY, APPLIANCES_PATH, APPLIANCES_V3_PATH, TOKEN_EXPIRY_MARGIN
+from .const import (
+    APPLIANCES_PATH,
+    APPLIANCES_V3_PATH,
+    DEFAULT_BRAND,
+    TOKEN_EXPIRY_MARGIN,
+    Brand,
+)
 from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 from .http import redact_url
 
@@ -71,12 +77,14 @@ class AegApi:
         base_url: str,
         country_code: str,
         on_tokens: TokenListener | None = None,
+        brand: Brand = DEFAULT_BRAND,
     ) -> None:
         self._session = session
         self._auth = auth
         self._tokens = tokens
         self._base_url = base_url.rstrip("/")
         self._country = country_code.upper()
+        self._brand = brand
         self._on_tokens = on_tokens
         self._lock = asyncio.Lock()
 
@@ -136,7 +144,7 @@ class AegApi:
         token = await self._access_token()
         headers = {
             "Authorization": f"Bearer {token}",
-            "x-api-key": API_KEY,
+            "x-api-key": self._brand.api_key,
             "Origin-Country-Code": self._country,
         }
         url = self._base_url + path

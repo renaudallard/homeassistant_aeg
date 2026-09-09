@@ -49,6 +49,9 @@ from homeassistant.const import CONF_CODE, CONF_COUNTRY, CONF_EMAIL, CONF_PASSWO
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     CountrySelector,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -57,12 +60,16 @@ from homeassistant.helpers.selector import (
 from . import gigya
 from .auth import AegAuth, IdentityProvider
 from .const import (
+    BRANDS,
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
+    CONF_BRAND,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
+    DEFAULT_BRAND,
     DOMAIN,
+    brand_for,
 )
 from .errors import AegAuthError, AegConnectionError
 from .gigya import GigyaClient, GigyaIds, GigyaSession
@@ -70,11 +77,20 @@ from .gigya import GigyaClient, GigyaIds, GigyaSession
 _LOGGER = logging.getLogger(__name__)
 
 
-def _account_schema(email: str, country: str, with_password: bool) -> vol.Schema:
+def _account_schema(
+    email: str, country: str, brand: str, with_password: bool
+) -> vol.Schema:
     """Ask for the account, and for the password when that is the way in."""
     fields: dict[Any, Any] = {
         vol.Required(CONF_EMAIL, default=email): TextSelector(
             TextSelectorConfig(type=TextSelectorType.EMAIL)
+        ),
+        vol.Required(CONF_BRAND, default=brand): SelectSelector(
+            SelectSelectorConfig(
+                options=sorted(BRANDS),
+                mode=SelectSelectorMode.DROPDOWN,
+                translation_key=CONF_BRAND,
+            )
         ),
         vol.Required(CONF_COUNTRY, default=country): CountrySelector(),
     }
@@ -93,6 +109,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._email = ""
         self._country = ""
+        self._brand = DEFAULT_BRAND.key
         self._vtoken = ""
         self._auth: AegAuth | None = None
         self._client: GigyaClient | None = None
@@ -115,6 +132,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._email = user_input[CONF_EMAIL]
             self._country = user_input[CONF_COUNTRY]
+            self._brand = user_input[CONF_BRAND]
             try:
                 await self._prepare()
                 session = await self._login_with_password(user_input[CONF_PASSWORD])
@@ -136,7 +154,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
                 return await self._finish(account)
         return self.async_show_form(
             step_id="password",
-            data_schema=_account_schema(self._email, self._country, True),
+            data_schema=_account_schema(self._email, self._country, self._brand, True),
             errors=errors,
         )
 
@@ -148,6 +166,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._email = user_input[CONF_EMAIL]
             self._country = user_input[CONF_COUNTRY]
+            self._brand = user_input[CONF_BRAND]
             try:
                 await self._prepare()
                 self._vtoken = await self._send_code()
@@ -164,7 +183,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_code()
         return self.async_show_form(
             step_id="email_code",
-            data_schema=_account_schema(self._email, self._country, False),
+            data_schema=_account_schema(self._email, self._country, self._brand, False),
             errors=errors,
         )
 
@@ -201,6 +220,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         """Sign in again for an entry whose tokens stopped working."""
         self._email = entry_data[CONF_EMAIL]
         self._country = entry_data[CONF_COUNTRY]
+        self._brand = brand_for(entry_data.get(CONF_BRAND)).key
         return await self.async_step_user()
 
     async def async_step_reconfigure(
@@ -217,12 +237,13 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         entry = self._get_reconfigure_entry()
         self._email = entry.data[CONF_EMAIL]
         self._country = entry.data[CONF_COUNTRY]
+        self._brand = brand_for(entry.data.get(CONF_BRAND)).key
         return await self.async_step_user()
 
     async def _prepare(self) -> None:
         """Find where the account lives and open a Gigya client for it."""
         session = async_get_clientsession(self.hass)
-        auth = AegAuth(session, self._country)
+        auth = AegAuth(session, self._country, brand=brand_for(self._brand))
         provider = await auth.identity_provider()
         client = GigyaClient(session, provider.api_key, provider.domain)
         self._auth = auth
@@ -265,6 +286,7 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         return {
             CONF_EMAIL: self._email,
             CONF_COUNTRY: self._country,
+            CONF_BRAND: self._brand,
             CONF_BASE_URL: self._provider.http_base_url,
             CONF_WS_URL: self._provider.ws_base_url,
             CONF_ACCESS_TOKEN: tokens.access_token,

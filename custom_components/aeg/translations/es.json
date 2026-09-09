@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Cuenta AEG",
+        "title": "Cuenta AEG o Electrolux",
         "description": "¿Cómo inicia sesión en esta cuenta? A una cuenta sin contraseña solo se puede acceder con un código enviado por correo electrónico.",
         "menu_options": {
           "password": "Con una contraseña",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Iniciar sesión con contraseña",
-        "description": "Use la misma dirección y contraseña que en la aplicación AEG.",
+        "description": "Use la misma dirección y contraseña que en la aplicación.",
         "data": {
           "email": "Dirección de correo electrónico",
           "country": "País",
-          "password": "Contraseña"
+          "password": "Contraseña",
+          "brand": "Marca"
         },
         "data_description": {
-          "country": "El país en el que se registró la cuenta, que determina en qué servidor están sus electrodomésticos."
+          "country": "El país en el que se registró la cuenta, que determina en qué servidor están sus electrodomésticos.",
+          "brand": "La aplicación en la que se creó la cuenta. Una cuenta pertenece a una marca y no puede iniciar sesión como la otra."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "Se enviará un código a esta dirección.",
         "data": {
           "email": "Dirección de correo electrónico",
-          "country": "País"
+          "country": "País",
+          "brand": "Marca"
         },
         "data_description": {
-          "country": "El país en el que se registró la cuenta, que determina en qué servidor están sus electrodomésticos."
+          "country": "El país en el que se registró la cuenta, que determina en qué servidor están sus electrodomésticos.",
+          "brand": "La aplicación en la que se creó la cuenta. Una cuenta pertenece a una marca y no puede iniciar sesión como la otra."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "No se pudo conectar con el servicio de AEG. Compruebe su conexión e inténtelo de nuevo.",
+      "cannot_connect": "No se pudo contactar con el servicio. Compruebe su conexión e inténtelo de nuevo.",
       "invalid_auth": "No se pudo iniciar sesión en la cuenta.",
       "invalid_password": "Dirección de correo o contraseña incorrectas. Si esta cuenta no tiene contraseña, vuelva atrás e inicie sesión con un código enviado por correo.",
       "invalid_code": "El código no se aceptó. Puede haber caducado; en ese caso, solicite uno nuevo.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Sesión iniciada de nuevo correctamente.",
       "unique_id_mismatch": "Esa es una cuenta distinta. Inicia sesión con la cuenta para la que se configuró esta entrada.",
       "reconfigure_successful": "Sesión iniciada de nuevo correctamente."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

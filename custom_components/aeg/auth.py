@@ -45,10 +45,7 @@ import aiohttp
 
 from . import http
 from .const import (
-    API_KEY,
-    BRAND,
-    CLIENT_ID,
-    CLIENT_SECRET,
+    DEFAULT_BRAND,
     GRANT_CLIENT_CREDENTIALS,
     GRANT_REFRESH_TOKEN,
     GRANT_TOKEN_EXCHANGE,
@@ -56,6 +53,7 @@ from .const import (
     OCP_BASE_URL,
     TOKEN_EXPIRY_MARGIN,
     TOKEN_PATH_V1,
+    Brand,
 )
 from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 
@@ -188,9 +186,13 @@ class AegAuth:
         session: aiohttp.ClientSession,
         country_code: str,
         base_url: str = OCP_BASE_URL,
+        brand: Brand = DEFAULT_BRAND,
     ) -> None:
         self._session = session
         self._country = country_code.upper()
+        # Which build of the app to sign in as. An account belongs to one
+        # brand and the other's credentials will not reach it.
+        self._brand = brand
         # Token calls go to the regional endpoint once it is known. The app
         # caches it the same way and falls back to the global one until the
         # provider lookup has run, which is the only call that cannot use it.
@@ -198,7 +200,7 @@ class AegAuth:
 
     def _headers(self, authorization: str | None = None) -> dict[str, str]:
         headers = {
-            "x-api-key": API_KEY,
+            "x-api-key": self._brand.api_key,
             "Origin-Country-Code": self._country,
         }
         if authorization is not None:
@@ -246,11 +248,11 @@ class AegAuth:
         payload = await self._request(
             "POST",
             OCP_BASE_URL + TOKEN_PATH_V1,
-            headers={"x-api-key": API_KEY},
+            headers={"x-api-key": self._brand.api_key},
             json_body={
                 "grantType": GRANT_CLIENT_CREDENTIALS,
-                "clientId": CLIENT_ID,
-                "clientSecret": CLIENT_SECRET,
+                "clientId": self._brand.client_id,
+                "clientSecret": self._brand.client_secret,
                 "scope": "",
             },
         )
@@ -265,7 +267,7 @@ class AegAuth:
             "GET",
             OCP_BASE_URL + IDENTITY_PROVIDERS_PATH,
             headers=self._headers(await self.client_credentials()),
-            params={"brand": BRAND, "countryCode": self._country},
+            params={"brand": self._brand.key, "countryCode": self._country},
         )
         if not isinstance(payload, list) or not payload:
             raise AegAuthError(
@@ -276,7 +278,8 @@ class AegAuth:
         # or global endpoint and carries on, so we do the same rather than
         # refusing an account the app itself would have signed in.
         entry = next(
-            (item for item in payload if item.get("brand") == BRAND), payload[0]
+            (item for item in payload if item.get("brand") == self._brand.key),
+            payload[0],
         )
         _LOGGER.debug("identity provider fields: %s", sorted(entry))
         domain = entry.get("domain")
@@ -295,7 +298,7 @@ class AegAuth:
         return IdentityProvider(
             domain=str(domain),
             api_key=str(api_key),
-            brand=str(entry.get("brand") or BRAND),
+            brand=str(entry.get("brand") or self._brand.key),
             http_base_url=str(base_url),
             ws_base_url=str(entry.get("webSocketRegionalBaseUrl") or ""),
         )
@@ -306,7 +309,7 @@ class AegAuth:
         This call carries no client secret. Only the refresh does.
         """
         headers = {
-            "x-api-key": API_KEY,
+            "x-api-key": self._brand.api_key,
             "Origin-Country-Code": _jwt_country(id_token) or self._country,
         }
         payload = await self._request(
@@ -315,7 +318,7 @@ class AegAuth:
             headers=headers,
             json_body={
                 "grantType": GRANT_TOKEN_EXCHANGE,
-                "clientId": CLIENT_ID,
+                "clientId": self._brand.client_id,
                 "clientSecret": None,
                 "idToken": id_token,
                 "refreshToken": None,
@@ -336,7 +339,7 @@ class AegAuth:
             headers=self._headers(),
             json_body={
                 "grantType": GRANT_REFRESH_TOKEN,
-                "clientId": CLIENT_ID,
+                "clientId": self._brand.client_id,
                 "clientSecret": None,
                 "idToken": None,
                 "refreshToken": tokens.refresh_token,

@@ -31,9 +31,9 @@
 
 ---
 
-Home Assistant integration for **AEG appliances**, talking to the Electrolux OCP
-cloud the way the AEG OneApp does. Pair the appliance with the vendor app once,
-then drive it from here.
+Home Assistant integration for **AEG and Electrolux appliances**, talking to
+the Electrolux OCP cloud the way the OneApp does. Pair the appliance with the
+vendor app once, then drive it from here.
 
 **Nothing in it knows what a washing machine is.** Every appliance describes
 itself, field by field, and the entities are built from that description, so a
@@ -41,7 +41,8 @@ model nobody has tried works the same way as the one this was written against.
 
 > Unofficial. Not affiliated with, endorsed by, or supported by AEG or
 > Electrolux. Targets Home Assistant **2026.9 or newer**, which itself needs
-> Python 3.14.2.
+> Python 3.14.2. The domain stays `aeg`, so an entry made before Electrolux
+> accounts were understood keeps working untouched.
 
 ## Highlights
 
@@ -70,6 +71,9 @@ model nobody has tried works the same way as the one this was written against.
   complaining about arrives as one problem sensor with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
+- **Either brand** — AEG and Electrolux are two builds of the same app in
+  front of the same cloud. Which one an account was made in decides only how
+  this signs in, so both are offered and the rest is identical.
 - **Named for what it is** — an account listing calls every washing machine
   WM, so the device page asks the appliance separately what model it is and
   shows that, with the product number beside it.
@@ -92,13 +96,14 @@ model nobody has tried works the same way as the one this was written against.
 Add this repository to [HACS](https://hacs.xyz) as a custom repository of
 category **Integration** and install it from there, or copy
 `custom_components/aeg` into the `custom_components` directory of your Home
-Assistant configuration by hand. Either way, restart, then add **AEG** from
-*Settings → Devices & services*.
+Assistant configuration by hand. Either way, restart, then add **AEG and
+Electrolux** from *Settings → Devices & services*.
 
 The flow asks how the account signs in, because that cannot be looked up, and
 takes either a password or a code sent to the address. The country picks the
 server the appliances are on, so it has to be the one the account was
-registered in.
+registered in. The brand is which app the account was made in: an account
+belongs to one of the two and the other's credentials will not reach it.
 
 Tokens are written into the config entry and renewed in the background. If they
 stop working, Home Assistant asks you to sign in again rather than failing
@@ -250,7 +255,9 @@ network settings after that.
 
 ## How the login works
 
-Signing in takes two services, and the order matters.
+Signing in takes two services, and the order matters. Every step below is the
+same for both brands: only the client id, its secret and the API key differ,
+and those come from whichever build of the app the account was made in.
 
 1. `POST /one-account-authorization/api/v1/token` with a **client credentials**
    grant authorises the application itself. The lookup in the next step is not
@@ -277,6 +284,9 @@ reason. Renewing a token that was issued moments earlier is refused with a 429,
 which is not a failure while the token in hand still works, so it is kept.
 
 ## Branding
+
+The icons are AEG's, the domain being `aeg` and this having started as an AEG
+integration. An Electrolux account gets the same ones.
 
 `custom_components/aeg/brand/` holds the four PNGs that home-assistant/brands
 expects under `custom_integrations/aeg/`, ready to copy into a fork of that
@@ -358,6 +368,7 @@ step fails and why. Press enter at the password prompt to take the mailed code
 path instead.
 
     python tools/check_login.py you@example.com BE
+    python tools/check_login.py you@example.com BE --brand electrolux
     python tools/check_login.py you@example.com BE --dump tmp/appliances
 
 It logs every request and every answer. Everything that says who you are or

@@ -33,6 +33,10 @@ without guessing.
 Press enter at the password prompt to sign in with a code mailed to the
 account instead, which is the only way in for an account that has no password.
 
+Pass --brand electrolux for an account made in the Electrolux app rather than
+the AEG one. They are the same cloud behind two builds of the same app, and an
+account belongs to one of them.
+
 Pass --dump DIR to write what every appliance is, the capability tree and the
 reported state into that directory, with the identifiers taken out, which is
 what the entity mapping is built against.
@@ -43,6 +47,7 @@ note of how long they were, so the output can be pasted into a bug report. Pass
 -q to log only failures.
 
     python tools/check_login.py you@example.com BE
+    python tools/check_login.py you@example.com BE --brand electrolux
     python tools/check_login.py you@example.com BE --dump tmp/appliances
 """
 
@@ -69,6 +74,7 @@ sys.path.insert(0, ".")
 from custom_components.aeg import gigya
 from custom_components.aeg.api import AegApi
 from custom_components.aeg.auth import AegAuth
+from custom_components.aeg.const import BRANDS, DEFAULT_BRAND, Brand
 from custom_components.aeg.errors import AegError, AegTooManyRequests
 from custom_components.aeg.http import redact
 
@@ -135,11 +141,11 @@ def _dump(where: Path, name: str, data: Any) -> None:
     _note(f"wrote {path}")
 
 
-async def check(email: str, country: str, dump: Path | None) -> int:
+async def check(email: str, country: str, brand: Brand, dump: Path | None) -> int:
     async with aiohttp.ClientSession() as session:
-        auth = AegAuth(session, country)
+        auth = AegAuth(session, country, brand=brand)
 
-        _step(1, "identity provider")
+        _step(1, f"identity provider, signing in as {brand.name}")
         provider = await auth.identity_provider()
         _ok(f"tenant {provider.domain}")
         _note(f"regional endpoint {provider.http_base_url}")
@@ -244,6 +250,14 @@ def main() -> int:
             return 2
         dump = Path(sys.argv[index + 1])
         arguments = [a for a in arguments if a != str(dump)]
+    brand = DEFAULT_BRAND
+    if "--brand" in sys.argv:
+        index = sys.argv.index("--brand")
+        if index + 1 >= len(sys.argv) or sys.argv[index + 1] not in BRANDS:
+            print(__doc__)
+            return 2
+        brand = BRANDS[sys.argv[index + 1]]
+        arguments = [a for a in arguments if a != brand.key]
     if len(arguments) != 2:
         print(__doc__)
         return 2
@@ -254,7 +268,7 @@ def main() -> int:
     )
     email, country = arguments
     try:
-        return asyncio.run(check(email, country, dump))
+        return asyncio.run(check(email, country, brand, dump))
     except AegError as err:
         print(f"\nfailed: {type(err).__name__}: {err}")
         if getattr(err, "code", None) == gigya.INVALID_CREDENTIALS:

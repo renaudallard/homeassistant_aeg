@@ -48,7 +48,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import AegApi
 from .capability import RUNNING, STATE, Capability, counts_down, number, parse, value_at
-from .const import DOMAIN
+from .const import BRANDS, DOMAIN
 from .errors import AegAuthError, AegError
 from .triggers import Override, evaluate
 from .websocket import AegStream, apply
@@ -139,6 +139,21 @@ class Appliance:
         """
         pnc = self.info.get("pnc")
         return str(pnc) if pnc else None
+
+    @property
+    def made_by(self) -> str | None:
+        """Which brand made it, as the appliance itself says.
+
+        Written the way this writes the two brands it signs in as, the cloud
+        not being consistent about the case, and left exactly as it came for
+        anything else. An account can hold an appliance of a brand this was
+        never built for, and calling that one of the two would be a lie.
+        """
+        brand = self.info.get("brand")
+        if not brand:
+            return None
+        known = BRANDS.get(str(brand).lower())
+        return known.name if known else str(brand)
 
     def first_of(self, paths: tuple[str, ...]) -> Any:
         """What this appliance says, from the first of these it says anything at.

@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Compte AEG",
+        "title": "Compte AEG ou Electrolux",
         "description": "Comment vous connectez-vous à ce compte ? Un compte sans mot de passe n'est accessible qu'avec un code envoyé par e-mail.",
         "menu_options": {
           "password": "Avec un mot de passe",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Se connecter avec un mot de passe",
-        "description": "Utilisez la même adresse et le même mot de passe que dans l'application AEG.",
+        "description": "Utilisez la même adresse et le même mot de passe que dans l'application.",
         "data": {
           "email": "Adresse e-mail",
           "country": "Pays",
-          "password": "Mot de passe"
+          "password": "Mot de passe",
+          "brand": "Marque"
         },
         "data_description": {
-          "country": "Le pays d'enregistrement du compte, qui détermine le serveur où se trouvent vos appareils."
+          "country": "Le pays d'enregistrement du compte, qui détermine le serveur où se trouvent vos appareils.",
+          "brand": "L'application dans laquelle le compte a été créé. Un compte appartient à une seule marque et ne peut pas se connecter en tant que l'autre."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "Un code sera envoyé à cette adresse.",
         "data": {
           "email": "Adresse e-mail",
-          "country": "Pays"
+          "country": "Pays",
+          "brand": "Marque"
         },
         "data_description": {
-          "country": "Le pays d'enregistrement du compte, qui détermine le serveur où se trouvent vos appareils."
+          "country": "Le pays d'enregistrement du compte, qui détermine le serveur où se trouvent vos appareils.",
+          "brand": "L'application dans laquelle le compte a été créé. Un compte appartient à une seule marque et ne peut pas se connecter en tant que l'autre."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de joindre le service AEG. Vérifiez votre connexion et réessayez.",
+      "cannot_connect": "Impossible de joindre le service. Vérifiez votre connexion et réessayez.",
       "invalid_auth": "La connexion au compte a échoué.",
       "invalid_password": "Adresse e-mail ou mot de passe incorrect. Si ce compte n'a pas de mot de passe, revenez en arrière et connectez-vous avec un code envoyé par e-mail.",
       "invalid_code": "Ce code n'a pas été accepté. Il a peut-être expiré ; dans ce cas, demandez-en un nouveau.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Reconnexion réussie.",
       "unique_id_mismatch": "Ce n'est pas le même compte. Connectez-vous avec celui pour lequel cette entrée a été créée.",
       "reconfigure_successful": "Reconnexion réussie."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

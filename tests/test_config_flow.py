@@ -45,12 +45,15 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.aeg.auth import IdentityProvider, Tokens
 from custom_components.aeg.const import (
+    AEG,
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
+    CONF_BRAND,
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
     DOMAIN,
+    ELECTROLUX,
 )
 from custom_components.aeg.errors import AegAuthError, AegConnectionError
 from custom_components.aeg.gigya import INVALID_CREDENTIALS, GigyaIds, GigyaSession
@@ -136,6 +139,7 @@ async def test_password_signs_in(
     assert result["data"] == {
         CONF_EMAIL: EMAIL,
         CONF_COUNTRY: COUNTRY,
+        CONF_BRAND: AEG.key,
         CONF_BASE_URL: PROVIDER.http_base_url,
         CONF_WS_URL: PROVIDER.ws_base_url,
         CONF_ACCESS_TOKEN: TOKENS.access_token,
@@ -487,3 +491,45 @@ async def test_reconfigure_takes_a_mailed_code_too(
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert entry.data[CONF_COUNTRY] == COUNTRY
+
+
+async def test_signing_in_as_electrolux_uses_the_other_credentials(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """The same cloud behind two builds, and an account belongs to one."""
+    flow_id = await start(hass)
+    with (
+        cloud(auth, client),
+        patch("custom_components.aeg.config_flow.AegAuth") as made,
+    ):
+        made.return_value = auth
+        await hass.config_entries.flow.async_configure(
+            flow_id, {"next_step_id": "password"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {
+                CONF_EMAIL: EMAIL,
+                CONF_COUNTRY: COUNTRY,
+                CONF_BRAND: "electrolux",
+                CONF_PASSWORD: PASSWORD,
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_BRAND] == "electrolux"
+    assert made.call_args.kwargs["brand"] is ELECTROLUX
+
+
+async def test_the_brand_defaults_to_the_one_this_started_as(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    flow_id = await start(hass)
+    with cloud(auth, client):
+        result = await hass.config_entries.flow.async_configure(
+            flow_id, {"next_step_id": "password"}
+        )
+        data_schema = result["data_schema"]
+        assert data_schema is not None
+        field = next(key for key in data_schema.schema if str(key) == CONF_BRAND)
+        assert field.default() == AEG.key

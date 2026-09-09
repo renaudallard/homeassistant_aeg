@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Konto AEG",
+        "title": "Konto AEG lub Electrolux",
         "description": "Jak logujesz się do tego konta? Do konta bez hasła można dostać się tylko za pomocą kodu wysłanego e-mailem.",
         "menu_options": {
           "password": "Za pomocą hasła",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Zaloguj się hasłem",
-        "description": "Użyj tego samego adresu i hasła co w aplikacji AEG.",
+        "description": "Użyj tego samego adresu i hasła co w aplikacji.",
         "data": {
           "email": "Adres e-mail",
           "country": "Kraj",
-          "password": "Hasło"
+          "password": "Hasło",
+          "brand": "Marka"
         },
         "data_description": {
-          "country": "Kraj rejestracji konta, który określa, na którym serwerze znajdują się urządzenia."
+          "country": "Kraj rejestracji konta, który określa, na którym serwerze znajdują się urządzenia.",
+          "brand": "Aplikacja, w której utworzono konto. Konto należy do jednej marki i nie można się zalogować jako druga."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "Na ten adres zostanie wysłany kod.",
         "data": {
           "email": "Adres e-mail",
-          "country": "Kraj"
+          "country": "Kraj",
+          "brand": "Marka"
         },
         "data_description": {
-          "country": "Kraj rejestracji konta, który określa, na którym serwerze znajdują się urządzenia."
+          "country": "Kraj rejestracji konta, który określa, na którym serwerze znajdują się urządzenia.",
+          "brand": "Aplikacja, w której utworzono konto. Konto należy do jednej marki i nie można się zalogować jako druga."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Nie można połączyć się z usługą AEG. Sprawdź połączenie i spróbuj ponownie.",
+      "cannot_connect": "Nie można połączyć się z usługą. Sprawdź połączenie i spróbuj ponownie.",
       "invalid_auth": "Nie udało się zalogować do konta.",
       "invalid_password": "Nieprawidłowy adres e-mail lub hasło. Jeśli konto nie ma hasła, wróć i zaloguj się kodem wysłanym e-mailem.",
       "invalid_code": "Kod nie został zaakceptowany. Mógł wygasnąć – w takim razie poproś o nowy.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Ponowne logowanie powiodło się.",
       "unique_id_mismatch": "To jest inne konto. Zaloguj się na konto, dla którego skonfigurowano ten wpis.",
       "reconfigure_successful": "Ponowne logowanie powiodło się."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

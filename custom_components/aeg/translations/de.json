@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG-Konto",
+        "title": "AEG- oder Electrolux-Konto",
         "description": "Wie melden Sie sich bei diesem Konto an? Ein Konto ohne Passwort ist nur mit einem per E-Mail gesendeten Code erreichbar.",
         "menu_options": {
           "password": "Mit einem Passwort",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Mit Passwort anmelden",
-        "description": "Verwenden Sie dieselbe Adresse und dasselbe Passwort wie in der AEG-App.",
+        "description": "Verwenden Sie dieselbe Adresse und dasselbe Passwort wie in der App.",
         "data": {
           "email": "E-Mail-Adresse",
           "country": "Land",
-          "password": "Passwort"
+          "password": "Passwort",
+          "brand": "Marke"
         },
         "data_description": {
-          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen."
+          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen.",
+          "brand": "Die App, in der das Konto angelegt wurde. Ein Konto gehört zu einer Marke und kann nicht als die andere angemeldet werden."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "An diese Adresse wird ein Code gesendet.",
         "data": {
           "email": "E-Mail-Adresse",
-          "country": "Land"
+          "country": "Land",
+          "brand": "Marke"
         },
         "data_description": {
-          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen."
+          "country": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen.",
+          "brand": "Die App, in der das Konto angelegt wurde. Ein Konto gehört zu einer Marke und kann nicht als die andere angemeldet werden."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Der AEG-Dienst war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "cannot_connect": "Der Dienst war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "invalid_auth": "Das Konto konnte nicht angemeldet werden.",
       "invalid_password": "Falsche E-Mail-Adresse oder falsches Passwort. Wenn dieses Konto kein Passwort hat, gehen Sie zurück und melden Sie sich mit einem per E-Mail gesendeten Code an.",
       "invalid_code": "Der Code wurde nicht akzeptiert. Möglicherweise ist er abgelaufen; fordern Sie dann einen neuen an.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Erneute Anmeldung erfolgreich.",
       "unique_id_mismatch": "Das ist ein anderes Konto. Melden Sie sich mit dem Konto an, für das dieser Eintrag eingerichtet wurde.",
       "reconfigure_successful": "Erneute Anmeldung erfolgreich."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {

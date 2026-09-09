@@ -26,16 +26,24 @@
 
 """Constants for the AEG appliance integration.
 
-The brand credentials below are the production values shipped in the AEG
-OneApp Android package. They identify the app to the Electrolux OCP cloud and
-are the same for every installation, so they are not user secrets.
+The brand credentials below are the production values shipped in the OneApp
+Android packages. They identify the app to the Electrolux OCP cloud and are the
+same for every installation, so they are not user secrets.
+
+AEG and Electrolux are the same cloud and the same appliance API behind two
+builds of the same app. Which one an account belongs to decides only what the
+app calls itself while signing in, and an account of one brand cannot sign in
+as the other, so it is asked for rather than guessed.
 """
+
+from dataclasses import dataclass
 
 DOMAIN = "aeg"
 
 # Config entry keys of our own. The account and country use the Home Assistant
 # constants. The tokens live in the entry because the refresh token rotates on
 # every renewal and has to survive a restart.
+CONF_BRAND = "brand"
 CONF_BASE_URL = "base_url"
 CONF_WS_URL = "ws_url"
 CONF_ACCESS_TOKEN = "access_token"
@@ -47,14 +55,53 @@ CONF_EXPIRES_AT = "expires_at"
 # not fixed: the provider lookup says which one this account streams from.
 OCP_BASE_URL = "https://api.ocp.electrolux.one"
 
-# Brand identity of the AEG build of the OneApp.
-BRAND = "aeg"
-CLIENT_ID = "AEGOneApp"
-CLIENT_SECRET = (
-    "G6PZWyneWAZH6kZePRjZAdBbyyIu3qUgDGUDkat7obfU9ByQSgJPNy8xRo99vzcgWExX"
-    "9N48gMJo3GWaHbMJsohIYOQ54zH2Hid332UnRZdvWOCWvWNnMNLalHoyH7xU"
+
+@dataclass(frozen=True)
+class Brand:
+    """How one build of the OneApp identifies itself."""
+
+    # What the cloud calls it, which is what the provider lookup is asked for.
+    key: str
+    # What to call it in front of somebody, and on the device page.
+    name: str
+    client_id: str
+    client_secret: str
+    api_key: str
+
+
+AEG = Brand(
+    key="aeg",
+    name="AEG",
+    client_id="AEGOneApp",
+    client_secret=(
+        "G6PZWyneWAZH6kZePRjZAdBbyyIu3qUgDGUDkat7obfU9ByQSgJPNy8xRo99vzcgWExX"
+        "9N48gMJo3GWaHbMJsohIYOQ54zH2Hid332UnRZdvWOCWvWNnMNLalHoyH7xU"
+    ),
+    api_key="PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz",
 )
-API_KEY = "PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz"
+
+ELECTROLUX = Brand(
+    key="electrolux",
+    name="Electrolux",
+    client_id="ElxOneApp",
+    client_secret=(
+        "8UKrsKD7jH9zvTV7rz5HeCLkit67Mmj68FvRVTlYygwJYy4dW6KF2cVLPKeWzUQUd6"
+        "KJMtTifFf4NkDnjI7ZLdfnwcPtTSNtYvbP7OzEkmQD9IjhMOf5e1zeAQYtt2yN"
+    ),
+    api_key="2AMqwEV5MqVhTKrRCyYfVF8gmKrd2rAmp7cUsfky",
+)
+
+BRANDS = {brand.key: brand for brand in (AEG, ELECTROLUX)}
+
+# Entries made before there were two of them are all AEG, this having been an
+# AEG integration, so that is what an entry saying nothing means.
+DEFAULT_BRAND = AEG
+
+
+def brand_for(key: str | None) -> Brand:
+    """The brand an entry belongs to, whatever it happens to hold."""
+    return BRANDS.get(str(key or "").lower(), DEFAULT_BRAND)
+
 
 # OneAccount. The app talks to v2 of the token endpoint, which uses the
 # standard snake_case OAuth field names.

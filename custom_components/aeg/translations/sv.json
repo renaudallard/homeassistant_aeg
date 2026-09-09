@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG-konto",
+        "title": "AEG- eller Electrolux-konto",
         "description": "Hur loggar du in på det här kontot? Ett konto utan lösenord kan bara nås med en kod som skickas via e-post.",
         "menu_options": {
           "password": "Med ett lösenord",
@@ -11,14 +11,16 @@
       },
       "password": {
         "title": "Logga in med lösenord",
-        "description": "Använd samma adress och lösenord som i AEG-appen.",
+        "description": "Använd samma adress och lösenord som i appen.",
         "data": {
           "email": "E-postadress",
           "country": "Land",
-          "password": "Lösenord"
+          "password": "Lösenord",
+          "brand": "Märke"
         },
         "data_description": {
-          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på."
+          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på.",
+          "brand": "Appen som kontot skapades i. Ett konto tillhör ett märke och kan inte logga in som det andra."
         }
       },
       "email_code": {
@@ -26,10 +28,12 @@
         "description": "En kod skickas till den här adressen.",
         "data": {
           "email": "E-postadress",
-          "country": "Land"
+          "country": "Land",
+          "brand": "Märke"
         },
         "data_description": {
-          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på."
+          "country": "Landet där kontot registrerades, vilket avgör vilken server dina apparater ligger på.",
+          "brand": "Appen som kontot skapades i. Ett konto tillhör ett märke och kan inte logga in som det andra."
         }
       },
       "code": {
@@ -41,7 +45,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Kunde inte nå AEG-tjänsten. Kontrollera anslutningen och försök igen.",
+      "cannot_connect": "Kunde inte nå tjänsten. Kontrollera din anslutning och försök igen.",
       "invalid_auth": "Det gick inte att logga in på kontot.",
       "invalid_password": "Fel e-postadress eller lösenord. Om kontot saknar lösenord, gå tillbaka och logga in med en kod som skickas via e-post.",
       "invalid_code": "Koden godtogs inte. Den kan ha gått ut; begär i så fall en ny.",
@@ -52,6 +56,14 @@
       "reauth_successful": "Inloggad igen.",
       "unique_id_mismatch": "Det är ett annat konto. Logga in med det konto som den här posten skapades för.",
       "reconfigure_successful": "Inloggad igen."
+    }
+  },
+  "selector": {
+    "brand": {
+      "options": {
+        "aeg": "AEG",
+        "electrolux": "Electrolux"
+      }
     }
   },
   "entity": {
