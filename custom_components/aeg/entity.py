@@ -50,7 +50,7 @@ from .capability import (
 from .const import CONF_BRAND, DOMAIN, brand_for
 from .coordinator import AegCoordinator, Appliance
 from .icons import icon_for
-from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, key_for, readable
+from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, is_setting, key_for, readable
 from .triggers import Override
 
 
@@ -260,6 +260,11 @@ class AegEntity(AegApplianceEntity):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
             self._attr_entity_registry_enabled_default = False
+        elif capability.writable and is_setting(capability.name):
+            # Something about the machine rather than about the wash, so it
+            # goes under Configuration and stays out of the way. Only where it
+            # can be set: the same name read only is a reading like any other.
+            self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def available(self) -> bool:

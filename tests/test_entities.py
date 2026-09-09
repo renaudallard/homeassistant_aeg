@@ -43,7 +43,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, Platform
+from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, EntityCategory, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -54,6 +54,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.aeg import async_remove_config_entry_device
+from custom_components.aeg.capability import Capability
 from custom_components.aeg.const import (
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
@@ -64,6 +65,7 @@ from custom_components.aeg.const import (
     DOMAIN,
 )
 from custom_components.aeg.errors import AegConnectionError
+from custom_components.aeg.names import is_setting
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -1765,3 +1767,43 @@ async def test_an_appliance_that_says_nothing_takes_the_account_brand(
 
     await _setup(hass, elsewhere, api)
     assert _the_device(hass, elsewhere).manufacturer == "Electrolux"
+
+
+async def test_a_setting_goes_under_configuration_and_a_control_does_not(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Water hardness is plumbing; spin speed is this wash."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    # By the field rather than the entity id: two groups carry a programme,
+    # and which of them a bare name lands on is not the point being made.
+    by_field = {
+        e.unique_id.split("-", 1)[1]: e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+
+    for settled in (
+        "waterHardness",
+        "waterSoftenerMode",
+        "endOfCycleSound",
+        "uiLockMode",
+        "defaultExtraRinse",
+    ):
+        assert by_field[settled].entity_category == EntityCategory.CONFIG, settled
+
+    for used in (
+        "userSelections/analogSpinSpeed",
+        "userSelections/analogTemperature",
+        "userSelections/programUID",
+        "userSelections/steamValue",
+    ):
+        assert by_field[used].entity_category is None, used
+
+
+async def test_a_setting_only_counts_where_it_can_be_set(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The same name read only is a reading like any other."""
+    capability = Capability(path="waterHardness", access="read", kind="string")
+    assert is_setting(capability.name)
+    assert not (capability.writable and is_setting(capability.name))

@@ -191,9 +191,56 @@ NAMES: dict[str, str] = {
 }
 
 
+# Fields that configure the machine rather than work it. Home Assistant puts
+# these under Configuration on the device page and leaves them out of the
+# dashboard it builds for itself, which is where a water hardness belongs and
+# a spin speed does not.
+#
+# Nothing in the capability tree tells the two apart. A washing machine keeps
+# its wash under a group and its settings at the top level, but an air
+# conditioner keeps everything at the top level, so there is no shape to read
+# it off. This is a list of names, the way the names above are, and it is
+# short on purpose: putting a control in here hides it from the dashboard,
+# which is the worse of the two mistakes, so only what is plainly set once and
+# left alone is in it.
+SETTINGS = frozenset(
+    {
+        # Sound, light and language
+        "alertSoundsEnabled",
+        "displayLight",
+        "doNotDisturbEnabled",
+        "doNotDisturbEndTime",
+        "doNotDisturbStartTime",
+        "endOfCycleSound",
+        "language",
+        "soundVolume",
+        "voiceLanguage",
+        # What the panel will let anyone do
+        "childLock",
+        "uiLock",
+        "uiLockMode",
+        "uiLocked",
+        # Plumbed in once and forgotten
+        "waterHardness",
+        "waterSoftenerMode",
+        # A default for the next wash rather than a setting for this one
+        "defaultExtraRinse",
+        # The indicator light on an air purifier
+        "airQualityLight",
+        # Normal, demo or service, which is about the machine and not the wash
+        "applianceMode",
+    }
+)
+
+
 def readable(field: str) -> str | None:
     """The name for a field, if it has one worth using."""
     return NAMES.get(MODEL_PREFIX.sub("", field))
+
+
+def is_setting(field: str) -> bool:
+    """Whether a field configures the appliance rather than works it."""
+    return MODEL_PREFIX.sub("", field) in SETTINGS
 
 
 def key_for(field: str) -> str:
