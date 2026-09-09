@@ -219,6 +219,12 @@ the stream working is exactly what makes polling ease off to ten minutes: the
 moment it matters most is the moment the account is otherwise asked least
 often.
 
+A handful of fields are drawn by what they say rather than by what they are
+called: the door looks open when it is open, the lock looks locked when it is
+locked, and the machine shows what it is up to. The rest get a picture guessed
+from the name, which costs a wrong picture rather than a wrong reading when it
+guesses wrong.
+
 A value that is a name and a number is a step in a scale, and a field whose
 values all say their own number is shown as those numbers. The appliance still
 hears the name it uses.
@@ -360,6 +366,12 @@ are not in the repository, so a fresh checkout has only the two the tests use.
 It refuses to write anything when the trees to hand say nothing about a field
 that is already named and placed, rather than quietly dropping two thirds of
 the entity text and every translation of it.
+
+`icons.json` holds the fields whose picture moves with their reading, keyed by
+the same name the text is looked up under. It is written by hand, and
+`icons.py` keeps a list of what is in it so that nothing guesses an icon over
+one of them. A test holds the two to each other, so a field added to one and
+not the other fails rather than quietly losing its picture.
 
 `tools/make_translations.py` writes every language file from
 `tools/translations.json`, which holds what each English string says in each

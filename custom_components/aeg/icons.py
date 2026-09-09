@@ -33,15 +33,17 @@ one this was written against, and getting it wrong costs a wrong picture rather
 than a wrong reading.
 
 Nothing here is asked about a field that already carries a device class, since
-Home Assistant has a better answer for those than a guess.
+Home Assistant has a better answer for those than a guess. Nor about a field
+whose icon should move with its reading, which is icons.json's job.
 """
 
 from __future__ import annotations
 
 import re
 
-from .capability import ALERTS, Capability, is_duration
+from .capability import ALERTS, Capability, is_duration, platform_for
 from .measures import measure_for
+from .names import key_for
 
 # Where one of a field's words ends and the next begins, at an underscore or
 # at the capital of a name written in camel case.
@@ -123,6 +125,25 @@ LOOKS_LIKE: tuple[tuple[str, str], ...] = (
     ("state", "mdi:information-outline"),
 )
 
+# Fields whose picture says something the name cannot: which way the door is,
+# whether the lock is on, what the machine is up to. Those are drawn in
+# icons.json, which Home Assistant reads a picture out of by the state, and a
+# guess made here would be an icon of its own and win over it. The test holds
+# this and the file to each other, so neither can drift.
+BY_STATE: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("sensor", "appliance_state"),
+        ("sensor", "connectivity_state"),
+        ("sensor", "door_lock"),
+        ("sensor", "door_state"),
+        ("sensor", "remote_control"),
+        ("switch", "child_lock"),
+        ("switch", "ui_lock"),
+        ("switch", "ui_lock_mode"),
+        ("switch", "ui_locked"),
+    }
+)
+
 # A command is better shown by what it does than by what it belongs to.
 COMMANDS: dict[str, str] = {
     "OFF": "mdi:power-off",
@@ -140,6 +161,8 @@ def icon_for(capability: Capability) -> str | None:
     if is_duration(capability) or capability.kind in ALERTS:
         return None
     if capability.kind == "temperature" or measure_for(capability) is not None:
+        return None
+    if (platform_for(capability), key_for(capability.name)) in BY_STATE:
         return None
     plain, starts = _words(capability.name)
     for fragment, icon in LOOKS_LIKE:

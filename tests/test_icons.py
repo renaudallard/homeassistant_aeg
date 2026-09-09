@@ -30,18 +30,22 @@ The guess is made from the field's own name and never from the model, so these
 are about the rules rather than about a washing machine.
 """
 
+import json
+from pathlib import Path
+from typing import Any
+
 from custom_components.aeg.capability import Capability
-from custom_components.aeg.icons import icon_for, icon_for_command
+from custom_components.aeg.icons import BY_STATE, icon_for, icon_for_command
+from custom_components.aeg.names import PLATFORMS_FOR
 
 
-def _field(name: str, kind: str = "string") -> Capability:
-    return Capability(path=name, access="read", kind=kind)
+def _field(name: str, kind: str = "string", access: str = "read") -> Capability:
+    return Capability(path=name, access=access, kind=kind)
 
 
 def test_the_particular_beats_the_general() -> None:
-    """A door lock is a lock, and a crease guard is not a steam setting."""
-    assert icon_for(_field("doorLock")) == "mdi:lock"
-    assert icon_for(_field("doorState")) == "mdi:door"
+    """A crease guard is not a steam setting, and a lid lock is a lock."""
+    assert icon_for(_field("lidLock")) == "mdi:lock"
     assert icon_for(_field("EWX1493A_anticreaseWSteam")) == "mdi:iron"
     assert icon_for(_field("steamValue")) == "mdi:kettle-steam"
     assert icon_for(_field("waterHardness")) == "mdi:water-percent"
@@ -63,9 +67,11 @@ def test_nothing_is_guessed_where_something_better_answers() -> None:
 def test_a_fragment_has_to_be_a_word_and_not_a_run_of_letters() -> None:
     """remoteControl carries the letters of eco across the join in the middle.
 
-    So does totalCycleCounter, and both were being shown a leaf.
+    So does totalCycleCounter, and both were being shown a leaf. The remote
+    control is drawn by its state now and answers nothing here, so the counter
+    is what is left to show the rule: it falls through to the cycle it is
+    counting rather than stopping at the letters in the middle of it.
     """
-    assert icon_for(_field("remoteControl")) == "mdi:remote"
     assert icon_for(_field("totalCycleCounter")) == "mdi:sync"
     # And a field that really is about it still gets the leaf.
     assert icon_for(_field("ecoLevel")) == "mdi:leaf"
@@ -73,11 +79,10 @@ def test_a_fragment_has_to_be_a_word_and_not_a_run_of_letters() -> None:
 
 
 def test_a_fragment_may_still_span_two_words() -> None:
-    """A door lock is a lock rather than a door, and that is two words."""
-    assert icon_for(_field("doorLock")) == "mdi:lock"
-    assert icon_for(_field("doorState")) == "mdi:door"
+    """A lid lock is a lock rather than a lid, and that is two words."""
+    assert icon_for(_field("lidLock")) == "mdi:lock"
     assert icon_for(_field("waterHardness")) == "mdi:water-percent"
-    assert icon_for(_field("uiLockMode")) == "mdi:lock"
+    assert icon_for(_field("uiLockState")) == "mdi:lock"
 
 
 def test_a_name_that_says_nothing_gets_nothing() -> None:
@@ -91,3 +96,51 @@ def test_a_command_is_shown_by_what_it_does() -> None:
     assert icon_for_command("STOPRESET") == "mdi:stop"
     # Anything else is at least pressable.
     assert icon_for_command("DESCALE") == "mdi:gesture-tap-button"
+
+
+ICONS = Path(__file__).parent.parent / "custom_components" / "aeg" / "icons.json"
+
+
+def _drawn_by_state() -> dict[tuple[str, str], dict[str, Any]]:
+    """Every field icons.json draws, by the platform and key it draws it on."""
+    entity = json.loads(ICONS.read_text())["entity"]
+    return {
+        (platform, key): body
+        for platform, keys in entity.items()
+        for key, body in keys.items()
+    }
+
+
+def test_the_file_and_the_list_of_what_is_in_it_agree() -> None:
+    """A field in one and not the other loses its icon or keeps a wrong one."""
+    assert set(_drawn_by_state()) == set(BY_STATE)
+
+
+def test_every_field_it_draws_is_one_that_turns_up_there() -> None:
+    """A key nothing is named under, or on a platform it never lands on, draws
+    nothing at all."""
+    for platform, key in _drawn_by_state():
+        assert key in PLATFORMS_FOR, key
+        assert platform in PLATFORMS_FOR[key], (platform, key)
+
+
+def test_each_of_them_has_a_picture_to_fall_back_on() -> None:
+    """A state nobody predicted still has to look like something."""
+    for (platform, key), body in _drawn_by_state().items():
+        assert body.get("default"), (platform, key)
+        assert body.get("state"), (platform, key)
+
+
+def test_nothing_guesses_over_a_field_drawn_by_its_state() -> None:
+    """An icon set here would win over the one Home Assistant reads by state."""
+    for name in ("doorState", "doorLock", "remoteControl", "applianceState"):
+        assert icon_for(_field(name)) is None, name
+    # A panel lock is drawn by its state where it is a switch, which is where
+    # icons.json claims it, and guessed at where it is only reported.
+    assert icon_for(_field("uiLockMode", "boolean", "readwrite")) is None
+    assert icon_for(_field("uiLockMode", "boolean")) == "mdi:lock"
+
+
+def test_a_field_it_does_not_draw_still_gets_its_guess() -> None:
+    assert icon_for(_field("waterHardness")) == "mdi:water-percent"
+    assert icon_for(_field("cyclePhase")) == "mdi:sync"

@@ -47,6 +47,7 @@ from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, EntityCategory, Platfo
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.icon import async_get_icons
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -1807,3 +1808,30 @@ async def test_a_setting_only_counts_where_it_can_be_set(
     capability = Capability(path="waterHardness", access="read", kind="string")
     assert is_setting(capability.name)
     assert not (capability.writable and is_setting(capability.name))
+
+
+async def test_home_assistant_reads_the_state_icons(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The frontend draws these, so the most this side can prove is that Home
+    Assistant loaded the file and that nothing shadows what it holds."""
+    await _setup(hass, entry, api)
+    # Asking for one category hands back what is under it, so the platforms
+    # are what sits directly under the integration here.
+    drawn = (await async_get_icons(hass, "entity", integrations=[DOMAIN]))[DOMAIN]
+
+    assert drawn["sensor"]["door_state"]["state"]["OPEN"] == "mdi:door-open"
+    assert drawn["sensor"]["door_state"]["state"]["CLOSED"] == "mdi:door-closed"
+    assert drawn["switch"]["ui_lock_mode"]["state"]["on"] == "mdi:lock"
+
+    registry = er.async_get(hass)
+    by_field = {
+        e.unique_id.split("-", 1)[1]: e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    # An icon of its own would win over the one read from the file.
+    for field in ("doorState", "doorLock", "remoteControl", "applianceState"):
+        assert by_field[field].original_icon is None, field
+    assert by_field["uiLockMode"].original_icon is None
+    # And a field the file says nothing about keeps its guess.
+    assert by_field["waterHardness"].original_icon == "mdi:water-percent"
