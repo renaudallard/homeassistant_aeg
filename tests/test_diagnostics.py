@@ -34,9 +34,13 @@ import json
 from unittest.mock import AsyncMock
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.aeg.diagnostics import async_get_config_entry_diagnostics
+from custom_components.aeg.diagnostics import (
+    async_get_config_entry_diagnostics,
+    async_get_device_diagnostics,
+)
 from tests.test_entities import _setup, api, entry  # noqa: F401
 
 
@@ -100,3 +104,54 @@ async def test_it_gives_nothing_away(
     # The account is still recognisable as an account, just not as anyone's.
     assert report["entry"]["country"] == "BE"
     assert "hidden" in report["entry"]["email"]
+
+
+async def test_a_device_hands_over_only_its_own_appliance(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,  # noqa: F811
+    api: AsyncMock,  # noqa: F811
+) -> None:
+    """A report is about one machine, and a household makes the account four
+    times the size for no gain."""
+    await _setup(hass, entry, api)
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    assert len(devices) == 1
+
+    report = await async_get_device_diagnostics(hass, entry, devices[0])
+    assert len(report["appliances"]) == 1
+    machine = report["appliances"][0]
+    assert machine["model"] == "WM"
+    assert len(machine["describes"]) > 100
+    # The same shape as the account's, so one report reads like the other.
+    account = await async_get_config_entry_diagnostics(hass, entry)
+    assert set(report) == set(account)
+    assert machine == account["appliances"][0]
+
+
+async def test_a_device_the_account_has_dropped_hands_over_nothing(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,  # noqa: F811
+    api: AsyncMock,  # noqa: F811
+) -> None:
+    """Better an empty report than a download that fails."""
+    await _setup(hass, entry, api)
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+
+    api.appliances.return_value = []
+    await entry.runtime_data.coordinator.async_refresh()
+
+    report = await async_get_device_diagnostics(hass, entry, devices[0])
+    assert report["appliances"] == []
+
+
+async def test_the_device_report_gives_nothing_away_either(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,  # noqa: F811
+    api: AsyncMock,  # noqa: F811
+) -> None:
+    await _setup(hass, entry, api)
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    text = json.dumps(await async_get_device_diagnostics(hass, entry, devices[0]))
+
+    for secret in ("an-access-token", "a-refresh-token", "someone@example.com"):
+        assert secret not in text

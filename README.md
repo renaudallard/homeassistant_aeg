@@ -231,14 +231,18 @@ off the order they came in would offer the hardest setting as one of seven.
 
 ## Reporting a problem
 
-The device page offers to download diagnostics. That carries the whole of what
-the appliance said about itself, what model it says it is, what it is
-reporting, what it will accept right now, and whether the stream is carrying
-the updates or polling is. It is redacted the same way the logs are, so
-tokens, keys, cookies, the address on the account and the appliance's own
-identifier are replaced by a note of their length, whether they arrived as
-text or as a number. What kind of appliance it is, what it is doing, and the
-codes for whatever it is complaining about all stay readable.
+The device page offers to download diagnostics, and that is the one to send:
+it carries the whole of what that appliance said about itself, what model it
+says it is, what it is reporting, what it will accept right now, and whether
+the stream is carrying the updates or polling is. The integration entry offers
+the same thing for every appliance on the account at once, which is worth
+having only when the trouble is with the account rather than with a machine.
+
+Both are redacted the same way the logs are, so tokens, keys, cookies, the
+address on the account and the appliance's own identifier are replaced by a
+note of their length, whether they arrived as text or as a number. What kind
+of appliance it is, what it is doing, and the codes for whatever it is
+complaining about all stay readable.
 
 For a model this has never seen, that download is the one thing a report cannot
 do without.

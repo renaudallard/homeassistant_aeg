@@ -26,13 +26,19 @@
 
 """What to hand over when something is wrong.
 
-Home Assistant offers to download this from the device page, and people paste
-it into bug reports, so it carries what is worth knowing and nothing that says
-who anyone is. The same redaction the logs use covers it: tokens, keys, the
-address on the account and the identifier of the appliance itself.
+People paste this into bug reports, so it carries what is worth knowing and
+nothing that says who anyone is. The same redaction the logs use covers it:
+tokens, keys, the address on the account and the identifier of the appliance
+itself.
 
 What it does carry is the whole of what an appliance said about itself, which
 is the one thing a report about a model nobody has cannot do without.
+
+There are two of these. The account is what the integration entry offers, and
+carries every appliance on it. One appliance is what its own device page
+offers, and is the one to ask for: a report is nearly always about one
+machine, and a household of them makes the other four times the size for no
+gain.
 """
 
 from __future__ import annotations
@@ -40,10 +46,64 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
 from . import AegConfigEntry
 from .capability import platform_for
+from .const import DOMAIN
+from .coordinator import Appliance
 from .http import redact
+
+
+def _appliance(appliance: Appliance) -> dict[str, Any]:
+    """Everything worth knowing about one machine."""
+    return {
+        "model": appliance.model,
+        # What the appliance says it is, which the listing above only
+        # gives the type of. Empty where the cloud would not say.
+        "info": redact(appliance.info),
+        "connected": appliance.connected,
+        "reported": redact(appliance.reported),
+        "describes": [
+            {
+                "path": capability.path,
+                "access": capability.access,
+                "type": capability.kind,
+                "becomes": platform_for(capability),
+                "values": list(capability.values),
+                "min": capability.minimum,
+                "max": capability.maximum,
+                "step": capability.step,
+                "disabled": capability.disabled,
+            }
+            for capability in appliance.capabilities
+        ],
+        "accepts_now": {
+            path: {
+                "access": override.access,
+                "values": list(override.values or ()),
+                "disabled": override.disabled,
+                # What a number will take right now, which is not the range
+                # the field describes and is what decides the bounds somebody
+                # is being offered.
+                "min": override.minimum,
+                "max": override.maximum,
+                "step": override.step,
+            }
+            for path, override in appliance.overrides.items()
+        },
+    }
+
+
+def _polling(entry: AegConfigEntry) -> dict[str, Any]:
+    """How the account is being kept up to date, which is the same for all of them."""
+    coordinator = entry.runtime_data.coordinator
+    return {
+        # Ten minutes means the stream is carrying it, thirty seconds means it
+        # is not.
+        "every": str(coordinator.update_interval),
+        "last_look_worked": coordinator.last_update_success,
+    }
 
 
 async def async_get_config_entry_diagnostics(
@@ -53,49 +113,29 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data.coordinator
     return {
         "entry": redact(dict(entry.data)),
-        "polling": {
-            # Ten minutes means the stream is carrying it, thirty seconds
-            # means it is not.
-            "every": str(coordinator.update_interval),
-            "last_look_worked": coordinator.last_update_success,
-        },
+        "polling": _polling(entry),
         "appliances": [
-            {
-                "model": appliance.model,
-                # What the appliance says it is, which the listing above only
-                # gives the type of. Empty where the cloud would not say.
-                "info": redact(appliance.info),
-                "connected": appliance.connected,
-                "reported": redact(appliance.reported),
-                "describes": [
-                    {
-                        "path": capability.path,
-                        "access": capability.access,
-                        "type": capability.kind,
-                        "becomes": platform_for(capability),
-                        "values": list(capability.values),
-                        "min": capability.minimum,
-                        "max": capability.maximum,
-                        "step": capability.step,
-                        "disabled": capability.disabled,
-                    }
-                    for capability in appliance.capabilities
-                ],
-                "accepts_now": {
-                    path: {
-                        "access": override.access,
-                        "values": list(override.values or ()),
-                        "disabled": override.disabled,
-                        # What a number will take right now, which is not the
-                        # range the field describes and is what decides the
-                        # bounds somebody is being offered.
-                        "min": override.minimum,
-                        "max": override.maximum,
-                        "step": override.step,
-                    }
-                    for path, override in appliance.overrides.items()
-                },
-            }
-            for appliance in coordinator.data.values()
+            _appliance(appliance) for appliance in coordinator.data.values()
         ],
+    }
+
+
+async def async_get_device_diagnostics(
+    hass: HomeAssistant, entry: AegConfigEntry, device: dr.DeviceEntry
+) -> dict[str, Any]:
+    """Everything worth knowing about the one appliance being looked at.
+
+    A device that the account has stopped listing has nothing to say, and an
+    empty answer says so rather than failing the download.
+    """
+    coordinator = entry.runtime_data.coordinator
+    found = [
+        coordinator.data[appliance_id]
+        for domain, appliance_id in device.identifiers
+        if domain == DOMAIN and appliance_id in coordinator.data
+    ]
+    return {
+        "entry": redact(dict(entry.data)),
+        "polling": _polling(entry),
+        "appliances": [_appliance(appliance) for appliance in found],
     }
