@@ -8,5 +8,5 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/renaudallard/homeassistant_aeg/issues",
   "requirements": [],
-  "version": "0.6.0"
+  "version": "0.6.1"
 }
