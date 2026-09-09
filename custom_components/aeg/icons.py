@@ -38,13 +38,38 @@ Home Assistant has a better answer for those than a guess.
 
 from __future__ import annotations
 
+import re
+
 from .capability import ALERTS, Capability, is_duration
 from .measures import measure_for
 
-# Matched against the field's own name, with the separators taken out and
-# lowercased. The first that fits wins, so the particular comes before the
-# general: a door lock is a lock rather than a door, and water hardness is
-# neither a temperature nor a tap.
+# Where one of a field's words ends and the next begins, at an underscore or
+# at the capital of a name written in camel case.
+BETWEEN_WORDS = re.compile(r"_+|(?<=[a-z0-9])(?=[A-Z])")
+
+
+def _words(name: str) -> tuple[str, set[int]]:
+    """A field's name run together, and where each of its words begins.
+
+    A fragment below has to line up with the start of a word rather than turn
+    up anywhere in the letters. remoteControl holds the letters of eco across
+    the join between its two words and is not about ecology; so does
+    totalCycleCounter, and both were being shown a leaf.
+    """
+    plain = ""
+    starts = set()
+    for word in BETWEEN_WORDS.split(name):
+        if not word:
+            continue
+        starts.add(len(plain))
+        plain += word.lower()
+    return plain, starts
+
+
+# Matched against the field's own name, a word at a time and lowercased. The
+# first that fits wins, so the particular comes before the general: a door lock
+# is a lock rather than a door, and water hardness is neither a temperature nor
+# a tap. A fragment can span two words, as doorlock does.
 LOOKS_LIKE: tuple[tuple[str, str], ...] = (
     ("doorlock", "mdi:lock"),
     ("door", "mdi:door"),
@@ -116,10 +141,13 @@ def icon_for(capability: Capability) -> str | None:
         return None
     if capability.kind == "temperature" or measure_for(capability) is not None:
         return None
-    plain = capability.name.replace("_", "").lower()
+    plain, starts = _words(capability.name)
     for fragment, icon in LOOKS_LIKE:
-        if fragment in plain:
-            return icon
+        at = plain.find(fragment)
+        while at != -1:
+            if at in starts:
+                return icon
+            at = plain.find(fragment, at + 1)
     return None
 
 

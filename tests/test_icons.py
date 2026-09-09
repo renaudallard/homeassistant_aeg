@@ -60,6 +60,26 @@ def test_nothing_is_guessed_where_something_better_answers() -> None:
     assert icon_for(_field("alerts", "alert")) is None
 
 
+def test_a_fragment_has_to_be_a_word_and_not_a_run_of_letters() -> None:
+    """remoteControl carries the letters of eco across the join in the middle.
+
+    So does totalCycleCounter, and both were being shown a leaf.
+    """
+    assert icon_for(_field("remoteControl")) == "mdi:remote"
+    assert icon_for(_field("totalCycleCounter")) == "mdi:sync"
+    # And a field that really is about it still gets the leaf.
+    assert icon_for(_field("ecoLevel")) == "mdi:leaf"
+    assert icon_for(_field("wmEconomy")) == "mdi:leaf"
+
+
+def test_a_fragment_may_still_span_two_words() -> None:
+    """A door lock is a lock rather than a door, and that is two words."""
+    assert icon_for(_field("doorLock")) == "mdi:lock"
+    assert icon_for(_field("doorState")) == "mdi:door"
+    assert icon_for(_field("waterHardness")) == "mdi:water-percent"
+    assert icon_for(_field("uiLockMode")) == "mdi:lock"
+
+
 def test_a_name_that_says_nothing_gets_nothing() -> None:
     assert icon_for(_field("cpv")) is None
     assert icon_for(_field("EWX1493A_tcSensor")) is None
