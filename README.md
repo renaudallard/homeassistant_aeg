@@ -105,6 +105,15 @@ stop working, Home Assistant asks you to sign in again rather than failing
 quietly. It has to be the same account: signing in as somebody else is refused
 rather than quietly pointing the entry at another household's appliances.
 
+**Reconfigure** on the entry signs in again without waiting to be asked, which
+is how to correct the country. Picking the wrong one leaves the entry talking
+to a server the appliances are not on, and setting the integration up again to
+fix that would cost every entity id and all the history with them.
+
+An appliance unpaired in the vendor app stops being listed, and its device can
+then be deleted from its own page. One that is still on the account cannot: it
+would come back on the next look as a new device with nothing behind it.
+
 ## What you get
 
 | The appliance says | You get |

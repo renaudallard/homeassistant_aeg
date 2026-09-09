@@ -53,6 +53,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
+from custom_components.aeg import async_remove_config_entry_device
 from custom_components.aeg.const import (
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
@@ -1715,3 +1716,19 @@ async def test_a_flag_reported_as_a_word_is_read_as_one(
     lock = hass.states.get("switch.lave_linge_panel_lock")
     assert lock is not None
     assert lock.state == "off"
+
+
+async def test_a_device_can_be_deleted_once_the_account_has_dropped_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Tidying up after an appliance has been unpaired in the vendor app."""
+    await _setup(hass, entry, api)
+    device = _the_device(hass, entry)
+
+    # Still on the account, so deleting it would only lose its history until
+    # the next look brought it back under a new device.
+    assert not await async_remove_config_entry_device(hass, entry, device)
+
+    api.appliances.return_value = []
+    await entry.runtime_data.coordinator.async_refresh()
+    assert await async_remove_config_entry_device(hass, entry, device)

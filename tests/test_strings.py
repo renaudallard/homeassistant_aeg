@@ -39,9 +39,12 @@ from typing import Any
 # Reasons Home Assistant aborts with on the flow's behalf. It asks for them by
 # calling a helper rather than by naming them, so they appear nowhere in the
 # flow itself and cannot be read out of it the way the rest are.
+# One helper stands for two aborts, since which of them it finishes with is
+# whether the flow was a reauth or a reconfigure, and both need words.
 IMPLIED_ABORTS = {
     "already_configured": "_abort_if_unique_id_configured",
     "reauth_successful": "async_update_reload_and_abort",
+    "reconfigure_successful": "async_update_reload_and_abort",
     "unique_id_mismatch": "_abort_if_unique_id_mismatch",
 }
 

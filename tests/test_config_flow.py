@@ -392,3 +392,98 @@ async def test_reauth_updates_the_entry_in_place(
     assert entry.data[CONF_ACCESS_TOKEN] == TOKENS.access_token
     assert entry.data[CONF_REFRESH_TOKEN] == TOKENS.refresh_token
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1
+
+
+def _entry(hass: HomeAssistant, country: str = COUNTRY) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=EMAIL,
+        data={
+            CONF_EMAIL: EMAIL,
+            CONF_COUNTRY: country,
+            CONF_BASE_URL: "https://api.us.ocp.electrolux.one",
+            CONF_WS_URL: "wss://ws.us.ocp.electrolux.one",
+            CONF_ACCESS_TOKEN: "a-token",
+            CONF_REFRESH_TOKEN: "a-refresh-token",
+            CONF_EXPIRES_AT: 4102444800.0,
+        },
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_reconfigure_can_move_an_entry_to_another_country(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """The country picks the server, and a wrong one finds no appliances."""
+    entry = _entry(hass, country="US")
+
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.MENU
+
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "password"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_EMAIL: EMAIL, CONF_COUNTRY: COUNTRY, CONF_PASSWORD: PASSWORD},
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_COUNTRY] == COUNTRY
+    # The endpoints move with it, or the entry would go on asking the old one.
+    assert entry.data[CONF_BASE_URL] == PROVIDER.http_base_url
+    assert entry.data[CONF_WS_URL] == PROVIDER.ws_base_url
+    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
+
+
+async def test_reconfigure_refuses_a_different_account(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """Pointing an entry at another household is not a reconfiguration."""
+    entry = _entry(hass)
+
+    result = await entry.start_reconfigure_flow(hass)
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "password"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_EMAIL: "someone-else@example.com",
+                CONF_COUNTRY: COUNTRY,
+                CONF_PASSWORD: PASSWORD,
+            },
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "unique_id_mismatch"
+    assert entry.data[CONF_EMAIL] == EMAIL
+    assert entry.data[CONF_ACCESS_TOKEN] == "a-token"
+
+
+async def test_reconfigure_takes_a_mailed_code_too(
+    hass: HomeAssistant, auth: AsyncMock, client: AsyncMock
+) -> None:
+    """An account with no password has to be able to reach this as well."""
+    entry = _entry(hass, country="US")
+
+    result = await entry.start_reconfigure_flow(hass)
+    with cloud(auth, client):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"next_step_id": "email_code"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_EMAIL: EMAIL, CONF_COUNTRY: COUNTRY}
+        )
+        assert result["step_id"] == "code"
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_CODE: "123456"}
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_COUNTRY] == COUNTRY

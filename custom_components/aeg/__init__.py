@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_COUNTRY, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -50,6 +51,7 @@ from .const import (
     CONF_EXPIRES_AT,
     CONF_REFRESH_TOKEN,
     CONF_WS_URL,
+    DOMAIN,
 )
 from .coordinator import AegCoordinator, capability_store
 from .entity import provided
@@ -190,6 +192,27 @@ async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth)
         return ""
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_WS_URL: url})
     return url
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    entry: AegConfigEntry,
+    device: dr.DeviceEntry,
+) -> bool:
+    """Whether a device can be deleted from the device page by hand.
+
+    Only one the account has stopped listing. An appliance that is still on it
+    would come back on the next look with a new device and no history, so
+    letting it be deleted would look like it had worked and would not have.
+
+    Taking an appliance off the account is done in the vendor app, and this is
+    for tidying up after that has been done.
+    """
+    listed = set(entry.runtime_data.coordinator.data)
+    return not any(
+        domain == DOMAIN and appliance_id in listed
+        for domain, appliance_id in device.identifiers
+    )
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: AegConfigEntry) -> None:

@@ -50,7 +50,8 @@
     "abort": {
       "already_configured": "Denne konto er allerede sat op.",
       "reauth_successful": "Logget ind igen.",
-      "unique_id_mismatch": "Det er en anden konto. Log ind med den, denne konfiguration blev oprettet til."
+      "unique_id_mismatch": "Det er en anden konto. Log ind med den, denne konfiguration blev oprettet til.",
+      "reconfigure_successful": "Logget ind igen."
     }
   },
   "entity": {

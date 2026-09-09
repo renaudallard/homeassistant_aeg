@@ -38,7 +38,13 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import SOURCE_REAUTH, ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    SOURCE_REAUTH,
+    SOURCE_RECONFIGURE,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+)
 from homeassistant.const import CONF_CODE, CONF_COUNTRY, CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
@@ -197,6 +203,22 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
         self._country = entry_data[CONF_COUNTRY]
         return await self.async_step_user()
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Sign in again without being asked to.
+
+        The country is the one thing about an entry that can be wrong rather
+        than stale: it picks the server the appliances are on, and an account
+        registered elsewhere finds none. Setting the entry up again would find
+        them, at the cost of every entity id and all the history on it, so it
+        is offered here instead.
+        """
+        entry = self._get_reconfigure_entry()
+        self._email = entry.data[CONF_EMAIL]
+        self._country = entry.data[CONF_COUNTRY]
+        return await self.async_step_user()
+
     async def _prepare(self) -> None:
         """Find where the account lives and open a Gigya client for it."""
         session = async_get_clientsession(self.hass)
@@ -250,15 +272,22 @@ class AegConfigFlow(ConfigFlow, domain=DOMAIN):
             CONF_EXPIRES_AT: tokens.expires_at,
         }
 
+    def _existing(self) -> ConfigEntry | None:
+        """The entry this sign in is for, when it is for one already there."""
+        if self.source == SOURCE_REAUTH:
+            return self._get_reauth_entry()
+        if self.source == SOURCE_RECONFIGURE:
+            return self._get_reconfigure_entry()
+        return None
+
     async def _finish(self, data: dict[str, Any]) -> ConfigFlowResult:
         """Write the account into an entry, or back into the one it is for."""
         await self.async_set_unique_id(self._email.lower())
-        if self.source == SOURCE_REAUTH:
+        existing = self._existing()
+        if existing is not None:
             # Signing in as somebody else would put one account's tokens under
             # another's name and take its appliances with them.
             self._abort_if_unique_id_mismatch()
-            return self.async_update_reload_and_abort(
-                self._get_reauth_entry(), data=data
-            )
+            return self.async_update_reload_and_abort(existing, data=data)
         self._abort_if_unique_id_configured()
         return self.async_create_entry(title=self._email, data=data)

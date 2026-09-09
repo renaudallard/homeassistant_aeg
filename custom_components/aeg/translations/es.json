@@ -50,7 +50,8 @@
     "abort": {
       "already_configured": "Esta cuenta ya está configurada.",
       "reauth_successful": "Sesión iniciada de nuevo correctamente.",
-      "unique_id_mismatch": "Esa es una cuenta distinta. Inicia sesión con la cuenta para la que se configuró esta entrada."
+      "unique_id_mismatch": "Esa es una cuenta distinta. Inicia sesión con la cuenta para la que se configuró esta entrada.",
+      "reconfigure_successful": "Sesión iniciada de nuevo correctamente."
     }
   },
   "entity": {
