@@ -140,7 +140,7 @@ would come back on the next look as a new device with nothing behind it.
 | anything else it reports | a sensor |
 
 A washing machine comes out as 69 entities with 54 of them shown: the
-programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
+programme and its 34 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume, reset and
 clearing the personalised cycle. Enable the rest from the device page if you
 want them.
@@ -166,10 +166,11 @@ never reported the field. An appliance that is asleep or quiet keeps
 everything it has, and so does one the account left out of a listing, along
 with the record of what it has been seen reporting.
 
-Every appliance also gets a **connection** sensor. When the cloud stops calling
-an appliance reachable, what it last said stays readable, so a wash can be
-looked at afterwards; the connection sensor is what says the machine has gone,
-rather than every other entity saying it at once. Controls do go unavailable,
+Every appliance also gets a **connection** binary sensor, which is where a
+machine going quiet shows up. When the cloud stops calling an appliance
+reachable, what it last said stays readable, so a wash can be looked at
+afterwards; `binary_sensor.<appliance>_connection` is what says the machine has
+gone, rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
 Six details worth knowing, because they look like faults and are not:
@@ -257,7 +258,7 @@ do without.
 
 An appliance that the cloud has stopped hearing from cannot be set to anything,
 so every control on it goes unavailable. Readings stay, holding whatever it
-last said. The **connection** sensor says which it is.
+last said. The **connection** binary sensor says which it is.
 
 An appliance talks to the cloud itself, over MQTT on **port 8883**, not through
 Home Assistant. A firewall that blocks outbound 8883 takes the appliance off
@@ -355,7 +356,7 @@ bumping the version and pushing. A release written by hand before the workflow
 gets there keeps its own notes and is only given the zip, which is how a
 release worth writing up properly still gets one.
 
-### Regenerating the names and the translations
+### The names, the icons and the translations
 
 `tools/make_names.py` works out which platforms each named field turns up on,
 from every capability tree to hand, and writes both the table at the bottom of

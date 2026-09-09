@@ -319,6 +319,14 @@ async def test_the_washing_machine_comes_out_as_the_readme_says(
     assert len(entities) == 69
     assert len([e for e in entities if not e.disabled]) == 54
 
+    programme = hass.states.get("select.lave_linge_programme_2")
+    assert programme is not None
+    assert len(programme.attributes["options"]) == 34
+
+    # Every appliance gets one, and it is a binary sensor rather than a sensor,
+    # which is what somebody reads the README to find out.
+    assert hass.states.get("binary_sensor.lave_linge_connection") is not None
+
 
 async def test_nothing_offers_to_undo_the_appliance(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
