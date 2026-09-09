@@ -93,6 +93,16 @@ class AegSwitch(AegEntity, SwitchEntity):
             return value.upper() not in OFF_WORDS
         return bool(value)
 
+    @property
+    def drawn_from(self) -> Any:
+        """Home Assistant's own on and off, which is what is shown beside it.
+
+        A flag the appliance words as DISABLED or NO reads as off here, and a
+        picture chosen from that word rather than from the state would show a
+        lock shut beside a switch that says it is open.
+        """
+        return self.is_on
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.send(self._words[0] if self._words else True)
 

@@ -44,6 +44,7 @@ the guess below is what it falls back on for a reading nobody listed.
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
 from typing import Any
 
 from .capability import ALERTS, Capability, is_duration
@@ -53,9 +54,9 @@ from .measures import measure_for
 # at the capital of a name written in camel case.
 BETWEEN_WORDS = re.compile(r"_+|(?<=[a-z0-9])(?=[A-Z])")
 
-# Anything in a reading that is not a letter or a digit, which is what differs
-# between the ways the models write the same state.
-NOT_A_LETTER = re.compile(r"[^a-z0-9]")
+# What separates the words of a reading. Only these are taken out, so two
+# readings that differ by a digit or an accent stay two readings.
+BETWEEN_READING_WORDS = re.compile(r"[-_\s]+")
 
 
 def _words(name: str) -> tuple[str, set[int]]:
@@ -133,9 +134,26 @@ LOOKS_LIKE: tuple[tuple[str, str], ...] = (
     ("state", "mdi:information-outline"),
 )
 
+
+@dataclass(frozen=True)
+class Drawn:
+    """What a field looks like: by what it is saying, and when it is not.
+
+    The fallback matters as much as the readings. A lock nobody can read is
+    not a locked lock, and drawing one shut would be claiming something about
+    the machine on no evidence, so the picture for an unknown reading is set
+    here beside the ones that are known rather than left to the guess the
+    field's name would otherwise get.
+    """
+
+    default: str
+    readings: dict[str, str] = field(default_factory=dict)
+
+
 # What a lock looks like either way round, which is the same wherever one turns
-# up and under whichever of its four names.
-LOCK = {"on": "mdi:lock", "off": "mdi:lock-open-variant"}
+# up and under whichever of its four names. Undone unless something says
+# otherwise.
+LOCK = Drawn("mdi:lock-open-variant", {"on": "mdi:lock"})
 
 # Fields whose picture says something the name cannot: which way the door is,
 # whether the lock is undone, whether the appliance is still there. Keyed by
@@ -148,45 +166,48 @@ LOCK = {"on": "mdi:lock", "off": "mdi:lock-open-variant"}
 # says RUNNING, and a robot vacuum says readyToStart. One entry covers all
 # three. A reading nobody listed falls back to the guess from the name, so a
 # model that invents a ninth state still has a picture.
-BY_READING: dict[tuple[str, str], dict[str, str]] = {
-    ("sensor", "appliance_state"): {
-        "off": "mdi:power-off",
-        "idle": "mdi:sleep",
-        "readytostart": "mdi:play-circle-outline",
-        "delayedstart": "mdi:clock-outline",
-        "running": "mdi:play-circle",
-        "monitoring": "mdi:eye",
-        "paused": "mdi:pause-circle",
-        "endofcycle": "mdi:check-circle",
-        "alarm": "mdi:alert-circle",
-    },
-    ("sensor", "connectivity_state"): {
-        "connected": "mdi:wifi",
-        "disconnected": "mdi:wifi-off",
-    },
-    ("sensor", "door_state"): {
-        "open": "mdi:door-open",
-        "closed": "mdi:door-closed",
-    },
-    ("sensor", "door_lock"): {
-        "on": "mdi:lock",
-        "off": "mdi:lock-open-variant",
-        # Neither one thing nor the other, and moving.
-        "locking": "mdi:lock-clock",
-        "unlocking": "mdi:lock-clock",
-    },
-    ("sensor", "remote_control"): {
-        "enabled": "mdi:remote",
-        # The appliance's own rules refuse every command in these two, which
-        # is not what their names suggest: a washing machine sitting in
-        # NOT_SAFETY_RELEVANT_ENABLED will not take a remote start, and the
-        # trigger on the field says so in as many words.
-        "notsafetyrelevantenabled": "mdi:remote-off",
-        "disabled": "mdi:remote-off",
-        # No tree carries a rule about this one, so the name is all there is
-        # to go on, and it says locked.
-        "temporarylocked": "mdi:remote-off",
-    },
+BY_READING: dict[tuple[str, str], Drawn] = {
+    ("sensor", "appliance_state"): Drawn(
+        "mdi:information-outline",
+        {
+            "off": "mdi:power-off",
+            "idle": "mdi:sleep",
+            "readytostart": "mdi:play-circle-outline",
+            "delayedstart": "mdi:clock-outline",
+            "running": "mdi:play-circle",
+            "monitoring": "mdi:eye",
+            "paused": "mdi:pause-circle",
+            "endofcycle": "mdi:check-circle",
+            "alarm": "mdi:alert-circle",
+        },
+    ),
+    # Anything but the word for gone is taken to mean it is there, which is
+    # what the field itself only ever says either way.
+    ("sensor", "connectivity_state"): Drawn(
+        "mdi:wifi", {"disconnected": "mdi:wifi-off"}
+    ),
+    ("sensor", "door_state"): Drawn(
+        "mdi:door", {"open": "mdi:door-open", "closed": "mdi:door-closed"}
+    ),
+    ("sensor", "door_lock"): Drawn(
+        LOCK.default,
+        # A latch is a lock, so it draws one, and it can be caught halfway.
+        {**LOCK.readings, "locking": "mdi:lock-clock", "unlocking": "mdi:lock-clock"},
+    ),
+    ("sensor", "remote_control"): Drawn(
+        "mdi:remote",
+        {
+            # The appliance's own rules refuse every command in these two,
+            # which is not what their names suggest: a washing machine sitting
+            # in NOT_SAFETY_RELEVANT_ENABLED will not take a remote start, and
+            # the trigger on the field says so in as many words.
+            "notsafetyrelevantenabled": "mdi:remote-off",
+            "disabled": "mdi:remote-off",
+            # No tree carries a rule about this one, so the name is all there
+            # is to go on, and it says locked.
+            "temporarylocked": "mdi:remote-off",
+        },
+    ),
     ("switch", "child_lock"): LOCK,
     ("switch", "ui_lock"): LOCK,
     ("switch", "ui_lock_mode"): LOCK,
@@ -198,18 +219,29 @@ def as_read(value: Any) -> str:
     """A reading in the one shape the table above is keyed in.
 
     A flag is on or off whichever way an appliance writes it, since some report
-    a true and some the word.
+    a true and some the word. Nothing at all is nothing, rather than the word
+    none, which a field could one day say for itself.
     """
+    if value is None:
+        return ""
     if isinstance(value, bool):
         return "on" if value else "off"
-    return NOT_A_LETTER.sub("", str(value).lower())
+    return BETWEEN_READING_WORDS.sub("", str(value).lower())
+
+
+def drawn_for(platform: str | None, key: str) -> Drawn | None:
+    """How a field is to be drawn, if it is one drawn by what it says.
+
+    Looked up once, when the entity is made, so that the reading itself costs
+    nothing to draw on the nine fields in ten that are not in the table.
+    """
+    return None if platform is None else BY_READING.get((platform, key))
 
 
 def icon_for_reading(platform: str | None, key: str, value: Any) -> str | None:
     """A picture for what a field is saying, where that is worth drawing."""
-    if platform is None:
-        return None
-    return BY_READING.get((platform, key), {}).get(as_read(value))
+    drawn = drawn_for(platform, key)
+    return None if drawn is None else drawn.readings.get(as_read(value), drawn.default)
 
 
 # A command is better shown by what it does than by what it belongs to.

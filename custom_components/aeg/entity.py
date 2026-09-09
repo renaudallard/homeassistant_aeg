@@ -47,7 +47,7 @@ from .capability import (
 )
 from .const import CONF_BRAND, DOMAIN, brand_for
 from .coordinator import AegCoordinator, Appliance
-from .icons import icon_for, icon_for_reading
+from .icons import as_read, drawn_for, icon_for
 from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, is_setting, key_for, readable
 from .triggers import Override
 
@@ -262,7 +262,11 @@ class AegEntity(AegApplianceEntity):
         # What to draw when the reading itself has nothing to say, which is
         # most fields and every reading nobody listed.
         self._attr_icon = icon_for(capability)
-        self._drawn_as = (platform, key)
+        # Looked up here rather than on every state written, since nine fields
+        # in ten are not drawn by what they say and would pay for the lookup
+        # for nothing. An entity standing for something other than the field
+        # it was built from sets this aside.
+        self._drawn = drawn_for(platform, key)
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -293,18 +297,32 @@ class AegEntity(AegApplianceEntity):
         )
 
     @property
+    def drawn_from(self) -> Any:
+        """The reading the picture is chosen by, which is what it reports.
+
+        A platform showing something other than the raw reading says so here,
+        so that the picture and the state beside it cannot disagree.
+        """
+        return self.reported
+
+    @property
     def icon(self) -> str | None:
         """A picture for this field, moving with the reading where that helps.
 
-        Home Assistant asks for this again on every state it writes, so a door
-        can look open when it is open. Overriding the property is what makes
-        that possible: an icon assigned once is assigned for good, and the
-        declared form Home Assistant reads from a file cannot be used here
-        because it will only take a reading written in lower case, which these
-        appliances do not oblige with.
+        Home Assistant asks an entity for its icon again on every state it
+        writes, so a door can look open when it is open. Reassigning the
+        attribute on each update would work as well, since Home Assistant
+        clears what it cached when that is set; a property is preferred only
+        because it keeps the whole of the answer in one place.
+
+        The declared form, the icons.json Home Assistant will also read, is
+        what this is instead of. Not because Home Assistant refuses these
+        readings, which it serves happily, but because hassfest will only
+        validate one written in lower case, and these appliances shout.
         """
-        platform, key = self._drawn_as
-        return icon_for_reading(platform, key, self.reported) or self._attr_icon
+        if self._drawn is None:
+            return self._attr_icon
+        return self._drawn.readings.get(as_read(self.drawn_from), self._drawn.default)
 
     @property
     def override(self) -> Override:

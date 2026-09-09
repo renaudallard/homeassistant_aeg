@@ -33,6 +33,7 @@ are about the rules rather than about a washing machine.
 from custom_components.aeg.capability import Capability
 from custom_components.aeg.icons import (
     BY_READING,
+    LOCK,
     as_read,
     icon_for,
     icon_for_command,
@@ -161,10 +162,45 @@ def test_every_state_the_models_declare_has_a_picture() -> None:
             assert icon_for_reading(platform, key, state), f"{key} {state}"
 
 
-def test_a_state_nobody_listed_falls_back_to_the_guess() -> None:
-    """A model that invents a ninth state still has something to look at."""
-    assert icon_for_reading("sensor", "appliance_state", "SOMETHING_NEW") is None
-    assert icon_for(_field("applianceState")) == "mdi:information-outline"
+def test_a_reading_nobody_listed_falls_back_to_the_field_own_picture() -> None:
+    """A model that invents a ninth state still has something to look at, and
+    it is the one set beside the readings rather than a guess from the name."""
+    assert (
+        icon_for_reading("sensor", "appliance_state", "SOMETHING_NEW")
+        == "mdi:information-outline"
+    )
+    # A lock nobody can read is not a locked lock.
+    assert icon_for_reading("switch", "ui_lock_mode", None) == "mdi:lock-open-variant"
+    assert icon_for_reading("sensor", "door_lock", None) == "mdi:lock-open-variant"
+    assert icon_for_reading("sensor", "door_state", None) == "mdi:door"
+
+
+def test_every_field_it_draws_has_a_picture_when_the_reading_is_no_help() -> None:
+    """Which is the half icons.json used to carry and a name guess cannot."""
+    for (platform, key), drawn in BY_READING.items():
+        assert drawn.default, (platform, key)
+        assert drawn.default.startswith("mdi:"), (platform, key)
+        for reading, icon in drawn.readings.items():
+            assert icon.startswith("mdi:"), (key, reading)
+            # A key the lookup can never produce would sit there for good.
+            assert as_read(reading) == reading, (key, reading)
+
+
+def test_a_lock_is_the_same_lock_wherever_it_turns_up() -> None:
+    """The door latch and the panel lock cannot drift apart."""
+    latch = BY_READING[("sensor", "door_lock")]
+    assert latch.default == LOCK.default
+    for reading, icon in LOCK.readings.items():
+        assert latch.readings[reading] == icon
+
+
+def test_a_reading_keeps_what_makes_it_itself() -> None:
+    """Only the separators go, so two readings that differ stay two."""
+    assert as_read("1.0") != as_read("10")
+    assert as_read("Öffnen") == "öffnen"
+    # Nothing at all is nothing, not the word none.
+    assert as_read(None) == ""
+    assert as_read("NONE") == "none"
 
 
 def test_a_field_it_says_nothing_about_is_drawn_by_its_name_alone() -> None:

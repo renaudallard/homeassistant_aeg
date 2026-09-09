@@ -1860,7 +1860,6 @@ async def test_a_reading_nobody_drew_keeps_the_guess_from_its_name(
     assert hardness is not None
     assert hardness.attributes["icon"] == "mdi:water-percent"
 
-    # And one the appliance has gone quiet about falls back the same way.
     state = hass.states.get("sensor.lave_linge_state")
     assert state is not None
     assert state.attributes["icon"] == "mdi:sleep", "the fixture is IDLE"
@@ -1884,3 +1883,41 @@ async def test_the_remote_control_agrees_with_the_buttons_beside_it(
     start = hass.states.get("button.lave_linge_execute_command_start")
     assert start is not None
     assert start.state == "unavailable", "the appliance is refusing commands"
+
+
+async def test_a_reading_the_table_does_not_list_falls_back_where_it_should(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A field that is drawn by its reading, saying something nobody listed."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["applianceState"] = "SOMETHING_NEW"
+    del listed[0]["properties"]["reported"]["doorState"]
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    invented = hass.states.get("sensor.lave_linge_state")
+    assert invented is not None
+    assert invented.attributes["icon"] == "mdi:information-outline"
+
+    # And one the appliance has gone quiet about altogether.
+    quiet = hass.states.get("sensor.lave_linge_door")
+    assert quiet is None, "a field never reported gets no entity at all"
+
+
+async def test_a_worded_flag_is_drawn_by_the_state_it_shows(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The appliance's word and Home Assistant's own state can disagree.
+
+    A panel lock reporting DISABLED reads as off, and a picture chosen from
+    the word rather than the state would show it shut.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["uiLockMode"] = "DISABLED"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    lock = hass.states.get("switch.lave_linge_panel_lock")
+    assert lock is not None
+    assert lock.state == "off"
+    assert lock.attributes["icon"] == "mdi:lock-open-variant"

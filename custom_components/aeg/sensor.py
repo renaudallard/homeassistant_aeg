@@ -120,6 +120,9 @@ class AegDuration(AegEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
         self._attr_unique_id = f"{appliance_id}-{capability.path}-formatted"
+        # A clock, not the field it was built from, so nothing about that
+        # field's reading should choose its picture.
+        self._drawn = None
         # A name of its own, which wins over anything the field is called.
         self._attr_name = f"{self.plain_name} formatted"
         self._ticks = counts_down(capability)
@@ -223,6 +226,7 @@ class AegFinishesAt(AegEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
         self._attr_unique_id = f"{appliance_id}-{capability.path}-at"
+        self._drawn = None
         # Named for what it is rather than for the field it comes from, since
         # an appliance has one thing it is counting down to.
         self._attr_name = "Finishes at"

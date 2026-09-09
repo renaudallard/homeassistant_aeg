@@ -67,6 +67,9 @@ class AegButton(AegEntity, ButtonEntity):
         super().__init__(coordinator, appliance_id, capability)
         self._command = command
         self._attr_unique_id = f"{appliance_id}-{capability.path}-{command}"
+        # One command of a field that is never reported back, so there is no
+        # reading to draw it by.
+        self._drawn = None
         self._attr_name = f"{self.plain_name} {pretty(command)}"
         self._attr_icon = icon_for_command(command)
 
