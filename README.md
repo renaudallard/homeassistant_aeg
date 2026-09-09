@@ -96,8 +96,8 @@ model nobody has tried works the same way as the one this was written against.
 Add this repository to [HACS](https://hacs.xyz) as a custom repository of
 category **Integration** and install it from there, or copy
 `custom_components/aeg` into the `custom_components` directory of your Home
-Assistant configuration by hand. Either way, restart, then add **AEG and
-Electrolux** from *Settings → Devices & services*.
+Assistant configuration by hand. Either way, restart, then add **AEG** from
+*Settings → Devices & services*, whichever of the two brands the account is.
 
 The flow asks how the account signs in, because that cannot be looked up, and
 takes either a password or a code sent to the address. The country picks the

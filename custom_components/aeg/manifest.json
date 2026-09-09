@@ -1,6 +1,6 @@
 {
   "domain": "aeg",
-  "name": "AEG and Electrolux",
+  "name": "AEG",
   "codeowners": ["@renaudallard"],
   "config_flow": true,
   "documentation": "https://github.com/renaudallard/homeassistant_aeg",
