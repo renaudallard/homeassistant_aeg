@@ -234,6 +234,12 @@ A value that is a name and a number is a step in a scale, and a field whose
 values all say their own number is shown as those numbers. The appliance still
 hears the name it uses.
 
+The entity names are translated into nine languages; the words an appliance
+answers with are not. A door reads OPEN and a wash that has finished reads
+END_OF_CYCLE in every one of them, because a translated state has to be
+written in lower case and these appliances shout. Renaming them to fit would
+take every automation reading them along.
+
 A field that names some of its steps and numbers the rest keeps the words it
 uses for all of them. Water hardness is seven steps with the first three named,
 and the cloud hands values over in alphabetical order, so they arrive as HARD,
@@ -347,11 +353,15 @@ Nothing in them touches the network. The cloud is stood in for wherever it is
 talked to: the calls, the connection it pushes changes over, and the two
 classes the config flow signs in through.
 
-Two workflows run on every push: **Tests** runs the lint, the type check and
-the suite, and **Validate** runs HACS validation and hassfest. Neither of the
-latter two runs locally. hassfest reads a good deal more than the manifest:
-the strings, the translations and any icons file are all held to rules of its
-own, so that workflow is the first sign of anything it covers.
+**Validate** runs HACS validation and hassfest on every push, on any branch.
+**Tests** runs the lint, the type check and the suite, but only on `main` and
+on pull requests, so a push to a branch with no pull request open runs
+Validate alone and a green tick there is not the whole set of checks.
+
+Neither HACS validation nor hassfest runs locally. hassfest reads a good deal
+more than the manifest: the strings, the translations and any icons file are
+all held to rules of its own, so that workflow is the first sign of anything
+it covers.
 
 A third, **Autorelease**, runs only when the version in the manifest changes.
 It holds the release back on the same three checks, then tags the commit,
