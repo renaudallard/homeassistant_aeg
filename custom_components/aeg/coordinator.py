@@ -93,6 +93,13 @@ def capability_store(hass: HomeAssistant, entry: ConfigEntry) -> CapabilityStore
     )
 
 
+# Where an appliance keeps the version its network unit is running. The unit
+# shouts its state under networkInterface; the newer models keep a group of
+# their own and write the same thing in camel case. The first of these an
+# appliance reports is the one it means.
+FIRMWARE = ("networkInterface/swVersion", "swVersions/niu/ver")
+
+
 @dataclass
 class Appliance:
     """One appliance, what it can do and what it is doing."""
@@ -125,6 +132,24 @@ class Appliance:
         """
         pnc = self.info.get("pnc")
         return str(pnc) if pnc else None
+
+    def first_of(self, paths: tuple[str, ...]) -> Any:
+        """What this appliance says, from the first of these it says anything at.
+
+        Two vocabularies turn up for the same handful of things, and which one
+        an appliance uses is not worth asking twice about at every call site.
+        """
+        for path in paths:
+            found = value_at(self.reported, path)
+            if found is not None:
+                return found
+        return None
+
+    @property
+    def firmware(self) -> str | None:
+        """The version its network unit is running, which is what updates."""
+        version = self.first_of(FIRMWARE)
+        return None if version is None else str(version)
 
 
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):

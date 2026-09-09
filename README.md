@@ -108,6 +108,7 @@ rather than quietly pointing the entry at another household's appliances.
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
 | what firmware it is running | an update entity, and whether one is in hand |
+| the version its network unit is on | the firmware line on the device page |
 | a mode and a target temperature | a thermostat, as well as the parts |
 | a length of time | a sensor in seconds, and one reading as a clock |
 | how long is left | a clock counting down, and a timestamp of the finish |
@@ -128,6 +129,10 @@ the kind of thing an appliance is, so a house of AEG washing machines is a
 house of appliances all called WM. Each one is asked what it is once and
 remembered. An appliance the cloud will not answer for keeps the type from the
 listing, which is where it stood before, and is asked again on the next start.
+
+The firmware on the device page is the network unit's, which is the one an
+update is about, so it says the same thing as the update entity rather than a
+second version that disagrees with it.
 
 A capability tree covers a range of models, so it describes fields a given
 machine does not have. Those get no entity, and one left over from an earlier

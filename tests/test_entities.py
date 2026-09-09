@@ -243,6 +243,29 @@ async def test_the_device_is_named_for_the_model_on_the_box(
     assert device.model_id == "914550402"
 
 
+async def test_the_device_says_what_firmware_it_is_running(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The same version the update entity is about, not a second one."""
+    await _setup(hass, entry, api)
+    assert _the_device(hass, entry).sw_version == "v4.1.0S_argo"
+
+    firmware = hass.states.get("update.lave_linge_firmware")
+    assert firmware is not None
+    assert firmware.attributes["installed_version"] == "v4.1.0S_argo"
+
+
+async def test_a_device_whose_appliance_is_quiet_about_it_says_nothing(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    quiet = _fixture("wm-appliances")
+    del quiet[0]["properties"]["reported"]["networkInterface"]["swVersion"]
+    api.appliances.return_value = quiet
+
+    await _setup(hass, entry, api)
+    assert _the_device(hass, entry).sw_version is None
+
+
 async def test_an_appliance_that_will_not_say_keeps_the_type_it_listed_as(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

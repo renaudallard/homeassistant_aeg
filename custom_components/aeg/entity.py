@@ -219,6 +219,10 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
             name=appliance.name if appliance else "AEG appliance",
             model=appliance.sold_as if appliance else None,
             model_id=appliance.product_number if appliance else None,
+            # The network unit's, which is the one an update is about and so
+            # the one the update entity shows. Two firmware versions on a
+            # device page that disagreed would be worse than one.
+            sw_version=appliance.firmware if appliance else None,
         )
 
 

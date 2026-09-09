@@ -38,7 +38,6 @@ without regard to case.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
@@ -47,15 +46,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import value_at
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity
 
-# Where an appliance keeps what it is doing about an update, what it is
-# running, and what it says about the update it has. The first of each that the
-# appliance reports is the one used.
+# Where an appliance keeps what it is doing about an update and what it says
+# about the update it has. The first of each that the appliance reports is the
+# one used. What it is running lives on the appliance itself, that being what
+# the device page shows as well.
 STATE = ("networkInterface/otaState", "swUpdate/swUpdateState")
-VERSION = ("networkInterface/swVersion", "swVersions/niu/ver")
 OFFERED = (
     "networkInterface/niuSwUpdateCurrentDescription",
     "swUpdate/swUpdateDetails/reason",
@@ -107,17 +105,8 @@ async def async_setup_entry(
         AegFirmware(coordinator, appliance_id)
         for appliance_id, appliance in coordinator.data.items()
         # Only an appliance that says what its network unit is doing.
-        if _first(appliance.reported, STATE) is not None
+        if appliance.first_of(STATE) is not None
     )
-
-
-def _first(reported: Mapping[str, Any], paths: tuple[str, ...]) -> Any:
-    """What the appliance says, from the first of these it says anything at."""
-    for path in paths:
-        found = value_at(reported, path)
-        if found is not None:
-            return found
-    return None
 
 
 class AegFirmware(AegApplianceEntity, UpdateEntity):
@@ -137,12 +126,12 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
     def _says(self, paths: tuple[str, ...]) -> Any:
         """What this appliance says, wherever it happens to keep it."""
         appliance = self.appliance
-        return None if appliance is None else _first(appliance.reported, paths)
+        return None if appliance is None else appliance.first_of(paths)
 
     @property
     def installed_version(self) -> str | None:
-        version = self._says(VERSION)
-        return None if version is None else str(version)
+        appliance = self.appliance
+        return None if appliance is None else appliance.firmware
 
     @property
     def latest_version(self) -> str | None:
