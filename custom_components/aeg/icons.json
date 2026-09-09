@@ -1,49 +1,11 @@
 {
   "entity": {
     "sensor": {
-      "appliance_state": {
-        "default": "mdi:information-outline",
-        "state": {
-          "ALARM": "mdi:alert-circle",
-          "DELAYED_START": "mdi:clock-outline",
-          "END_OF_CYCLE": "mdi:check-circle",
-          "IDLE": "mdi:sleep",
-          "OFF": "mdi:power-off",
-          "PAUSED": "mdi:pause-circle",
-          "READY_TO_START": "mdi:play-circle-outline",
-          "RUNNING": "mdi:play-circle"
-        }
-      },
       "connectivity_state": {
         "default": "mdi:wifi",
         "state": {
           "connected": "mdi:wifi",
           "disconnected": "mdi:wifi-off"
-        }
-      },
-      "door_lock": {
-        "default": "mdi:lock",
-        "state": {
-          "LOCKING": "mdi:lock-clock",
-          "OFF": "mdi:lock-open-variant",
-          "ON": "mdi:lock",
-          "UNLOCKING": "mdi:lock-clock"
-        }
-      },
-      "door_state": {
-        "default": "mdi:door",
-        "state": {
-          "CLOSED": "mdi:door-closed",
-          "OPEN": "mdi:door-open"
-        }
-      },
-      "remote_control": {
-        "default": "mdi:remote",
-        "state": {
-          "DISABLED": "mdi:remote-off",
-          "ENABLED": "mdi:remote",
-          "NOT_SAFETY_RELEVANT_ENABLED": "mdi:remote",
-          "TEMPORARY_LOCKED": "mdi:remote-off"
         }
       }
     },

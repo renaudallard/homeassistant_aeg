@@ -1828,8 +1828,7 @@ async def test_home_assistant_reads_the_state_icons(
     # are what sits directly under the integration here.
     drawn = (await async_get_icons(hass, "entity", integrations=[DOMAIN]))[DOMAIN]
 
-    assert drawn["sensor"]["door_state"]["state"]["OPEN"] == "mdi:door-open"
-    assert drawn["sensor"]["door_state"]["state"]["CLOSED"] == "mdi:door-closed"
+    assert drawn["switch"]["ui_lock_mode"]["default"] == "mdi:lock-open-variant"
     assert drawn["switch"]["ui_lock_mode"]["state"]["on"] == "mdi:lock"
 
     registry = er.async_get(hass)
@@ -1838,8 +1837,8 @@ async def test_home_assistant_reads_the_state_icons(
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
     }
     # An icon of its own would win over the one read from the file.
-    for field in ("doorState", "doorLock", "remoteControl", "applianceState"):
-        assert by_field[field].original_icon is None, field
     assert by_field["uiLockMode"].original_icon is None
-    # And a field the file says nothing about keeps its guess.
+    # A field the file says nothing about keeps its guess, and so does one it
+    # cannot say anything about because the appliance shouts its states.
     assert by_field["waterHardness"].original_icon == "mdi:water-percent"
+    assert by_field["doorState"].original_icon == "mdi:door"

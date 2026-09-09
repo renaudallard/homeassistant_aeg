@@ -125,18 +125,21 @@ LOOKS_LIKE: tuple[tuple[str, str], ...] = (
     ("state", "mdi:information-outline"),
 )
 
-# Fields whose picture says something the name cannot: which way the door is,
-# whether the lock is on, what the machine is up to. Those are drawn in
-# icons.json, which Home Assistant reads a picture out of by the state, and a
-# guess made here would be an icon of its own and win over it. The test holds
-# this and the file to each other, so neither can drift.
+# Fields whose picture says something the name cannot: whether the lock is on,
+# whether the appliance is still there. Those are drawn in icons.json, which
+# Home Assistant reads a picture out of by the state, and a guess made here
+# would be an icon of its own and win over it. The test holds this and the file
+# to each other, so neither can drift.
+#
+# It is a short list because Home Assistant will only take a state written in
+# lower case, and these appliances shout: a door says OPEN and a state says
+# END_OF_CYCLE, and neither can be a key here. What is left is the switches,
+# whose states are Home Assistant's own on and off, and the one field that
+# happens to answer in lower case. Lowering a reading to fit would rename
+# every state on it and take the automations reading them with it.
 BY_STATE: frozenset[tuple[str, str]] = frozenset(
     {
-        ("sensor", "appliance_state"),
         ("sensor", "connectivity_state"),
-        ("sensor", "door_lock"),
-        ("sensor", "door_state"),
-        ("sensor", "remote_control"),
         ("switch", "child_lock"),
         ("switch", "ui_lock"),
         ("switch", "ui_lock_mode"),

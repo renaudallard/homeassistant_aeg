@@ -31,6 +31,7 @@ are about the rules rather than about a washing machine.
 """
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -124,6 +125,27 @@ def test_every_field_it_draws_is_one_that_turns_up_there() -> None:
         assert platform in PLATFORMS_FOR[key], (platform, key)
 
 
+# What hassfest will take as a key, which is the check that failed in CI
+# rather than here the first time this file was written.
+A_KEY = re.compile(r"^(?!.*[-_]$)[a-z0-9][a-z0-9-_]*$")
+
+
+def test_every_key_in_it_is_one_home_assistant_will_take() -> None:
+    """Lower case only, which these appliances are not.
+
+    A door says OPEN and a state says END_OF_CYCLE, and hassfest refuses both,
+    so a field that shouts cannot be drawn by its state at all. Catching that
+    here is the difference between a failing test and a failing release.
+    """
+    entity = json.loads(ICONS.read_text())["entity"]
+    for platform, keys in entity.items():
+        assert A_KEY.match(platform), platform
+        for key, body in keys.items():
+            assert A_KEY.match(key), key
+            for state in body.get("state", {}):
+                assert A_KEY.match(state), f"{platform}.{key}.{state}"
+
+
 def test_each_of_them_has_a_picture_to_fall_back_on() -> None:
     """A state nobody predicted still has to look like something."""
     for (platform, key), body in _drawn_by_state().items():
@@ -132,13 +154,22 @@ def test_each_of_them_has_a_picture_to_fall_back_on() -> None:
 
 
 def test_nothing_guesses_over_a_field_drawn_by_its_state() -> None:
-    """An icon set here would win over the one Home Assistant reads by state."""
-    for name in ("doorState", "doorLock", "remoteControl", "applianceState"):
-        assert icon_for(_field(name)) is None, name
-    # A panel lock is drawn by its state where it is a switch, which is where
-    # icons.json claims it, and guessed at where it is only reported.
+    """An icon set here would win over the one Home Assistant reads by state.
+
+    A panel lock is drawn by its state where it is a switch, which is where
+    icons.json claims it, and guessed at where it is only reported.
+    """
     assert icon_for(_field("uiLockMode", "boolean", "readwrite")) is None
+    assert icon_for(_field("childLock", "boolean", "readwrite")) is None
     assert icon_for(_field("uiLockMode", "boolean")) == "mdi:lock"
+
+
+def test_a_field_that_shouts_keeps_its_guess() -> None:
+    """Home Assistant will not key an icon on OPEN, so the door is guessed at."""
+    assert icon_for(_field("doorState")) == "mdi:door"
+    assert icon_for(_field("doorLock")) == "mdi:lock"
+    assert icon_for(_field("applianceState")) == "mdi:information-outline"
+    assert icon_for(_field("remoteControl")) == "mdi:remote"
 
 
 def test_a_field_it_does_not_draw_still_gets_its_guess() -> None:
