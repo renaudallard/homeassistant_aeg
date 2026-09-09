@@ -35,7 +35,7 @@ as what it claims.
 from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, PERCENTAGE
+from homeassistant.const import PERCENTAGE, UnitOfDensity
 
 from custom_components.aeg.capability import Capability, parse
 from custom_components.aeg.icons import icon_for
@@ -57,7 +57,7 @@ def test_a_particulate_is_read_in_micrograms() -> None:
         measure = measure_for(_one({name: {"access": "read", "type": "number"}}))
         assert measure is not None, name
         assert measure.device_class == expected
-        assert measure.unit == CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        assert measure.unit == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
 
 
 def test_humidity_is_a_percentage() -> None:

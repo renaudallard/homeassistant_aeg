@@ -45,11 +45,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import (
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_MILLION,
-    PERCENTAGE,
-)
+from homeassistant.const import PERCENTAGE, UnitOfDensity, UnitOfRatio
 
 from .capability import NUMERIC, Capability
 
@@ -68,17 +64,17 @@ class Measure:
 LOOKS_LIKE: tuple[tuple[str, Measure], ...] = (
     (
         "pm25",
-        Measure(SensorDeviceClass.PM25, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER),
+        Measure(SensorDeviceClass.PM25, UnitOfDensity.MICROGRAMS_PER_CUBIC_METER),
     ),
     (
         "pm10",
-        Measure(SensorDeviceClass.PM10, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER),
+        Measure(SensorDeviceClass.PM10, UnitOfDensity.MICROGRAMS_PER_CUBIC_METER),
     ),
     (
         "pm1",
-        Measure(SensorDeviceClass.PM1, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER),
+        Measure(SensorDeviceClass.PM1, UnitOfDensity.MICROGRAMS_PER_CUBIC_METER),
     ),
-    ("co2", Measure(SensorDeviceClass.CO2, CONCENTRATION_PARTS_PER_MILLION)),
+    ("co2", Measure(SensorDeviceClass.CO2, UnitOfRatio.PARTS_PER_MILLION)),
     ("humidity", Measure(SensorDeviceClass.HUMIDITY, PERCENTAGE)),
 )
 
