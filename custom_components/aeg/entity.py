@@ -40,8 +40,6 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .capability import (
-    RUNNING,
-    STATE,
     Capability,
     is_housekeeping,
     platform_for,
@@ -201,8 +199,14 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
 
     @property
     def running(self) -> bool:
-        """Whether the appliance says it is doing something."""
-        return str(self.at(STATE)).upper() == RUNNING
+        """Whether the appliance says it is doing something.
+
+        The appliance is asked, since where it keeps that is its own business:
+        most write it at the top level and three of the ten families this has
+        trees for keep it under a group of their own.
+        """
+        appliance = self.appliance
+        return appliance is not None and appliance.running
 
     @property
     def reachable(self) -> bool:

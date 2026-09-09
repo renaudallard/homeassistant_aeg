@@ -36,6 +36,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import cached_property
 from typing import Any
 
 import aiohttp
@@ -173,6 +174,41 @@ class Appliance:
         version = self.first_of(FIRMWARE)
         return None if version is None else str(version)
 
+    @cached_property
+    def state_path(self) -> str | None:
+        """Where this appliance keeps what it is doing.
+
+        Most write applianceState at the top level. An air conditioner keeps it
+        under airConditioner, an air purifier under airPurifier and a robot
+        vacuum under robot, and which group it is belongs to the appliance, so
+        the field is found by the name it goes by in what the appliance
+        describes rather than looked for in a list of the places models have
+        been seen putting it.
+
+        Held for the life of this reading of the appliance, which is what the
+        capabilities are fixed for. A pushed change replaces what is reported
+        and not what is described, so the path cannot go stale under it.
+        """
+        for capability in self.capabilities:
+            if capability.name == STATE:
+                return capability.path
+        return None
+
+    @property
+    def doing(self) -> Any:
+        """What the appliance says it is doing, or nothing if it will not say."""
+        path = self.state_path
+        return None if path is None else value_at(self.reported, path)
+
+    @property
+    def running(self) -> bool:
+        """Whether it says it is doing the thing it counts down to.
+
+        The word is compared without regard to case: a washing machine shouts
+        RUNNING where an air conditioner writes running.
+        """
+        return str(self.doing).upper() == RUNNING
+
 
 def _nearly_done(appliance: Appliance) -> bool:
     """Whether the appliance is about to finish what it says it is doing.
@@ -181,7 +217,7 @@ def _nearly_done(appliance: Appliance) -> bool:
     length of the programme it is set to back where the time left was, and
     that is not an ending to wait for.
     """
-    if str(value_at(appliance.reported, STATE)).upper() != RUNNING:
+    if not appliance.running:
         return False
     return any(
         left is not None and 0 <= left <= NEARLY_DONE
@@ -358,7 +394,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 "%s is %s, %s, reporting %d fields",
                 appliance.model,
                 "reachable" if appliance.connected else "not reachable",
-                value_at(appliance.reported, STATE) or "saying nothing of its state",
+                appliance.doing or "saying nothing of its state",
                 len(appliance.reported),
             )
         return appliances

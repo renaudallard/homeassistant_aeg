@@ -286,3 +286,68 @@ async def test_nothing_is_waited_on_once_the_entry_has_gone(
         await _wait_out_the_end(hass)
 
     asked.assert_not_called()
+
+
+def _nested(state: str, time_to_end: int) -> Appliance:
+    """A machine that keeps what it is doing under a group of its own.
+
+    An air conditioner writes airConditioner/applianceState, an air purifier
+    airPurifier/applianceState and a robot vacuum robot/applianceState. Three
+    of the ten trees this has do it, and two of those three also count down.
+    """
+    return Appliance(
+        id="an-appliance",
+        name="Climatiseur",
+        model="AC",
+        info={},
+        capabilities=[
+            Capability(
+                path="airConditioner/applianceState", access="read", kind="string"
+            ),
+            Capability(path="provRemainingTime", access="read", kind="number"),
+        ],
+        reported={
+            "airConditioner": {"applianceState": state},
+            "provRemainingTime": time_to_end,
+        },
+        connected=True,
+        overrides={},
+    )
+
+
+def test_it_finds_what_an_appliance_is_doing_wherever_it_keeps_it(
+    hass: HomeAssistant,
+) -> None:
+    running = _nested("RUNNING", 30)
+    assert running.state_path == "airConditioner/applianceState"
+    assert running.doing == "RUNNING"
+    assert running.running is True
+
+    # And the word is read whatever case the model writes it in.
+    assert _nested("running", 30).running is True
+    assert _nested("IDLE", 30).running is False
+
+
+async def test_a_machine_that_nests_its_state_is_still_waited_on(
+    hass: HomeAssistant,
+) -> None:
+    """It was not, because the state was looked for at the top level only."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _nested("RUNNING", 120)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed(
+            {
+                "Payload": {
+                    "Appliances": [
+                        {
+                            "ApplianceId": "an-appliance",
+                            "Metrics": [{"Name": "provRemainingTime", "Value": 30}],
+                        }
+                    ]
+                }
+            }
+        )
+        await _wait_out_the_end(hass)
+
+    asked.assert_called_once()
