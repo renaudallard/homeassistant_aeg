@@ -217,7 +217,8 @@ class AegApplianceEntity(CoordinatorEntity[AegCoordinator]):
             identifiers={(DOMAIN, self._appliance_id)},
             manufacturer="AEG",
             name=appliance.name if appliance else "AEG appliance",
-            model=appliance.model if appliance else None,
+            model=appliance.sold_as if appliance else None,
+            model_id=appliance.product_number if appliance else None,
         )
 
 

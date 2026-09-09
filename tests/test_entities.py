@@ -45,6 +45,7 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
@@ -60,6 +61,7 @@ from custom_components.aeg.const import (
     CONF_WS_URL,
     DOMAIN,
 )
+from custom_components.aeg.errors import AegConnectionError
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -92,6 +94,7 @@ def api() -> AsyncMock:
     mock = AsyncMock()
     mock.appliances.return_value = _fixture("wm-appliances")
     mock.capabilities.return_value = _fixture("wm-capabilities")
+    mock.appliance_info.return_value = _fixture("wm-info")
     # How long the token has left is asked for, not awaited.
     mock.seconds_until_renewal = MagicMock(return_value=43200.0)
     return mock
@@ -217,6 +220,64 @@ async def test_it_becomes_one_device_with_entities_on_every_platform(
         Platform.SWITCH,
         Platform.UPDATE,
     }
+
+
+def _the_device(hass: HomeAssistant, entry: MockConfigEntry) -> dr.DeviceEntry:
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    assert len(devices) == 1
+    return devices[0]
+
+
+async def test_the_device_is_named_for_the_model_on_the_box(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A listing calls every washing machine WM, which names none of them.
+
+    The fixture is the field list the app decodes this answer into, with
+    values of the kind an AEG washer gives, rather than a captured reply.
+    """
+    await _setup(hass, entry, api)
+    device = _the_device(hass, entry)
+    assert device.model == "LFR73164OE"
+    # The number on the rating plate, which is what spares are looked up by.
+    assert device.model_id == "914550402"
+
+
+async def test_an_appliance_that_will_not_say_keeps_the_type_it_listed_as(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """One answer short is not one appliance short."""
+    api.appliance_info.side_effect = AegConnectionError("no such route")
+
+    await _setup(hass, entry, api)
+    assert entry.state is ConfigEntryState.LOADED
+    device = _the_device(hass, entry)
+    assert device.model == "WM"
+    assert device.model_id is None
+
+
+async def test_it_asks_what_an_appliance_is_once_and_keeps_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An appliance is one model for good, so the answer cannot go stale."""
+    await _setup(hass, entry, api)
+    assert api.appliance_info.await_count == 1
+
+    await _again(hass, entry, api)
+    assert api.appliance_info.await_count == 1
+
+
+async def test_an_appliance_that_would_not_say_is_asked_again(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Nothing kept is nothing to keep, not a settled answer of nothing."""
+    api.appliance_info.side_effect = AegConnectionError("not this time")
+    await _setup(hass, entry, api)
+
+    api.appliance_info.side_effect = None
+    await _again(hass, entry, api)
+    assert api.appliance_info.await_count == 2
+    assert _the_device(hass, entry).model == "LFR73164OE"
 
 
 async def test_the_washing_machine_comes_out_as_the_readme_says(

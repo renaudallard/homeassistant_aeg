@@ -33,9 +33,9 @@ without guessing.
 Press enter at the password prompt to sign in with a code mailed to the
 account instead, which is the only way in for an account that has no password.
 
-Pass --dump DIR to write the capability tree and the reported state of every
-appliance into that directory, with the identifiers taken out, which is what
-the entity mapping is built against.
+Pass --dump DIR to write what every appliance is, the capability tree and the
+reported state into that directory, with the identifiers taken out, which is
+what the entity mapping is built against.
 
 Nothing secret is printed. The password is read from the terminal and never
 echoed, and the log replaces tokens, keys, codes and the address itself with a
@@ -210,11 +210,24 @@ async def check(email: str, country: str, dump: Path | None) -> int:
             model = str(
                 (entry.get("applianceData") or {}).get("modelName") or "appliance"
             )
-            _step(8, f"capabilities of {_redact(appliance_id)}")
+            _step(8, f"what {_redact(appliance_id)} is")
+            # The one call the integration is happy to do without, so a
+            # failure here is reported and walked past rather than returned.
+            try:
+                what = await api.appliance_info(appliance_id)
+            except AegError as err:
+                what = {}
+                _note(f"would not say: {err}")
+            else:
+                _ok(f"{what.get('brand', '?')} {what.get('model', '?')}")
+                _note(f"pnc {what.get('pnc', '?')}")
+
+            _step(9, f"capabilities of {_redact(appliance_id)}")
             capabilities = await api.capabilities(appliance_id)
             _ok(f"{len(capabilities)} top level nodes")
             _note(", ".join(sorted(capabilities)[:12]))
             if dump is not None:
+                _dump(dump, f"{_plain(model)}-info", what)
                 _dump(dump, f"{_plain(model)}-capabilities", capabilities)
                 _dump(dump, f"{_plain(model)}-state", await api.appliance(appliance_id))
 

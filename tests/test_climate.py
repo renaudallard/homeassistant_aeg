@@ -92,6 +92,9 @@ def api() -> AsyncMock:
     mock.capabilities.return_value = json.loads(
         (FIXTURES / "ac-capabilities.json").read_text()
     )
+    # This account will not say what the air conditioner is, which is the half
+    # of the two answers that has to go on working.
+    mock.appliance_info.return_value = {}
     mock.seconds_until_renewal = lambda: 43200.0
     return mock
 

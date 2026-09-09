@@ -100,10 +100,31 @@ class Appliance:
     id: str
     name: str
     model: str
+    info: dict[str, Any]
     capabilities: list[Capability]
     reported: dict[str, Any]
     connected: bool
     overrides: dict[str, Override]
+
+    @property
+    def sold_as(self) -> str:
+        """The model on the box, or the kind of thing it is if that is all we have.
+
+        A listing gives the appliance type and calls it the model name, so an
+        account of washing machines is an account of appliances all called WM.
+        """
+        model = self.info.get("model")
+        return str(model) if model else self.model
+
+    @property
+    def product_number(self) -> str | None:
+        """The number the manufacturer knows this model by.
+
+        The PNC on the rating plate, which is what a parts list or a service
+        call is looked up by. It says nothing about which machine is this one.
+        """
+        pnc = self.info.get("pnc")
+        return str(pnc) if pnc else None
 
 
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
@@ -134,6 +155,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         # Which fields each appliance has been seen reporting, ever. A field
         # it describes and has never reported is one this model does not have.
         self._seen: dict[str, set[str]] = {}
+        # What each appliance is, as opposed to what it is doing.
+        self._info: dict[str, dict[str, Any]] = {}
         # The listing read while setting up, waiting for the first update.
         self._listed: list[dict[str, Any]] | None = None
 
@@ -150,7 +173,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
         What it has reported is kept alongside, because a field missing from
         one answer is not a field the model lacks, and telling those two apart
-        needs more than the answer in hand.
+        needs more than the answer in hand. So is what the appliance is, which
+        is one answer for the life of the machine.
         """
         held = await self._store.async_load() or {}
         # An appliance this listing did not mention keeps what is held for it,
@@ -183,13 +207,20 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                     for capability in capabilities
                     if value_at(reported, capability.path) is not None
                 }
+                info = (known or {}).get("info") or await self._what_it_is(appliance_id)
                 keeping[appliance_id] = {
                     "hash": fingerprint,
                     "tree": tree,
                     "seen": sorted(seen),
                 }
+                if info:
+                    # An answer we did not get is not an answer that there is
+                    # nothing to say, so keeping the emptiness would be
+                    # deciding never to ask again.
+                    keeping[appliance_id]["info"] = info
                 self._capabilities[appliance_id] = capabilities
                 self._seen[appliance_id] = seen
+                self._info[appliance_id] = info
             # The account has just been listed, and the first update follows
             # this at once, so it reads what arrived here rather than asking
             # for the same answer again.
@@ -201,6 +232,25 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
         if keeping != held:
             await self._store.async_save(keeping)
+
+    async def _what_it_is(self, appliance_id: str) -> dict[str, Any]:
+        """What the appliance is, or nothing when the cloud will not say.
+
+        Worth having and not worth failing an account over: without it an
+        appliance goes on being known by the type its listing gives, which is
+        where it stood before this was asked for at all.
+
+        A refusal here is not the account being refused, which is why even that
+        is let go of. The listing was read moments ago on the same token, so
+        anything turned down at this one path is that path saying no rather
+        than the credentials going stale, and sending somebody to sign in again
+        over the model name would cost more than the model name is worth.
+        """
+        try:
+            return await self.api.appliance_info(appliance_id)
+        except AegError as err:
+            _LOGGER.debug("%s will not say what it is: %s", appliance_id, err)
+            return {}
 
     async def _async_update_data(self) -> dict[str, Appliance]:
         listed, self._listed = self._listed, None
@@ -223,6 +273,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 id=appliance_id,
                 name=str(data.get("applianceName") or "AEG appliance"),
                 model=str(data.get("modelName") or "appliance"),
+                info=self._info.get(appliance_id, {}),
                 capabilities=self._capabilities.get(appliance_id, []),
                 reported=properties.get("reported") or {},
                 connected=entry.get("connectionState") == "connected",

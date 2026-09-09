@@ -44,7 +44,7 @@ import aiohttp
 
 from . import http
 from .auth import AegAuth, Tokens
-from .const import API_KEY, APPLIANCES_PATH, TOKEN_EXPIRY_MARGIN
+from .const import API_KEY, APPLIANCES_PATH, APPLIANCES_V3_PATH, TOKEN_EXPIRY_MARGIN
 from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
 from .http import redact_url
 
@@ -183,6 +183,18 @@ class AegApi:
             params={"includeMetadata": "true"},
         )
         return _expect_object(payload, "appliance")
+
+    async def appliance_info(self, appliance_id: str) -> dict[str, Any]:
+        """Read what the appliance is, which the listing does not say.
+
+        A listing calls a washing machine "WM", which is the kind of thing it
+        is rather than the thing it is. This is where the model it was sold as
+        lives, along with the product number on its rating plate.
+        """
+        payload = await self._request(
+            "GET", f"{APPLIANCES_V3_PATH}/{appliance_id}/info"
+        )
+        return _expect_object(payload, "appliance info")
 
     async def capabilities(self, appliance_id: str) -> dict[str, Any]:
         """Read the capability tree that describes what this model can do."""

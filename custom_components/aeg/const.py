@@ -70,8 +70,12 @@ GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange"
 GRANT_REFRESH_TOKEN = "refresh_token"
 GRANT_CLIENT_CREDENTIALS = "client_credentials"
 
-# Appliance service.
+# Appliance service. The listing and the capability tree are v2; what an
+# appliance actually is comes from v3, which the app reads one appliance at a
+# time. There is a v3 batch as well, but it answers with a bare list carrying
+# nothing to match a member back to the appliance it is about.
 APPLIANCES_PATH = "/appliance/api/v2/appliances"
+APPLIANCES_V3_PATH = "/appliance/api/v3/appliances"
 
 # Refresh this long before the access token actually expires, so a call that
 # starts just under the wire does not race the expiry.

@@ -62,10 +62,14 @@ model nobody has tried works the same way as the one this was written against.
   complaining about arrives as one problem sensor with the codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
+- **Named for what it is** — an account listing calls every washing machine
+  WM, so the device page asks the appliance separately what model it is and
+  shows that, with the product number beside it.
 - **Kept between starts** — a capability tree is fifty kilobytes and describes
   the model rather than what it is doing. An appliance publishes a hash of its
   own capabilities, so the tree is fetched again only when that says it is
-  worth fetching.
+  worth fetching. What the appliance is goes in the same place and is asked
+  for once, being one answer for the life of the machine.
 - **Quiet by default** — a washing machine describes about 120 fields and most
   of them are the machine talking to itself. The maintenance counters, stored
   cycles and network stack arrive as diagnostics and start disabled; fields the
@@ -113,6 +117,13 @@ want them.
 
 An appliance added to the account turns up on the next look, which loads the
 entry again to read what the new one can do.
+
+The device is named for the model it was sold as, with the product number from
+its rating plate beside it. The account listing does not carry either: it gives
+the kind of thing an appliance is, so a house of AEG washing machines is a
+house of appliances all called WM. Each one is asked what it is once and
+remembered. An appliance the cloud will not answer for keeps the type from the
+listing, which is where it stood before, and is asked again on the next start.
 
 A capability tree covers a range of models, so it describes fields a given
 machine does not have. Those get no entity, and one left over from an earlier
@@ -178,14 +189,13 @@ off the order they came in would offer the hardest setting as one of seven.
 ## Reporting a problem
 
 The device page offers to download diagnostics. That carries the whole of what
-the appliance said about itself, what it is reporting, what it will accept
-right now, and whether the stream is carrying the updates or polling is. It is
-redacted the same way the logs are, so tokens, keys, cookies, the address on
-the account and the appliance's own identifier are replaced by a note of their
-length,
-whether they arrived as text or as a number. What kind of appliance it is,
-what it is doing, and the codes for whatever it is complaining about all stay
-readable.
+the appliance said about itself, what model it says it is, what it is
+reporting, what it will accept right now, and whether the stream is carrying
+the updates or polling is. It is redacted the same way the logs are, so
+tokens, keys, cookies, the address on the account and the appliance's own
+identifier are replaced by a note of their length, whether they arrived as
+text or as a number. What kind of appliance it is, what it is doing, and the
+codes for whatever it is complaining about all stay readable.
 
 For a model this has never seen, that download is the one thing a report cannot
 do without.
@@ -324,5 +334,6 @@ doing stay readable, because a log without those is not worth keeping. That
 makes the output safe to paste into a bug report. Pass `-q` to log only
 failures.
 
-`--dump` writes each appliance's capability tree and reported state out as
-JSON, redacted the same way. That is what the entity mapping is built against.
+`--dump` writes what each appliance is, its capability tree and its reported
+state out as JSON, redacted the same way. That is what the entity mapping is
+built against.

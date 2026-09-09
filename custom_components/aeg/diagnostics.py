@@ -62,6 +62,9 @@ async def async_get_config_entry_diagnostics(
         "appliances": [
             {
                 "model": appliance.model,
+                # What the appliance says it is, which the listing above only
+                # gives the type of. Empty where the cloud would not say.
+                "info": redact(appliance.info),
                 "connected": appliance.connected,
                 "reported": redact(appliance.reported),
                 "describes": [
