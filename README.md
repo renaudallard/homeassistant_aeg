@@ -220,11 +220,14 @@ the stream working is exactly what makes polling ease off to ten minutes: the
 moment it matters most is the moment the account is otherwise asked least
 often.
 
-A panel lock looks locked when it is locked, and an appliance that has gone
-looks like it has gone. Everything else gets a picture guessed from its name,
-which costs a wrong picture rather than a wrong reading when it guesses wrong.
-Home Assistant will only pick an icon by a reading written in lower case and
-these appliances shout, so a door saying OPEN cannot have one and keeps the
+A few fields are drawn by what they say rather than by what they are called:
+the door looks open when it is open, the lock looks undone when it is undone,
+a remote control the appliance is refusing looks refused, and the machine
+shows what it is up to. The same field is not spelled the same way twice
+across the models, so a washing machine saying END_OF_CYCLE and a robot vacuum
+saying endOfCycle are read as the same thing. Everything else gets a picture
+guessed from its name, which costs a wrong picture rather than a wrong reading
+when it guesses wrong, and a reading nobody anticipated falls back to that
 guess.
 
 A value that is a name and a number is a step in a scale, and a field whose
@@ -346,8 +349,9 @@ classes the config flow signs in through.
 
 Two workflows run on every push: **Tests** runs the lint, the type check and
 the suite, and **Validate** runs HACS validation and hassfest. Neither of the
-latter two runs locally, so that workflow is the first sign of a manifest
-problem.
+latter two runs locally. hassfest reads a good deal more than the manifest:
+the strings, the translations and any icons file are all held to rules of its
+own, so that workflow is the first sign of anything it covers.
 
 A third, **Autorelease**, runs only when the version in the manifest changes.
 It holds the release back on the same three checks, then tags the commit,
@@ -369,16 +373,15 @@ It refuses to write anything when the trees to hand say nothing about a field
 that is already named and placed, rather than quietly dropping two thirds of
 the entity text and every translation of it.
 
-`icons.json` holds the fields whose picture moves with their reading, keyed by
-the same name the text is looked up under. It is written by hand, and
-`icons.py` keeps a list of what is in it so that nothing guesses an icon over
-one of them. A test holds the two to each other, so a field added to one and
-not the other fails rather than quietly losing its picture.
-
-Every key in it has to be lower case, hassfest included, which rules out most
-of what these appliances say: a door answers OPEN and a state answers
-END_OF_CYCLE. A test checks the keys against the same rule, because the first
-version of that file passed everything here and failed in CI.
+`icons.py` holds both halves of the pictures: the guess from a field's name,
+and the table of fields worth drawing by what they are reading. The second is
+a property on the entity rather than the `icons.json` Home Assistant also
+takes, because hassfest will only validate a reading written in lower case and
+these appliances shout: a door answers OPEN and a state answers END_OF_CYCLE.
+Home Assistant itself serves either happily, so this is a rule of the
+validator rather than of the thing being validated, and asking the entity is
+the way round that has neither the casing rule nor a second file to keep in
+step.
 
 `tools/make_translations.py` writes every language file from
 `tools/translations.json`, which holds what each English string says in each

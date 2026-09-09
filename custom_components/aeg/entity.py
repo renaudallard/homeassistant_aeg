@@ -49,7 +49,7 @@ from .capability import (
 )
 from .const import CONF_BRAND, DOMAIN, brand_for
 from .coordinator import AegCoordinator, Appliance
-from .icons import icon_for
+from .icons import icon_for, icon_for_reading
 from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, is_setting, key_for, readable
 from .triggers import Override
 
@@ -255,7 +255,10 @@ class AegEntity(AegApplianceEntity):
             # The whole path, because two groups can hold the same field and
             # one name for both is no name at all.
             self._attr_name = pretty(capability.path)
+        # What to draw when the reading itself has nothing to say, which is
+        # most fields and every reading nobody listed.
         self._attr_icon = icon_for(capability)
+        self._drawn_as = (platform, key)
         if is_housekeeping(capability):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -284,6 +287,20 @@ class AegEntity(AegApplianceEntity):
             and self.appliance is not None
             and self.reported is not None
         )
+
+    @property
+    def icon(self) -> str | None:
+        """A picture for this field, moving with the reading where that helps.
+
+        Home Assistant asks for this again on every state it writes, so a door
+        can look open when it is open. Overriding the property is what makes
+        that possible: an icon assigned once is assigned for good, and the
+        declared form Home Assistant reads from a file cannot be used here
+        because it will only take a reading written in lower case, which these
+        appliances do not oblige with.
+        """
+        platform, key = self._drawn_as
+        return icon_for_reading(platform, key, self.reported) or self._attr_icon
 
     @property
     def override(self) -> Override:

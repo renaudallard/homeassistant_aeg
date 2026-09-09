@@ -33,21 +33,29 @@ one this was written against, and getting it wrong costs a wrong picture rather
 than a wrong reading.
 
 Nothing here is asked about a field that already carries a device class, since
-Home Assistant has a better answer for those than a guess. Nor about a field
-whose icon should move with its reading, which is icons.json's job.
+Home Assistant has a better answer for those than a guess.
+
+A few fields are worth more than a fixed picture, and those get one that moves
+with the reading. Home Assistant reads an entity's icon again on every state it
+writes, so that is a property on the entity rather than anything declared, and
+the guess below is what it falls back on for a reading nobody listed.
 """
 
 from __future__ import annotations
 
 import re
+from typing import Any
 
-from .capability import ALERTS, Capability, is_duration, platform_for
+from .capability import ALERTS, Capability, is_duration
 from .measures import measure_for
-from .names import key_for
 
 # Where one of a field's words ends and the next begins, at an underscore or
 # at the capital of a name written in camel case.
 BETWEEN_WORDS = re.compile(r"_+|(?<=[a-z0-9])(?=[A-Z])")
+
+# Anything in a reading that is not a letter or a digit, which is what differs
+# between the ways the models write the same state.
+NOT_A_LETTER = re.compile(r"[^a-z0-9]")
 
 
 def _words(name: str) -> tuple[str, set[int]]:
@@ -125,27 +133,79 @@ LOOKS_LIKE: tuple[tuple[str, str], ...] = (
     ("state", "mdi:information-outline"),
 )
 
-# Fields whose picture says something the name cannot: whether the lock is on,
-# whether the appliance is still there. Those are drawn in icons.json, which
-# Home Assistant reads a picture out of by the state, and a guess made here
-# would be an icon of its own and win over it. The test holds this and the file
-# to each other, so neither can drift.
+# What a lock looks like either way round, which is the same wherever one turns
+# up and under whichever of its four names.
+LOCK = {"on": "mdi:lock", "off": "mdi:lock-open-variant"}
+
+# Fields whose picture says something the name cannot: which way the door is,
+# whether the lock is undone, whether the appliance is still there. Keyed by
+# the platform the field lands on and the name its text is looked up under,
+# then by the reading itself.
 #
-# It is a short list because Home Assistant will only take a state written in
-# lower case, and these appliances shout: a door says OPEN and a state says
-# END_OF_CYCLE, and neither can be a key here. What is left is the switches,
-# whose states are Home Assistant's own on and off, and the one field that
-# happens to answer in lower case. Lowering a reading to fit would rename
-# every state on it and take the automations reading them with it.
-BY_STATE: frozenset[tuple[str, str]] = frozenset(
-    {
-        ("sensor", "connectivity_state"),
-        ("switch", "child_lock"),
-        ("switch", "ui_lock"),
-        ("switch", "ui_lock_mode"),
-        ("switch", "ui_locked"),
-    }
-)
+# A reading is matched with its case and its separators taken out, because the
+# same field is not spelled the same way twice across the models: a washing
+# machine says END_OF_CYCLE, an air conditioner says running where the washer
+# says RUNNING, and a robot vacuum says readyToStart. One entry covers all
+# three. A reading nobody listed falls back to the guess from the name, so a
+# model that invents a ninth state still has a picture.
+BY_READING: dict[tuple[str, str], dict[str, str]] = {
+    ("sensor", "appliance_state"): {
+        "off": "mdi:power-off",
+        "idle": "mdi:sleep",
+        "readytostart": "mdi:play-circle-outline",
+        "delayedstart": "mdi:clock-outline",
+        "running": "mdi:play-circle",
+        "monitoring": "mdi:eye",
+        "paused": "mdi:pause-circle",
+        "endofcycle": "mdi:check-circle",
+        "alarm": "mdi:alert-circle",
+    },
+    ("sensor", "connectivity_state"): {
+        "connected": "mdi:wifi",
+        "disconnected": "mdi:wifi-off",
+    },
+    ("sensor", "door_state"): {
+        "open": "mdi:door-open",
+        "closed": "mdi:door-closed",
+    },
+    ("sensor", "door_lock"): {
+        "on": "mdi:lock",
+        "off": "mdi:lock-open-variant",
+        # Neither one thing nor the other, and moving.
+        "locking": "mdi:lock-clock",
+        "unlocking": "mdi:lock-clock",
+    },
+    ("sensor", "remote_control"): {
+        "enabled": "mdi:remote",
+        "notsafetyrelevantenabled": "mdi:remote",
+        # The states in which the appliance refuses every command there is.
+        "disabled": "mdi:remote-off",
+        "temporarylocked": "mdi:remote-off",
+    },
+    ("switch", "child_lock"): LOCK,
+    ("switch", "ui_lock"): LOCK,
+    ("switch", "ui_lock_mode"): LOCK,
+    ("switch", "ui_locked"): LOCK,
+}
+
+
+def as_read(value: Any) -> str:
+    """A reading in the one shape the table above is keyed in.
+
+    A flag is on or off whichever way an appliance writes it, since some report
+    a true and some the word.
+    """
+    if isinstance(value, bool):
+        return "on" if value else "off"
+    return NOT_A_LETTER.sub("", str(value).lower())
+
+
+def icon_for_reading(platform: str | None, key: str, value: Any) -> str | None:
+    """A picture for what a field is saying, where that is worth drawing."""
+    if platform is None:
+        return None
+    return BY_READING.get((platform, key), {}).get(as_read(value))
+
 
 # A command is better shown by what it does than by what it belongs to.
 COMMANDS: dict[str, str] = {
@@ -164,8 +224,6 @@ def icon_for(capability: Capability) -> str | None:
     if is_duration(capability) or capability.kind in ALERTS:
         return None
     if capability.kind == "temperature" or measure_for(capability) is not None:
-        return None
-    if (platform_for(capability), key_for(capability.name)) in BY_STATE:
         return None
     plain, starts = _words(capability.name)
     for fragment, icon in LOOKS_LIKE:

@@ -30,13 +30,14 @@ The guess is made from the field's own name and never from the model, so these
 are about the rules rather than about a washing machine.
 """
 
-import json
-import re
-from pathlib import Path
-from typing import Any
-
 from custom_components.aeg.capability import Capability
-from custom_components.aeg.icons import BY_STATE, icon_for, icon_for_command
+from custom_components.aeg.icons import (
+    BY_READING,
+    as_read,
+    icon_for,
+    icon_for_command,
+    icon_for_reading,
+)
 from custom_components.aeg.names import PLATFORMS_FOR
 
 
@@ -68,11 +69,9 @@ def test_nothing_is_guessed_where_something_better_answers() -> None:
 def test_a_fragment_has_to_be_a_word_and_not_a_run_of_letters() -> None:
     """remoteControl carries the letters of eco across the join in the middle.
 
-    So does totalCycleCounter, and both were being shown a leaf. The remote
-    control is drawn by its state now and answers nothing here, so the counter
-    is what is left to show the rule: it falls through to the cycle it is
-    counting rather than stopping at the letters in the middle of it.
+    So does totalCycleCounter, and both were being shown a leaf.
     """
+    assert icon_for(_field("remoteControl")) == "mdi:remote"
     assert icon_for(_field("totalCycleCounter")) == "mdi:sync"
     # And a field that really is about it still gets the leaf.
     assert icon_for(_field("ecoLevel")) == "mdi:leaf"
@@ -99,79 +98,79 @@ def test_a_command_is_shown_by_what_it_does() -> None:
     assert icon_for_command("DESCALE") == "mdi:gesture-tap-button"
 
 
-ICONS = Path(__file__).parent.parent / "custom_components" / "aeg" / "icons.json"
+def test_a_reading_is_matched_however_the_model_spells_it() -> None:
+    """A washer says END_OF_CYCLE, a vacuum says endOfCycle, and both mean it."""
+    assert as_read("END_OF_CYCLE") == "endofcycle"
+    assert as_read("endOfCycle") == "endofcycle"
+    assert as_read("RUNNING") == as_read("running") == "running"
+    # Some report a flag as a word and some as a true.
+    assert as_read(True) == "on"
+    assert as_read(False) == "off"
+    assert as_read("ON") == "on"
 
 
-def _drawn_by_state() -> dict[tuple[str, str], dict[str, Any]]:
-    """Every field icons.json draws, by the platform and key it draws it on."""
-    entity = json.loads(ICONS.read_text())["entity"]
-    return {
-        (platform, key): body
-        for platform, keys in entity.items()
-        for key, body in keys.items()
+def test_a_door_looks_the_way_it_is() -> None:
+    for state in ("OPEN", "open"):
+        assert icon_for_reading("sensor", "door_state", state) == "mdi:door-open"
+    assert icon_for_reading("sensor", "door_state", "CLOSED") == "mdi:door-closed"
+
+
+def test_a_lock_looks_undone_when_it_is_undone() -> None:
+    assert icon_for_reading("sensor", "door_lock", "ON") == "mdi:lock"
+    assert icon_for_reading("sensor", "door_lock", "OFF") == "mdi:lock-open-variant"
+    assert icon_for_reading("sensor", "door_lock", "LOCKING") == "mdi:lock-clock"
+    # And the panel lock, whichever of its four names it goes by.
+    for key in ("child_lock", "ui_lock", "ui_lock_mode", "ui_locked"):
+        assert icon_for_reading("switch", key, True) == "mdi:lock"
+        assert icon_for_reading("switch", key, False) == "mdi:lock-open-variant"
+
+
+def test_a_remote_control_that_will_take_nothing_says_so() -> None:
+    """TEMPORARY_LOCKED is the state in which every command is refused."""
+    for refusing in ("DISABLED", "TEMPORARY_LOCKED"):
+        assert (
+            icon_for_reading("sensor", "remote_control", refusing) == "mdi:remote-off"
+        )
+    for taking in ("ENABLED", "NOT_SAFETY_RELEVANT_ENABLED"):
+        assert icon_for_reading("sensor", "remote_control", taking) == "mdi:remote"
+
+
+def test_every_state_the_models_declare_has_a_picture() -> None:
+    """Gathered from all ten capability trees, so no model is left drawing the
+    fallback for a state it uses every day."""
+    declared = {
+        ("sensor", "appliance_state"): (
+            "OFF IDLE READY_TO_START DELAYED_START RUNNING PAUSED END_OF_CYCLE "
+            "ALARM off running readyToStart delayedStart endOfCycle paused alarm "
+            "monitoring idle"
+        ),
+        ("sensor", "connectivity_state"): "connected disconnected",
+        ("sensor", "door_state"): "OPEN CLOSED",
+        ("sensor", "door_lock"): "ON OFF LOCKING UNLOCKING",
+        ("sensor", "remote_control"): (
+            "ENABLED DISABLED NOT_SAFETY_RELEVANT_ENABLED TEMPORARY_LOCKED"
+        ),
     }
+    for (platform, key), states in declared.items():
+        for state in states.split():
+            assert icon_for_reading(platform, key, state), f"{key} {state}"
 
 
-def test_the_file_and_the_list_of_what_is_in_it_agree() -> None:
-    """A field in one and not the other loses its icon or keeps a wrong one."""
-    assert set(_drawn_by_state()) == set(BY_STATE)
+def test_a_state_nobody_listed_falls_back_to_the_guess() -> None:
+    """A model that invents a ninth state still has something to look at."""
+    assert icon_for_reading("sensor", "appliance_state", "SOMETHING_NEW") is None
+    assert icon_for(_field("applianceState")) == "mdi:information-outline"
+
+
+def test_a_field_it_says_nothing_about_is_drawn_by_its_name_alone() -> None:
+    assert icon_for_reading("sensor", "water_hardness", "SOFT") is None
+    assert icon_for_reading(None, "door_state", "OPEN") is None
+    assert icon_for(_field("waterHardness")) == "mdi:water-percent"
 
 
 def test_every_field_it_draws_is_one_that_turns_up_there() -> None:
     """A key nothing is named under, or on a platform it never lands on, draws
-    nothing at all."""
-    for platform, key in _drawn_by_state():
+    a picture nobody will ever see."""
+    for platform, key in BY_READING:
         assert key in PLATFORMS_FOR, key
         assert platform in PLATFORMS_FOR[key], (platform, key)
-
-
-# What hassfest will take as a key, which is the check that failed in CI
-# rather than here the first time this file was written.
-A_KEY = re.compile(r"^(?!.*[-_]$)[a-z0-9][a-z0-9-_]*$")
-
-
-def test_every_key_in_it_is_one_home_assistant_will_take() -> None:
-    """Lower case only, which these appliances are not.
-
-    A door says OPEN and a state says END_OF_CYCLE, and hassfest refuses both,
-    so a field that shouts cannot be drawn by its state at all. Catching that
-    here is the difference between a failing test and a failing release.
-    """
-    entity = json.loads(ICONS.read_text())["entity"]
-    for platform, keys in entity.items():
-        assert A_KEY.match(platform), platform
-        for key, body in keys.items():
-            assert A_KEY.match(key), key
-            for state in body.get("state", {}):
-                assert A_KEY.match(state), f"{platform}.{key}.{state}"
-
-
-def test_each_of_them_has_a_picture_to_fall_back_on() -> None:
-    """A state nobody predicted still has to look like something."""
-    for (platform, key), body in _drawn_by_state().items():
-        assert body.get("default"), (platform, key)
-        assert body.get("state"), (platform, key)
-
-
-def test_nothing_guesses_over_a_field_drawn_by_its_state() -> None:
-    """An icon set here would win over the one Home Assistant reads by state.
-
-    A panel lock is drawn by its state where it is a switch, which is where
-    icons.json claims it, and guessed at where it is only reported.
-    """
-    assert icon_for(_field("uiLockMode", "boolean", "readwrite")) is None
-    assert icon_for(_field("childLock", "boolean", "readwrite")) is None
-    assert icon_for(_field("uiLockMode", "boolean")) == "mdi:lock"
-
-
-def test_a_field_that_shouts_keeps_its_guess() -> None:
-    """Home Assistant will not key an icon on OPEN, so the door is guessed at."""
-    assert icon_for(_field("doorState")) == "mdi:door"
-    assert icon_for(_field("doorLock")) == "mdi:lock"
-    assert icon_for(_field("applianceState")) == "mdi:information-outline"
-    assert icon_for(_field("remoteControl")) == "mdi:remote"
-
-
-def test_a_field_it_does_not_draw_still_gets_its_guess() -> None:
-    assert icon_for(_field("waterHardness")) == "mdi:water-percent"
-    assert icon_for(_field("cyclePhase")) == "mdi:sync"

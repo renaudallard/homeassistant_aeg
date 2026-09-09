@@ -120,6 +120,5 @@ def test_a_reading_that_goes_up_and_down_is_not() -> None:
 def test_a_field_that_says_what_it_is_gets_no_guessed_icon() -> None:
     """Home Assistant draws a device class better than this table can."""
     assert icon_for(_one({"humidity": {"access": "read", "type": "number"}})) is None
-    # And one that says nothing still gets the guess. Not the door, which
-    # icons.json draws by its state.
+    # And one that says nothing still gets the guess.
     assert icon_for(_one({"waterHardness": {"access": "read", "type": "string"}}))

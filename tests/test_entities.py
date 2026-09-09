@@ -47,7 +47,6 @@ from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, EntityCategory, Platfo
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.icon import async_get_icons
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -1818,27 +1817,50 @@ async def test_a_setting_only_counts_where_it_can_be_set(
     assert not (capability.writable and is_setting(capability.name))
 
 
-async def test_home_assistant_reads_the_state_icons(
+async def test_the_picture_moves_with_the_reading(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
-    """The frontend draws these, so the most this side can prove is that Home
-    Assistant loaded the file and that nothing shadows what it holds."""
+    """The whole point of drawing a door by its state, end to end."""
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["doorState"] = "CLOSED"
+    api.appliances.return_value = listed
     await _setup(hass, entry, api)
-    # Asking for one category hands back what is under it, so the platforms
-    # are what sits directly under the integration here.
-    drawn = (await async_get_icons(hass, "entity", integrations=[DOMAIN]))[DOMAIN]
 
-    assert drawn["switch"]["ui_lock_mode"]["default"] == "mdi:lock-open-variant"
-    assert drawn["switch"]["ui_lock_mode"]["state"]["on"] == "mdi:lock"
+    shut = hass.states.get("sensor.lave_linge_door")
+    assert shut is not None
+    assert shut.attributes["icon"] == "mdi:door-closed"
 
-    registry = er.async_get(hass)
-    by_field = {
-        e.unique_id.split("-", 1)[1]: e
-        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-    }
-    # An icon of its own would win over the one read from the file.
-    assert by_field["uiLockMode"].original_icon is None
-    # A field the file says nothing about keeps its guess, and so does one it
-    # cannot say anything about because the appliance shouts its states.
-    assert by_field["waterHardness"].original_icon == "mdi:water-percent"
-    assert by_field["doorState"].original_icon == "mdi:door"
+    coordinator = entry.runtime_data.coordinator
+    appliance_id = next(iter(coordinator.data))
+    coordinator._pushed(
+        {
+            "Payload": {
+                "Appliances": [
+                    {
+                        "ApplianceId": appliance_id,
+                        "Metrics": [{"Name": "doorState", "Value": "OPEN"}],
+                    }
+                ]
+            }
+        }
+    )
+    await hass.async_block_till_done()
+
+    opened = hass.states.get("sensor.lave_linge_door")
+    assert opened is not None
+    assert opened.attributes["icon"] == "mdi:door-open"
+
+
+async def test_a_reading_nobody_drew_keeps_the_guess_from_its_name(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    await _setup(hass, entry, api)
+
+    hardness = hass.states.get("select.lave_linge_water_hardness")
+    assert hardness is not None
+    assert hardness.attributes["icon"] == "mdi:water-percent"
+
+    # And one the appliance has gone quiet about falls back the same way.
+    state = hass.states.get("sensor.lave_linge_state")
+    assert state is not None
+    assert state.attributes["icon"] == "mdi:sleep", "the fixture is IDLE"
