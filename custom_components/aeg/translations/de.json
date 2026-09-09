@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG- oder Electrolux-Konto",
+        "title": "AEG-Konto",
         "description": "Wie melden Sie sich bei diesem Konto an? Ein Konto ohne Passwort ist nur mit einem per E-Mail gesendeten Code erreichbar.",
         "menu_options": {
           "password": "Mit einem Passwort",

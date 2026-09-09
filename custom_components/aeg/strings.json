@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG or Electrolux account",
+        "title": "AEG account",
         "description": "How do you sign in to this account? An account with no password can only be reached with a code sent by email.",
         "menu_options": {
           "password": "With a password",

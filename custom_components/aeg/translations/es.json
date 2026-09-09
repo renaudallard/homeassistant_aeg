@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Cuenta AEG o Electrolux",
+        "title": "Cuenta AEG",
         "description": "¿Cómo inicia sesión en esta cuenta? A una cuenta sin contraseña solo se puede acceder con un código enviado por correo electrónico.",
         "menu_options": {
           "password": "Con una contraseña",

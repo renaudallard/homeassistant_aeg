@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG- eller Electrolux-konto",
+        "title": "AEG-konto",
         "description": "Hur loggar du in på det här kontot? Ett konto utan lösenord kan bara nås med en kod som skickas via e-post.",
         "menu_options": {
           "password": "Med ett lösenord",

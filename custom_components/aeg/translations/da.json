@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "AEG- eller Electrolux-konto",
+        "title": "AEG-konto",
         "description": "Hvordan logger du ind på denne konto? En konto uden adgangskode kan kun nås med en kode sendt på e-mail.",
         "menu_options": {
           "password": "Med en adgangskode",

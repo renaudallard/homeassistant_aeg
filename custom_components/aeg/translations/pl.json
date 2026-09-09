@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Konto AEG lub Electrolux",
+        "title": "Konto AEG",
         "description": "Jak logujesz się do tego konta? Do konta bez hasła można dostać się tylko za pomocą kodu wysłanego e-mailem.",
         "menu_options": {
           "password": "Za pomocą hasła",

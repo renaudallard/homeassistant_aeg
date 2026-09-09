@@ -19,15 +19,15 @@
     "pl": "AEG",
     "sv": "AEG"
   },
-  "AEG or Electrolux account": {
-    "da": "AEG- eller Electrolux-konto",
-    "de": "AEG- oder Electrolux-Konto",
-    "es": "Cuenta AEG o Electrolux",
-    "fr": "Compte AEG ou Electrolux",
-    "it": "Account AEG o Electrolux",
-    "nl": "AEG- of Electrolux-account",
-    "pl": "Konto AEG lub Electrolux",
-    "sv": "AEG- eller Electrolux-konto"
+  "AEG account": {
+    "da": "AEG-konto",
+    "de": "AEG-Konto",
+    "es": "Cuenta AEG",
+    "fr": "Compte AEG",
+    "it": "Account AEG",
+    "nl": "AEG-account",
+    "pl": "Konto AEG",
+    "sv": "AEG-konto"
   },
   "Action": {
     "da": "Handling",

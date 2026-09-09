@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Compte AEG ou Electrolux",
+        "title": "Compte AEG",
         "description": "Comment vous connectez-vous à ce compte ? Un compte sans mot de passe n'est accessible qu'avec un code envoyé par e-mail.",
         "menu_options": {
           "password": "Avec un mot de passe",
