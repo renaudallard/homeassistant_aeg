@@ -35,18 +35,19 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import AegApi
-from .capability import STATE, Capability, parse, value_at
+from .capability import RUNNING, STATE, Capability, counts_down, number, parse, value_at
 from .const import DOMAIN
 from .errors import AegAuthError, AegError
 from .triggers import Override, evaluate
@@ -66,6 +67,12 @@ SCAN_INTERVAL = timedelta(seconds=30)
 # Once the cloud is really pushing, polling is only there to catch what a
 # dropped connection missed.
 SCAN_INTERVAL_STREAMING = timedelta(minutes=10)
+
+# How little can be left before it is worth arranging to look again, and how
+# long after that to leave it. A minute covers an appliance that counts in
+# minutes, whose last figure before zero is sixty.
+NEARLY_DONE = 60.0
+AFTER_THE_END = timedelta(seconds=70)
 
 
 class CapabilityStore(Store[dict[str, Any]]):
@@ -152,6 +159,25 @@ class Appliance:
         return None if version is None else str(version)
 
 
+def _nearly_done(appliance: Appliance) -> bool:
+    """Whether the appliance is about to finish what it says it is doing.
+
+    Only while it is actually running. A machine that has finished puts the
+    length of the programme it is set to back where the time left was, and
+    that is not an ending to wait for.
+    """
+    if str(value_at(appliance.reported, STATE)).upper() != RUNNING:
+        return False
+    return any(
+        left is not None and 0 <= left <= NEARLY_DONE
+        for left in (
+            number(value_at(appliance.reported, capability.path))
+            for capability in appliance.capabilities
+            if counts_down(capability)
+        )
+    )
+
+
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
     """Polls the account and hands out the state of each appliance."""
 
@@ -182,6 +208,9 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         self._seen: dict[str, set[str]] = {}
         # What each appliance is, as opposed to what it is doing.
         self._info: dict[str, dict[str, Any]] = {}
+        # A look arranged for after an appliance finishes what it is doing,
+        # by the appliance it is about.
+        self._endings: dict[str, CALLBACK_TYPE] = {}
         # The listing read while setting up, waiting for the first update.
         self._listed: list[dict[str, Any]] | None = None
 
@@ -305,6 +334,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 overrides={},
             )
         self._refresh_overrides(appliances)
+        self._look_again_when_it_ends(appliances)
         self._notice_new(appliances)
         for appliance in appliances.values():
             # The one line worth having when an appliance goes quiet, which is
@@ -339,6 +369,48 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         """Work out what each appliance will accept in the state it is in."""
         for appliance in appliances.values():
             appliance.overrides = evaluate(appliance.capabilities, appliance.reported)
+
+    @callback
+    def _look_again_when_it_ends(self, appliances: dict[str, Appliance]) -> None:
+        """Arrange a look at an appliance that is about to finish.
+
+        A cycle ending is the one change the cloud is least reliable about. It
+        goes on pushing the door and the connection while saying nothing about
+        the wash, so a machine can be left reporting a minute to go and be
+        found still saying it an hour later. Polling would catch that, but the
+        stream working is exactly what makes polling ease off to ten minutes,
+        so the moment it matters most is the moment we ask least often.
+
+        Which field is counting down is the appliance's own to say, the same
+        one the countdown sensor reads. One look is arranged per appliance and
+        not another until it has been taken, so a machine counting in seconds
+        does not book sixty of them on its way to zero.
+        """
+        entry = self.config_entry
+        if entry is None:
+            return
+        for appliance in appliances.values():
+            if appliance.id in self._endings or not _nearly_done(appliance):
+                continue
+
+            @callback
+            def _look(_now: datetime, appliance_id: str = appliance.id) -> None:
+                self._endings.pop(appliance_id, None)
+                _LOGGER.debug("%s should have finished, looking", appliance_id)
+                entry.async_create_task(
+                    self.hass, self.async_request_refresh(), "AEG look"
+                )
+
+            self._endings[appliance.id] = async_call_later(
+                self.hass, AFTER_THE_END, _look
+            )
+
+    @callback
+    def stop_waiting(self) -> None:
+        """Give up on any look arranged for after a cycle ends."""
+        for cancel in self._endings.values():
+            cancel()
+        self._endings.clear()
 
     def start_stream(self, url: str) -> None:
         """Ask the cloud to push changes rather than waiting to be asked."""
@@ -376,6 +448,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             self.update_interval = SCAN_INTERVAL_STREAMING
             # What the appliance will accept moves with its state.
             self._refresh_overrides(self.data)
+            self._look_again_when_it_ends(self.data)
             self.async_set_updated_data(self.data)
 
     def _streaming(self, connected: bool) -> None:

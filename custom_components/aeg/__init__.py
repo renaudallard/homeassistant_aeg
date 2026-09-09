@@ -117,6 +117,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     # Assistant runs these before it gives up, so a connection to the cloud
     # cannot outlive the entry that opened it.
     entry.async_on_unload(coordinator.stop_stream)
+    entry.async_on_unload(coordinator.stop_waiting)
 
     entry.runtime_data = AegData(api=api, coordinator=coordinator)
     _forget_what_is_gone(hass, entry, coordinator)

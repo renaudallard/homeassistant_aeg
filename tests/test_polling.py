@@ -33,17 +33,24 @@ ten minutes.
 """
 
 import asyncio
+from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
+from custom_components.aeg.capability import Capability
 from custom_components.aeg.const import DOMAIN
 from custom_components.aeg.coordinator import (
     SCAN_INTERVAL,
     SCAN_INTERVAL_STREAMING,
     AegCoordinator,
+    Appliance,
 )
 
 
@@ -169,4 +176,113 @@ async def test_a_stream_that_drops_while_polling_asks_for_nothing(
         await hass.async_block_till_done()
 
     assert coordinator.update_interval == SCAN_INTERVAL
+    asked.assert_not_called()
+
+
+def _washing(state: str, time_to_end: int) -> Appliance:
+    """A machine that says what it is doing and how long is left of it."""
+    return Appliance(
+        id="an-appliance",
+        name="Lave-linge",
+        model="WM",
+        info={},
+        capabilities=[
+            Capability(path="applianceState", access="read", kind="string"),
+            Capability(path="timeToEnd", access="read", kind="number"),
+        ],
+        reported={"applianceState": state, "timeToEnd": time_to_end},
+        connected=True,
+        overrides={},
+    )
+
+
+def _said(time_to_end: int) -> dict[str, Any]:
+    return {
+        "Payload": {
+            "Appliances": [
+                {
+                    "ApplianceId": "an-appliance",
+                    "Metrics": [{"Name": "timeToEnd", "Value": time_to_end}],
+                }
+            ]
+        }
+    }
+
+
+async def _wait_out_the_end(hass: HomeAssistant) -> None:
+    """Let the moment the cycle should have finished go by."""
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=90))
+    await hass.async_block_till_done()
+
+
+async def test_it_looks_again_when_a_cycle_should_have_ended(
+    hass: HomeAssistant,
+) -> None:
+    """The cloud goes quiet about the wash while the stream stays busy."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 120)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed(_said(30))
+        # Streaming, so the next look of its own accord is ten minutes out.
+        assert coordinator.update_interval == SCAN_INTERVAL_STREAMING
+        await _wait_out_the_end(hass)
+
+    asked.assert_called_once()
+
+
+async def test_a_machine_that_is_not_running_is_not_waited_on(
+    hass: HomeAssistant,
+) -> None:
+    """A finished wash puts the next programme's length where the time left was."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("END_OF_CYCLE", 120)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed(_said(30))
+        await _wait_out_the_end(hass)
+
+    asked.assert_not_called()
+
+
+async def test_a_machine_with_a_while_to_go_is_not_waited_on(
+    hass: HomeAssistant,
+) -> None:
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 3600)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed(_said(1800))
+        await _wait_out_the_end(hass)
+
+    asked.assert_not_called()
+
+
+async def test_counting_down_to_zero_books_one_look_and_not_sixty(
+    hass: HomeAssistant,
+) -> None:
+    """Every second of the last minute would otherwise arrange its own."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 120)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        for left in range(50, 0, -1):
+            coordinator._pushed(_said(left))
+        await _wait_out_the_end(hass)
+
+    asked.assert_called_once()
+
+
+async def test_nothing_is_waited_on_once_the_entry_has_gone(
+    hass: HomeAssistant,
+) -> None:
+    """An arranged look outliving its entry would ask about an account that has."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 120)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed(_said(30))
+        coordinator.stop_waiting()
+        await _wait_out_the_end(hass)
+
     asked.assert_not_called()

@@ -54,7 +54,9 @@ model nobody has tried works the same way as the one this was written against.
   until remote control has been armed at the machine itself.
 - **Live, not polled** — the cloud pushes changes over a websocket, so a cycle
   finishing shows up when it happens. Polling carries on in the background at a
-  slower rate to catch whatever a dropped connection missed.
+  slower rate to catch whatever a dropped connection missed, and a look is
+  arranged for just after an appliance says it is about to finish, because the
+  end of a cycle is the one thing the cloud regularly forgets to mention.
 - **Readable readings** — a duration gets a second reading written as a clock,
   and the time left to a cycle counts down by the second rather than waiting to
   be told. There is a **finishes at** timestamp beside it. A scale whose steps
@@ -184,6 +186,15 @@ a state every second while a cycle runs, so exclude
 `sensor.*_time_to_end_formatted` from the recorder if that history is not worth
 keeping. The finishes at timestamp says the same thing and writes nothing
 between updates.
+
+Whichever field is counting down is also what says when to look again. Once
+less than a minute is left, one look is arranged for seventy seconds later and
+no more are until it has been taken, so a machine counting in seconds does not
+book sixty of them on its way to zero. That is there because the cloud goes on
+pushing the door and the connection while saying nothing about the wash, and
+the stream working is exactly what makes polling ease off to ten minutes: the
+moment it matters most is the moment the account is otherwise asked least
+often.
 
 A value that is a name and a number is a step in a scale, and a field whose
 values all say their own number is shown as those numbers. The appliance still
