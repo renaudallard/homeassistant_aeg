@@ -177,9 +177,14 @@ BY_READING: dict[tuple[str, str], dict[str, str]] = {
     },
     ("sensor", "remote_control"): {
         "enabled": "mdi:remote",
-        "notsafetyrelevantenabled": "mdi:remote",
-        # The states in which the appliance refuses every command there is.
+        # The appliance's own rules refuse every command in these two, which
+        # is not what their names suggest: a washing machine sitting in
+        # NOT_SAFETY_RELEVANT_ENABLED will not take a remote start, and the
+        # trigger on the field says so in as many words.
+        "notsafetyrelevantenabled": "mdi:remote-off",
         "disabled": "mdi:remote-off",
+        # No tree carries a rule about this one, so the name is all there is
+        # to go on, and it says locked.
         "temporarylocked": "mdi:remote-off",
     },
     ("switch", "child_lock"): LOCK,

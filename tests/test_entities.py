@@ -1864,3 +1864,23 @@ async def test_a_reading_nobody_drew_keeps_the_guess_from_its_name(
     state = hass.states.get("sensor.lave_linge_state")
     assert state is not None
     assert state.attributes["icon"] == "mdi:sleep", "the fixture is IDLE"
+
+
+async def test_the_remote_control_agrees_with_the_buttons_beside_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The fixture sits in the state the appliance refuses commands in.
+
+    The picture said the remote was working while every command button beside
+    it was greyed out, which is the one combination that cannot both be right.
+    """
+    await _setup(hass, entry, api)
+
+    remote = hass.states.get("sensor.lave_linge_remote_control")
+    assert remote is not None
+    assert remote.state == "NOT_SAFETY_RELEVANT_ENABLED"
+    assert remote.attributes["icon"] == "mdi:remote-off"
+
+    start = hass.states.get("button.lave_linge_execute_command_start")
+    assert start is not None
+    assert start.state == "unavailable", "the appliance is refusing commands"

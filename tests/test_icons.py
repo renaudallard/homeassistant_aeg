@@ -126,13 +126,18 @@ def test_a_lock_looks_undone_when_it_is_undone() -> None:
 
 
 def test_a_remote_control_that_will_take_nothing_says_so() -> None:
-    """TEMPORARY_LOCKED is the state in which every command is refused."""
-    for refusing in ("DISABLED", "TEMPORARY_LOCKED"):
+    """Only ENABLED takes a command, whatever the other three names suggest.
+
+    The appliance says so itself: the trigger on the field turns executeCommand
+    off for NOT_SAFETY_RELEVANT_ENABLED and DISABLED alike, and the buttons
+    that go with it are already tested against exactly that. No tree rules on
+    TEMPORARY_LOCKED, so its name is all there is to go on.
+    """
+    for refusing in ("DISABLED", "NOT_SAFETY_RELEVANT_ENABLED", "TEMPORARY_LOCKED"):
         assert (
             icon_for_reading("sensor", "remote_control", refusing) == "mdi:remote-off"
         )
-    for taking in ("ENABLED", "NOT_SAFETY_RELEVANT_ENABLED"):
-        assert icon_for_reading("sensor", "remote_control", taking) == "mdi:remote"
+    assert icon_for_reading("sensor", "remote_control", "ENABLED") == "mdi:remote"
 
 
 def test_every_state_the_models_declare_has_a_picture() -> None:

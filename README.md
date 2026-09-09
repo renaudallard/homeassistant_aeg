@@ -222,8 +222,8 @@ often.
 
 A few fields are drawn by what they say rather than by what they are called:
 the door looks open when it is open, the lock looks undone when it is undone,
-a remote control the appliance is refusing looks refused, and the machine
-shows what it is up to. The same field is not spelled the same way twice
+a remote control the appliance is refusing looks refused, the connection shows
+whether the appliance is still there, and the machine shows what it is up to. The same field is not spelled the same way twice
 across the models, so a washing machine saying END_OF_CYCLE and a robot vacuum
 saying endOfCycle are read as the same thing. Everything else gets a picture
 guessed from its name, which costs a wrong picture rather than a wrong reading
