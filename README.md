@@ -57,6 +57,12 @@ model nobody has tried works the same way as the one this was written against.
   slower rate to catch whatever a dropped connection missed, and a look is
   arranged for just after an appliance says it is about to finish, because the
   end of a cycle is the one thing the cloud regularly forgets to mention.
+- **Kept as history** — a reading that is a number says so, which is what
+  makes Home Assistant graph it and keep it. A cycle counter is added up
+  rather than averaged. Nothing claims a unit an appliance has not made
+  plain: a percentage of humidity, parts per million of carbon dioxide and
+  micrograms of particulates are named, and a load weight is left as the
+  number the machine reports.
 - **Readable readings** — a duration gets a second reading written as a clock,
   and the time left to a cycle counts down by the second rather than waiting to
   be told. There is a **finishes at** timestamp beside it. A scale whose steps

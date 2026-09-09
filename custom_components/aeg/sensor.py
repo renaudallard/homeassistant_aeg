@@ -44,9 +44,10 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
-from .capability import SENSOR, Capability, counts_down, is_duration
+from .capability import NUMERIC, SENSOR, Capability, counts_down, is_duration
 from .coordinator import AegCoordinator
 from .entity import AegEntity, degrees, fields
+from .measures import counts_up, measure_for
 
 
 async def async_setup_entry(
@@ -82,6 +83,16 @@ class AegSensor(AegEntity, SensorEntity):
             # update about anything that is not.
             self._attr_device_class = SensorDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = degrees(capability)
+        elif (measure := measure_for(capability)) is not None:
+            self._attr_device_class = measure.device_class
+            self._attr_native_unit_of_measurement = measure.unit
+
+        # A number is worth keeping the history of, and Home Assistant keeps
+        # none without being told which kind of number it is. A word is not
+        # one, whatever the field holding it is typed as.
+        if counts_up(capability):
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        elif capability.kind in NUMERIC and not capability.values:
             self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property

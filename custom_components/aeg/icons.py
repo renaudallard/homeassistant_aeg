@@ -39,6 +39,7 @@ Home Assistant has a better answer for those than a guess.
 from __future__ import annotations
 
 from .capability import ALERTS, Capability, is_duration
+from .measures import measure_for
 
 # Matched against the field's own name, with the separators taken out and
 # lowercased. The first that fits wins, so the particular comes before the
@@ -113,7 +114,7 @@ def icon_for(capability: Capability) -> str | None:
     """A picture for a field, or none where something better already answers."""
     if is_duration(capability) or capability.kind in ALERTS:
         return None
-    if capability.kind == "temperature":
+    if capability.kind == "temperature" or measure_for(capability) is not None:
         return None
     plain = capability.name.replace("_", "").lower()
     for fragment, icon in LOOKS_LIKE:

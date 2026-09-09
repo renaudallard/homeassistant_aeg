@@ -353,6 +353,28 @@ async def test_one_left_over_from_an_older_version_is_taken_away(
     assert registry.async_get(left_over.entity_id) is None
 
 
+async def test_a_number_it_reports_is_kept_as_history(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Home Assistant keeps none of it without being told what kind it is."""
+    await _setup(hass, entry, api)
+
+    counter = hass.states.get("sensor.lave_linge_cycles_run")
+    assert counter is not None
+    assert counter.attributes["state_class"] == "total_increasing"
+
+    weight = hass.states.get("sensor.lave_linge_nominal_load")
+    assert weight is not None
+    assert weight.attributes["state_class"] == "measurement"
+    # Nothing claims to know what an appliance weighs its load in.
+    assert "unit_of_measurement" not in weight.attributes
+
+    # A word is not a number, whatever the field holding it is typed as.
+    phase = hass.states.get("sensor.lave_linge_cycle_phase")
+    assert phase is not None
+    assert "state_class" not in phase.attributes
+
+
 async def test_the_wash_is_shown_and_the_housekeeping_is_not(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
