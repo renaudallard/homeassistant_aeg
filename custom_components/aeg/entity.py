@@ -319,6 +319,13 @@ class AegEntity(AegApplianceEntity):
         what this is instead of. Not because Home Assistant refuses these
         readings, which it serves happily, but because hassfest will only
         validate one written in lower case, and these appliances shout.
+
+        What it costs: Home Assistant records whatever this answers at the
+        moment an entity is registered, and serves that back while the entity
+        is unavailable. So a door registered while it was open is drawn open
+        until the cloud says otherwise, and a reading that has moved between
+        two starts rewrites that record. Every icon that moves in Home
+        Assistant is paid for this way; the alternative is one that does not.
         """
         if self._drawn is None:
             return self._attr_icon

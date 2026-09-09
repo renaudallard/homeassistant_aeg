@@ -143,7 +143,12 @@ def test_a_remote_control_that_will_take_nothing_says_so() -> None:
 
 def test_every_state_the_models_declare_has_a_picture() -> None:
     """Gathered from all ten capability trees, so no model is left drawing the
-    fallback for a state it uses every day."""
+    fallback for a state it uses every day.
+
+    Written out rather than read, since eight of the ten trees are the ones
+    the app ships and are not in the repository. It goes stale the day one of
+    them gains a state, which is the cost of not having them to read.
+    """
     declared = {
         ("sensor", "appliance_state"): (
             "OFF IDLE READY_TO_START DELAYED_START RUNNING PAUSED END_OF_CYCLE "
