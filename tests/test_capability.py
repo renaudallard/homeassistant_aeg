@@ -117,6 +117,61 @@ def test_commands_become_buttons() -> None:
     assert set(field.values) == {"OFF", "ON", "START", "STOPRESET"}
 
 
+def test_the_commands_that_undo_the_appliance_are_not_offered() -> None:
+    """One takes it off the account, the other wipes the network unit.
+
+    Both are shaped exactly like the commands that work the machine, so
+    nothing but the name keeps them from becoming buttons.
+    """
+    unpair = _one(
+        {
+            "networkInterface": {
+                "command": {
+                    "access": "write",
+                    "type": "string",
+                    "values": {
+                        "APPLIANCE_AUTHORIZE": {},
+                        "START": {},
+                        "USER_AUTHORIZE": {},
+                        "USER_NOT_AUTHORIZE": {},
+                    },
+                }
+            }
+        }
+    )
+    assert unpair.path == "networkInterface/command"
+    assert platform_for(unpair) is None
+
+    uninstall = _one(
+        {
+            "networkInterface": {
+                "startUpCommand": {
+                    "access": "write",
+                    "type": "string",
+                    "values": {"UNINSTALL": {}},
+                }
+            }
+        }
+    )
+    assert platform_for(uninstall) is None
+
+
+def test_a_command_further_down_a_group_is_left_alone() -> None:
+    """Only those two paths, not everything that ends in the same word."""
+    field = _one(
+        {
+            "iceMaker": {
+                "command": {
+                    "access": "write",
+                    "type": "string",
+                    "values": {"START": {}},
+                }
+            }
+        }
+    )
+    assert platform_for(field) == BUTTON
+
+
 def test_a_choice_is_a_select_when_it_can_be_set() -> None:
     node = {"access": "readwrite", "type": "string", "values": {"A": {}, "B": {}}}
     assert platform_for(_one({"program": node})) == SELECT

@@ -71,6 +71,21 @@ ALERTS = frozenset({"alert", "alerts"})
 # typed this way, beside the one it types as alerts.
 STRUCTURED = frozenset({"array", "careMaintenance", "complex", "container", "object"})
 
+# Commands that undo the appliance rather than work it. One of them takes the
+# appliance off the account, another uninstalls the network unit's firmware,
+# and there is no getting either back from Home Assistant. A tree describes
+# them the way it describes START and PAUSE, so nothing about their shape tells
+# them apart and they are the one thing here refused by name.
+#
+# The vendor app does not offer them either. They belong to pairing an
+# appliance and to a service engineer, which is not what this is for.
+UNDOING = frozenset(
+    {
+        "networkInterface/command",
+        "networkInterface/startUpCommand",
+    }
+)
+
 # Groups that describe the machine's own housekeeping rather than the wash.
 # Their fields are worth having but not worth showing by default.
 HOUSEKEEPING = (
@@ -263,11 +278,12 @@ def platform_for(capability: Capability) -> str | None:
 
     A constant never changes and a disabled field is one this model does not
     have, so neither is worth an entity. Nor is a field holding a structure,
-    which has no single reading to show.
+    which has no single reading to show. Nor is one of the two commands that
+    would undo the appliance.
     """
     if capability.disabled or capability.access == "constant":
         return None
-    if capability.kind in STRUCTURED:
+    if capability.kind in STRUCTURED or capability.path in UNDOING:
         return None
 
     if capability.writable and not capability.readable:

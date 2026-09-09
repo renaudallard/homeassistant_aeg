@@ -74,6 +74,10 @@ model nobody has tried works the same way as the one this was written against.
   of them are the machine talking to itself. The maintenance counters, stored
   cycles and network stack arrive as diagnostics and start disabled; fields the
   model does not have get no entity at all.
+- **Two commands it will not hand you** — an appliance describes a command
+  that takes it off the account and one that wipes its network unit exactly
+  the way it describes start and pause. Those two get no entity, hidden or
+  otherwise. Pair and unpair in the vendor app, which is where they belong.
 
 ## Installing
 
@@ -109,7 +113,7 @@ rather than quietly pointing the entry at another household's appliances.
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
 
-A washing machine comes out as 74 entities with 54 of them shown: the
+A washing machine comes out as 69 entities with 54 of them shown: the
 programme and its 35 cycles, temperature, spin speed, extra rinse, steam, time
 manager, the door, and buttons for on, off, start, pause, resume, reset and
 clearing the personalised cycle. Enable the rest from the device page if you

@@ -288,8 +288,46 @@ async def test_the_washing_machine_comes_out_as_the_readme_says(
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
 
-    assert len(entities) == 74
+    assert len(entities) == 69
     assert len([e for e in entities if not e.disabled]) == 54
+
+
+async def test_nothing_offers_to_undo_the_appliance(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Not even hidden away with the maintenance counters.
+
+    Disabled by default is protection against pressing one by accident, not
+    against having it there to press.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+
+    undoing = [
+        e
+        for e in entities
+        if "networkInterface/command" in e.unique_id
+        or "networkInterface/startUpCommand" in e.unique_id
+    ]
+    assert not undoing, undoing
+
+
+async def test_one_left_over_from_an_older_version_is_taken_away(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An install that had them before this stopped making them."""
+    registry = er.async_get(hass)
+    listed = _fixture("wm-appliances")[0]["applianceId"]
+    left_over = registry.async_get_or_create(
+        Platform.BUTTON,
+        DOMAIN,
+        f"{listed}-networkInterface/startUpCommand-UNINSTALL",
+        config_entry=entry,
+    )
+
+    await _setup(hass, entry, api)
+    assert registry.async_get(left_over.entity_id) is None
 
 
 async def test_the_wash_is_shown_and_the_housekeeping_is_not(
