@@ -85,6 +85,7 @@ SECRETS = frozenset(
         "phonenumber",
         "refresh_token",
         "refreshtoken",
+        "regtoken",
         "sessionsecret",
         "sessiontoken",
         "set-cookie",

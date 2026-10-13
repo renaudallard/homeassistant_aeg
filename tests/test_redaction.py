@@ -211,6 +211,21 @@ def test_hides_the_account_and_its_credentials() -> None:
     assert "BE" in text
 
 
+def test_hides_the_token_left_by_an_interrupted_login() -> None:
+    """A login waiting on registration says so in a body that is logged."""
+    text = json.dumps(
+        redact(
+            {
+                "errorCode": 206001,
+                "errorMessage": "Account Pending Registration",
+                "regToken": "a-registration-token",
+            }
+        )
+    )
+    assert "a-registration-token" not in text
+    assert "Account Pending Registration" in text
+
+
 def test_a_secret_that_is_not_text_is_hidden_too() -> None:
     """A postcode and a year of birth arrive as numbers, and still say who."""
     profile = redact(
