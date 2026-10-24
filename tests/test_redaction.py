@@ -32,8 +32,14 @@ are the ones a real account produced.
 """
 
 import json
+import logging
+from unittest.mock import MagicMock
 
-from custom_components.aeg.http import _readable, redact, redact_url
+import aiohttp
+import pytest
+
+from custom_components.aeg.errors import AegConnectionError
+from custom_components.aeg.http import _readable, redact, redact_url, request
 
 APPLIANCE = "914505616_00:54600049-443E07743904"
 BASE = "https://api.eu.ocp.electrolux.one/appliance/api/v2/appliances"
@@ -286,3 +292,21 @@ def test_an_alert_hides_whatever_else_it_carries() -> None:
     text = json.dumps(hidden)
     assert "WATER_LEAK" in text
     assert "someone@example.com" not in text
+
+
+async def test_hides_a_secret_in_query_parameters(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """None is sent that way today, which is no reason to log one if it is."""
+    session = MagicMock()
+    session.request.side_effect = aiohttp.ClientError("down")
+    caplog.set_level(logging.DEBUG, logger="custom_components.aeg.http")
+    with pytest.raises(AegConnectionError):
+        await request(
+            session,
+            "GET",
+            BASE,
+            params={"includeMetadata": "true", "access_token": "a-secret-token"},
+        )
+    assert "includeMetadata" in caplog.text
+    assert "a-secret-token" not in caplog.text

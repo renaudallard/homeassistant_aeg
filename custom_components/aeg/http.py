@@ -205,7 +205,7 @@ async def request(
     server side failure, or a body that does not parse. An empty body is fine
     and reads back as None.
     """
-    _LOGGER.debug("%s %s params=%s", method, redact_url(url), params)
+    _LOGGER.debug("%s %s params=%s", method, redact_url(url), redact(params))
     _LOGGER.debug("  headers %s", redact(dict(headers or {})))
     if data is not None:
         _LOGGER.debug("  form %s", redact(data))
