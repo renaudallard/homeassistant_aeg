@@ -100,10 +100,14 @@ class Tokens:
 
 
 def _detail(payload: Any) -> str:
-    """A short printable form of an error body, to say why a call was refused."""
+    """A short printable form of an error body, to say why a call was refused.
+
+    It ends up in an exception message, which gets logged, so it is redacted
+    the way the debug log is.
+    """
     if payload is None:
         return "no body"
-    text = payload if isinstance(payload, str) else json.dumps(payload)
+    text = payload if isinstance(payload, str) else json.dumps(http.redact(payload))
     return text[:300]
 
 

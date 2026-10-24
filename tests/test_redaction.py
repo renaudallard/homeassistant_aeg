@@ -38,6 +38,7 @@ from unittest.mock import MagicMock
 import aiohttp
 import pytest
 
+from custom_components.aeg.auth import _detail
 from custom_components.aeg.errors import AegConnectionError
 from custom_components.aeg.http import _readable, redact, redact_url, request
 
@@ -310,3 +311,10 @@ async def test_hides_a_secret_in_query_parameters(
         )
     assert "includeMetadata" in caplog.text
     assert "a-secret-token" not in caplog.text
+
+
+def test_a_refusal_quoted_in_an_error_gives_nothing_away() -> None:
+    """The message is logged, so it gets the same treatment as the debug log."""
+    text = _detail({"message": "Bad Request", "refreshToken": "a-secret-token"})
+    assert "Bad Request" in text
+    assert "a-secret-token" not in text
