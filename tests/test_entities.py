@@ -2503,3 +2503,22 @@ async def test_an_appliance_on_the_newer_data_model_is_sent_a_list(
     )
     _, command = api.send_command.await_args.args
     assert command == {"commands": [{"stopTime": 7200}]}
+
+
+async def test_no_time_left_is_not_a_length_of_time(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An idle washer says -1 for the time left.
+
+    The clock read unknown, and the seconds beside it read -1 and kept it.
+    """
+    await _setup(hass, entry, api)
+    left = hass.states.get("sensor.lave_linge_time_to_end")
+    assert left is not None
+    assert left.state == "unknown"
+
+    _push(entry, ("timeToEnd", 3600))
+    await hass.async_block_till_done()
+    left = hass.states.get("sensor.lave_linge_time_to_end")
+    assert left is not None
+    assert left.state == "3600"

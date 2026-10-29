@@ -242,7 +242,8 @@ Eight details worth knowing, because they look like faults and are not:
   it, which is outside what the control takes, so clearing one that has been
   set is left to the app. A reading that is a figure reads unknown too while
   the appliance gives a word for it instead, as the shortest finishing time
-  can say `INVALID_OR_NOT_SET_TIME`.
+  can say `INVALID_OR_NOT_SET_TIME`, and so does a length of time below zero,
+  which is how an idle washer reports the time left.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter

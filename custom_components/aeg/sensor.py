@@ -112,11 +112,17 @@ class AegSensor(AegEntity, SensorEntity):
             # Nothing sensible to show for a structure, and a state has to fit
             # in 255 characters.
             return None
-        if self._numeric and number(value) is None:
+        figure = number(value)
+        if self._numeric and figure is None:
             # A figure can also be a word it lists, such as the shortest
             # finishing time a washing machine reports as INVALID_OR_NOT_SET_TIME.
             # Home Assistant refuses a word where it expects a figure, and
             # goes on refusing every update after it.
+            return None
+        if self.device_class is SensorDeviceClass.DURATION and (figure or 0) < 0:
+            # A washing machine says -1 for a time it does not have, such as
+            # the end of a cycle it is not running. Kept, it would go into the
+            # history as a length of time.
             return None
         return value
 
