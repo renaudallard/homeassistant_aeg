@@ -35,6 +35,7 @@ new pair through a listener.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -139,6 +140,21 @@ class AegApi:
                 lambda task: task.cancelled() or task.exception()
             )
         await asyncio.shield(self._renewal)
+
+    async def settle(self) -> None:
+        """Wait for a renewal under way to be kept, however it ends.
+
+        Loading the entry again reads the refresh token it holds. A renewal
+        still running at that point has spent that token and has not yet
+        stored the one that replaces it, so the next start would offer a
+        spent token and be sent to sign in again.
+        """
+        renewal = self._renewal
+        if renewal is not None and not renewal.done():
+            # How it went is for whoever asked for it. Unloading only needs
+            # it over with.
+            with contextlib.suppress(Exception):
+                await asyncio.shield(renewal)
 
     async def _access_token(self) -> str:
         async with self._lock:

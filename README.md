@@ -331,7 +331,9 @@ the API uses is what this sends, in the request and reading the reply.
 The refresh token rotates on every renewal, so whatever holds it has to write
 the new one back; the client reports each new pair through a listener for that
 reason. Renewing a token that was issued moments earlier is refused with a 429,
-which is not a failure while the token in hand still works, so it is kept.
+which is not a failure while the token in hand still works, so it is kept. A
+renewal under way when the entry is unloaded or reloaded is waited for, so the
+next start reads the new pair rather than the one it has just spent.
 
 ## Branding
 

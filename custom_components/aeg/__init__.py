@@ -118,6 +118,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
         on_tokens=store,
         brand=brand,
     )
+    # A renewal still under way when the entry goes, including when setting
+    # it up fails and is tried again, is finished before the tokens are read
+    # for the next try.
+    entry.async_on_unload(api.settle)
 
     # The first refresh reads what every appliance can do and what it is
     # doing, and proves the stored tokens still work while it is at it.

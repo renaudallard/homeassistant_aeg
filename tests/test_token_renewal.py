@@ -208,3 +208,47 @@ async def test_a_renewal_cut_short_still_keeps_the_new_pair() -> None:
     assert await again == "Bearer a-new-token"
     assert stored == [renewed]
     auth.refresh.assert_awaited_once()
+
+
+async def test_settling_waits_for_a_renewal_to_be_kept() -> None:
+    """Loading the entry again reads the tokens it holds.
+
+    Unloading cancelled whoever asked and went straight on, so the next start
+    read the refresh token the renewal still running had just spent.
+    """
+    renewed = Tokens("a-new-token", "a-new-refresh-token", time.time() + 43200)
+    answered = asyncio.Event()
+    stored: list[Tokens] = []
+
+    async def refresh(tokens: Tokens) -> Tokens:
+        await answered.wait()
+        return renewed
+
+    async def keep(tokens: Tokens) -> None:
+        stored.append(tokens)
+
+    auth = AsyncMock()
+    auth.refresh.side_effect = refresh
+    expired = Tokens("an-access-token", "a-refresh-token", time.time() - 10)
+    api = AegApi(
+        MagicMock(),
+        auth,
+        expired,
+        "https://api.eu.ocp.electrolux.one",
+        "BE",
+        on_tokens=keep,
+    )
+
+    asking = asyncio.create_task(api.authorization())
+    await asyncio.sleep(0)
+    asking.cancel()
+    settling = asyncio.create_task(api.settle())
+    await asyncio.sleep(0)
+    assert not settling.done()
+
+    answered.set()
+    await settling
+    assert stored == [renewed]
+
+    # Nothing under way is nothing to wait for.
+    await api.settle()
