@@ -69,7 +69,7 @@ from custom_components.aeg.const import (
     DOMAIN,
 )
 from custom_components.aeg.coordinator import capability_store
-from custom_components.aeg.entity import pretty
+from custom_components.aeg.entity import as_set, pretty
 from custom_components.aeg.errors import AegConnectionError, AegRefused
 from custom_components.aeg.http import tag
 from custom_components.aeg.names import is_setting
@@ -2564,3 +2564,15 @@ async def test_the_log_names_no_appliance_by_its_id(
     assert "describes" in ours
     assert appliance_id not in ours
     assert tag(appliance_id) in ours
+
+
+def test_a_number_sent_stays_within_its_range() -> None:
+    """An oven offers a delayed start of up to 86340 seconds in steps of 600.
+
+    Rounding the last of those to a step asked for 86400, past its top.
+    """
+    assert as_set(86340, 600, 0, 86340) == 85800
+    assert as_set(86000, 600, 0, 86340) == 85800
+    assert as_set(22.22, 1, 16, 30) == 22
+    assert as_set(21.4, 0.1, 16, 30) == 21.4
+    assert as_set(7200.0) == 7200

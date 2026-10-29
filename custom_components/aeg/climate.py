@@ -346,7 +346,12 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             await self.coordinator.send(
                 self._appliance_id,
                 TARGET,
-                as_set(float(wanted), self.target_temperature_step, self.min_temp),
+                as_set(
+                    float(wanted),
+                    self.target_temperature_step,
+                    self.min_temp,
+                    self.max_temp,
+                ),
             )
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:

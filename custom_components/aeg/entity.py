@@ -33,6 +33,7 @@ presented and, where it can be set, how it is sent back.
 
 from __future__ import annotations
 
+import math
 import re
 from typing import Any
 
@@ -98,7 +99,12 @@ def degrees(capability: Capability) -> UnitOfTemperature:
     return UnitOfTemperature.CELSIUS
 
 
-def as_set(value: float, step: float | None = None, base: float = 0.0) -> float | int:
+def as_set(
+    value: float,
+    step: float | None = None,
+    base: float = 0.0,
+    top: float | None = None,
+) -> float | int:
     """A number in the shape the appliance sends it in.
 
     Home Assistant hands every number over as a fraction, and an appliance
@@ -109,10 +115,17 @@ def as_set(value: float, step: float | None = None, base: float = 0.0) -> float 
     It lands on a step the appliance takes, counted from where its range
     starts. Somebody working in Fahrenheit asks for 72 and Home Assistant
     hands over 22.22 for a field that moves a degree at a time.
+
+    Never past the top, which is not always a whole number of steps up: an
+    oven offers a delayed start of up to 86340 seconds in steps of 600, and
+    rounding the last of those up asks for a minute more than it takes.
     """
     if step:
+        steps = round((value - base) / step)
+        if top is not None and base + steps * step > top:
+            steps = math.floor((top - base) / step)
         # Rounded again afterwards, or a step of 0.1 leaves 21.400000000000002.
-        value = round(base + round((value - base) / step) * step, 6)
+        value = round(base + steps * step, 6)
     return int(value) if value.is_integer() else value
 
 
