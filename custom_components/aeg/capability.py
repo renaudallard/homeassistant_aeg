@@ -207,18 +207,38 @@ def _on_offer(node: Mapping[str, Any]) -> tuple[str, ...]:
     )
 
 
+def _span(given: Any) -> tuple[Any, Any, Any] | None:
+    """The lowest, highest and step of one range, in either of its spellings."""
+    if isinstance(given, Mapping):
+        return given.get("min"), given.get("max"), given.get("step")
+    if isinstance(given, Sequence) and not isinstance(given, str) and len(given) == 3:
+        return given[0], given[1], given[2]
+    return None
+
+
 def bounds(node: Mapping[str, Any]) -> tuple[Any, Any, Any]:
     """The lowest, highest and step a node gives a field, however it writes them.
 
     A washing machine and an oven name the three beside everything else. An
     air conditioner writes them as one list under range, in that order, and a
     robot vacuum names them inside a range of their own.
+
+    The newer air conditioner and the purifier set their timers from a list
+    of ranges, half hours up to ten hours and whole hours from eleven. Home
+    Assistant offers one range with one step, so the field runs from the
+    start of the first to the end of the last in the coarsest step. Every
+    whole hour is in one range or the other, so nothing offered is turned
+    down, at the cost of the half hours.
     """
-    given = node.get("range")
-    if isinstance(given, Mapping):
-        return given.get("min"), given.get("max"), given.get("step")
-    if isinstance(given, Sequence) and not isinstance(given, str) and len(given) == 3:
-        return given[0], given[1], given[2]
+    spans = node.get("ranges")
+    if isinstance(spans, Sequence) and not isinstance(spans, str):
+        read = [span for span in map(_span, spans) if span is not None]
+        if read and len(read) == len(spans):
+            step = max((number(step) or 0.0 for _, _, step in read), default=0.0)
+            return read[0][0], read[-1][1], step or None
+    given = _span(node.get("range"))
+    if given is not None:
+        return given
     return node.get("min"), node.get("max"), node.get("step")
 
 

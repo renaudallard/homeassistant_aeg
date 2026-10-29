@@ -184,7 +184,7 @@ afterwards; `binary_sensor.<appliance>_connection` is what says the machine has
 gone, rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Six details worth knowing, because they look like faults and are not:
+Seven details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
@@ -212,6 +212,10 @@ Six details worth knowing, because they look like faults and are not:
   writes the scale into the field name. Both are read on the scale they are
   on, so two readings that look like the same room temperature under different
   names are the same reading, and agree once Home Assistant has converted them.
+- **The newer air conditioner and the purifier set their timers in whole
+  hours.** They take half hours up to ten hours and whole hours from eleven,
+  and Home Assistant offers one step for the whole range, so every whole hour
+  is offered and the half hours are left to the app.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter

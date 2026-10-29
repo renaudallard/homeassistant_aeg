@@ -262,6 +262,26 @@ def test_a_range_written_on_its_own_is_read_too() -> None:
     assert (named.minimum, named.maximum, named.step) == (0.0, 100.0, 10.0)
 
 
+def test_a_timer_set_from_several_ranges_is_settable() -> None:
+    """The newer air conditioner and the purifier, in both their spellings.
+
+    Read as nothing, their start and stop timers came out as readings nobody
+    could set. Every whole hour is in one range or the other.
+    """
+    for spans in (
+        [[0, 36000, 1800], [39600, 86400, 3600]],
+        [
+            {"min": 0, "max": 36000, "step": 1800},
+            {"min": 39600, "max": 86400, "step": 3600},
+        ],
+    ):
+        timer = _one(
+            {"stopTime": {"access": "readwrite", "type": "number", "ranges": spans}}
+        )
+        assert platform_for(timer) == NUMBER
+        assert (timer.minimum, timer.maximum, timer.step) == (0.0, 86400.0, 3600.0)
+
+
 def test_readings_stay_readings() -> None:
     assert platform_for(
         _one({"runningTime": {"access": "read", "type": "number"}})
