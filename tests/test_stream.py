@@ -31,8 +31,9 @@ put in place. The messages here are the shapes the cloud really sends.
 """
 
 from typing import Any
+from unittest.mock import AsyncMock, MagicMock
 
-from custom_components.aeg.websocket import apply, merge
+from custom_components.aeg.websocket import AegStream, apply, merge
 
 
 def _message(appliance_id: str, metrics: list[dict[str, Any]]) -> dict[str, Any]:
@@ -160,3 +161,34 @@ def test_a_group_arriving_empty_is_not_a_group_that_has_gone() -> None:
         state,
     )
     assert state["an-appliance"]["userSelections"] == held
+
+
+def test_a_message_of_another_shape_changes_nothing() -> None:
+    """One odd frame should not take down a stream carrying everything else."""
+    state = {"a": {"doorState": "CLOSED"}}
+    for odd in (
+        {"Payload": "nothing"},
+        {"Payload": {"Appliances": "nothing"}},
+        {"Payload": {"Appliances": [1, "two", None]}},
+        {"Payload": {"Appliances": [{"ApplianceId": "a", "Metrics": 3}]}},
+        {"Payload": {"Appliances": [{"ApplianceId": "a", "Metrics": [None, 4]}]}},
+    ):
+        assert apply(odd, state) == set()
+    assert state == {"a": {"doorState": "CLOSED"}}
+
+
+def test_a_frame_that_is_not_a_message_is_passed_over() -> None:
+    heard: list[dict[str, Any]] = []
+    stream = AegStream(
+        MagicMock(),
+        "wss://ws.eu.ocp.electrolux.one",
+        AsyncMock(),
+        lambda: 43200.0,
+        ["a"],
+        heard.append,
+        lambda connected: None,
+    )
+    stream._read("not json")
+    stream._read("[1, 2]")
+    stream._read('{"Payload": {}}')
+    assert heard == [{"Payload": {}}]

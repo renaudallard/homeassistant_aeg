@@ -192,7 +192,7 @@ class AegStream:
                 async with asyncio.timeout(renew_in):
                     async for message in socket:
                         if message.type is aiohttp.WSMsgType.TEXT:
-                            self._on_message(message.json())
+                            self._read(message.data)
                         elif message.type is aiohttp.WSMsgType.ERROR:
                             raise aiohttp.ClientError("the stream reported an error")
                         else:
@@ -201,6 +201,22 @@ class AegStream:
                 _LOGGER.debug("opening the stream again before the token expires")
                 return True
         return False
+
+    def _read(self, text: str) -> None:
+        """Hand on one message, unless there is nothing in it to read.
+
+        One frame that does not parse is no reason to drop a connection that
+        is carrying everything else, and wait half a minute to open another.
+        """
+        try:
+            message = json.loads(text)
+        except ValueError:
+            _LOGGER.debug("the stream sent something that is not JSON")
+            return
+        if not isinstance(message, dict):
+            _LOGGER.debug("the stream sent something that is not a message")
+            return
+        self._on_message(message)
 
 
 def merge(reported: dict[str, Any], name: str, value: Any) -> None:
@@ -220,13 +236,21 @@ def merge(reported: dict[str, Any], name: str, value: Any) -> None:
 def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]:
     """Apply a pushed message, and say whose state it touched."""
     touched: set[str] = set()
-    payload = message.get("Payload") or {}
-    for entry in payload.get("Appliances") or []:
+    payload = message.get("Payload")
+    appliances = payload.get("Appliances") if isinstance(payload, dict) else None
+    if not isinstance(appliances, list):
+        return touched
+    for entry in appliances:
+        if not isinstance(entry, dict):
+            continue
         appliance_id = str(entry.get("ApplianceId") or "")
         reported = state.get(appliance_id)
-        if reported is None:
+        metrics = entry.get("Metrics")
+        if reported is None or not isinstance(metrics, list):
             continue
-        for metric in entry.get("Metrics") or []:
+        for metric in metrics:
+            if not isinstance(metric, dict):
+                continue
             name = metric.get("Name")
             if not isinstance(name, str):
                 continue
