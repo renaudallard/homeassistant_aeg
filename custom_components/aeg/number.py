@@ -38,6 +38,10 @@ from .capability import NUMBER, Capability, is_duration, number, written
 from .coordinator import AegCoordinator
 from .entity import AegEntity, as_set, degrees, fields
 
+# One command at a time, so that a scene setting several things on one
+# appliance has them arrive in turn rather than all at once.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback

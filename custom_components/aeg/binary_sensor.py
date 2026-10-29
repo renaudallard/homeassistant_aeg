@@ -43,6 +43,10 @@ from .capability import ALERTS, BINARY_SENSOR
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity, AegEntity, fields
 
+# Everything here is read from what the account already holds, so there is
+# nothing to wait on.
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback

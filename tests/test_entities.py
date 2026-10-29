@@ -2594,3 +2594,37 @@ async def test_the_entities_that_are_not_fields_are_translated_too(
     assert "Lave-linge Connexion" in names.values()
     assert "Lave-linge Micrologiciel" in names.values()
     assert "Lave-linge Se termine à" in names.values()
+
+
+async def test_settings_changed_together_are_sent_in_turn(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A scene setting two things on one washer sent both at once."""
+    await _setup(hass, entry, api)
+    sending = 0
+    most = 0
+    release = asyncio.Event()
+
+    async def slow(appliance_id: str, command: dict[str, Any]) -> None:
+        nonlocal sending, most
+        sending += 1
+        most = max(most, sending)
+        await release.wait()
+        sending -= 1
+
+    api.send_command.side_effect = slow
+    calls = [
+        hass.async_create_task(
+            hass.services.async_call(
+                "number",
+                "set_value",
+                {"entity_id": "number.lave_linge_finish_in", "value": value},
+                blocking=True,
+            )
+        )
+        for value in (3600, 7200)
+    ]
+    await asyncio.sleep(0.05)
+    release.set()
+    await asyncio.gather(*calls)
+    assert most == 1

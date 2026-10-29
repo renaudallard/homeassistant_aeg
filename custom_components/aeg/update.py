@@ -97,6 +97,11 @@ WORKING = frozenset(
 IN_HAND = WAITING | WORKING
 
 
+# Everything here is read from what the account already holds, so there is
+# nothing to wait on.
+PARALLEL_UPDATES = 0
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback
 ) -> None:

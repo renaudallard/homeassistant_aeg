@@ -68,6 +68,11 @@ def numbering(values: tuple[str, ...]) -> dict[str, str]:
     return {value: str(place) for place, value in enumerate(values, start=1)}
 
 
+# One command at a time, so that a scene setting several things on one
+# appliance has them arrive in turn rather than all at once.
+PARALLEL_UPDATES = 1
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback
 ) -> None:
