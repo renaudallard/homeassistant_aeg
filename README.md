@@ -177,7 +177,9 @@ never reported the field. An appliance that is asleep or quiet keeps
 everything it has, and so does one the account left out of a listing, along
 with the record of what it has been seen reporting. A field it has gone quiet
 about reads unavailable, even across a restart, and comes back as soon as it
-is mentioned again.
+is mentioned again. A field it reports for the first time after a start loads
+the entry again once, so that it gets its entity without waiting for a
+restart.
 
 Every appliance also gets a **connection** binary sensor, which is where a
 machine going quiet shows up. When the cloud stops calling an appliance

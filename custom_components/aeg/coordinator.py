@@ -48,7 +48,16 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import AegApi
-from .capability import RUNNING, STATE, Capability, counts_down, number, parse, value_at
+from .capability import (
+    RUNNING,
+    STATE,
+    Capability,
+    counts_down,
+    number,
+    parse,
+    platform_for,
+    value_at,
+)
 from .const import BRANDS, DOMAIN
 from .errors import AegAuthError, AegError, AegRefused
 from .triggers import Override, evaluate
@@ -438,6 +447,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         self._refresh_overrides(appliances)
         self._look_again_when_it_ends(appliances)
         self._notice_new(appliances)
+        self._notice_fields(appliances)
         for appliance in appliances.values():
             # The one line worth having when an appliance goes quiet, which is
             # the far end of an answer too long to log whole.
@@ -465,6 +475,45 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         _LOGGER.debug(
             "%d appliance(s) added to the account, loading it again", len(added)
         )
+        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+
+    def _notice_fields(self, appliances: dict[str, Appliance]) -> None:
+        """Load the account again when an appliance first reports a field.
+
+        What each appliance reports is gathered while the entry is set up, so
+        a washing machine that happened to be quiet about its wash settings at
+        every start would never get them. Once it has been seen, a field keeps
+        its entity, so this happens once for each field for good.
+        """
+        entry = self.config_entry
+        if entry is None:
+            return
+        wanted = False
+        for appliance in appliances.values():
+            seen = self._seen.get(appliance.id)
+            if seen is None:
+                continue
+            for capability in appliance.capabilities:
+                if capability.path in seen:
+                    continue
+                if value_at(appliance.reported, capability.path) is None:
+                    continue
+                seen.add(capability.path)
+                wanted = wanted or platform_for(capability) is not None
+        if wanted:
+            _LOGGER.debug("a field was reported for the first time, loading again")
+            entry.async_create_task(self.hass, self._reload_seeing(), "AEG fields")
+
+    async def _reload_seeing(self) -> None:
+        """Keep what has been seen, then load the entry again to build on it."""
+        entry = self.config_entry
+        if entry is None:
+            return
+        held = await self._store.async_load() or {}
+        for appliance_id, seen in self._seen.items():
+            if isinstance(held.get(appliance_id), dict):
+                held[appliance_id]["seen"] = sorted(seen)
+        await self._store.async_save(held)
         self.hass.config_entries.async_schedule_reload(entry.entry_id)
 
     def _refresh_overrides(self, appliances: dict[str, Appliance]) -> None:
@@ -553,6 +602,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             # What the appliance will accept moves with its state.
             self._refresh_overrides(self.data)
             self._look_again_when_it_ends(self.data)
+            self._notice_fields(self.data)
             self.async_set_updated_data(self.data)
 
     def _streaming(self, connected: bool) -> None:

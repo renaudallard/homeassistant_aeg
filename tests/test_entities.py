@@ -2229,3 +2229,35 @@ async def test_a_push_during_a_look_is_not_undone_by_it(
     await look
     appliance = next(iter(coordinator.data.values()))
     assert appliance.reported["doorState"] == "CLOSED"
+
+
+async def test_a_field_first_reported_later_gets_its_entity(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """What is seen used to be gathered only while setting up.
+
+    A washing machine quiet about a setting at every start never got an entity
+    for it, however often it reported the setting in between.
+    """
+    quiet = _fixture("wm-appliances")
+    del quiet[0]["properties"]["reported"]["userSelections"]["analogTemperature"]
+    api.appliances.return_value = quiet
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+
+    def temperature() -> list[str]:
+        return [
+            e.entity_id
+            for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if e.unique_id.endswith("-userSelections/analogTemperature")
+        ]
+
+    assert not temperature()
+
+    # Still quiet about it when it is loaded again, so what brings the entity
+    # back is the setting having been kept, not reported a second time.
+    with _cloud(api):
+        _push(entry, ("userSelections", {"analogTemperature": "40_CELSIUS"}))
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert temperature()
