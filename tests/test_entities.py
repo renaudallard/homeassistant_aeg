@@ -32,6 +32,7 @@ what the appliance says about itself, so this is the check that the reading of
 that description holds up against a real one.
 """
 
+import asyncio
 import copy
 import json
 from collections.abc import Iterator
@@ -2199,3 +2200,32 @@ async def test_a_numbered_command_is_sent_as_a_number(
     )
     _, command = api.send_command.await_args.args
     assert command == {"clearCyclePersonalizationCmd": 0}
+
+
+async def test_a_push_during_a_look_is_not_undone_by_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A command asks for a look at once, and its push tends to land mid way.
+
+    The listing was asked for before the push and put back what it changed,
+    which nothing then corrected for ten minutes while the stream ran.
+    """
+    await _setup(hass, entry, api)
+    coordinator = entry.runtime_data.coordinator
+    asked = asyncio.Event()
+    answer = asyncio.Event()
+
+    async def slow_listing() -> list[dict[str, Any]]:
+        asked.set()
+        await answer.wait()
+        listing: list[dict[str, Any]] = _fixture("wm-appliances")
+        return listing
+
+    api.appliances.side_effect = slow_listing
+    look = hass.async_create_task(coordinator.async_refresh())
+    await asked.wait()
+    _push(entry, ("doorState", "CLOSED"))
+    answer.set()
+    await look
+    appliance = next(iter(coordinator.data.values()))
+    assert appliance.reported["doorState"] == "CLOSED"

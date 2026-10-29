@@ -264,6 +264,9 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         self._endings: dict[str, CALLBACK_TYPE] = {}
         # The listing read while setting up, waiting for the first update.
         self._listed: list[dict[str, Any]] | None = None
+        # What was pushed while a listing was on its way. The listing was
+        # asked for first, so it would put back what they changed.
+        self._meanwhile: list[dict[str, Any]] | None = None
 
     def seen(self, appliance_id: str) -> set[str]:
         """The fields this appliance has been known to report."""
@@ -399,13 +402,17 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
     async def _async_update_data(self) -> dict[str, Appliance]:
         listed, self._listed = self._listed, None
+        meanwhile: list[dict[str, Any]] = []
         if listed is None:
+            self._meanwhile = meanwhile
             try:
                 listed = await self.api.appliances()
             except AegAuthError as err:
                 raise ConfigEntryAuthFailed(str(err)) from err
             except AegError as err:
                 raise UpdateFailed(str(err)) from err
+            finally:
+                self._meanwhile = None
 
         appliances: dict[str, Appliance] = {}
         for entry in listed:
@@ -424,6 +431,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 connected=entry.get("connectionState") == "connected",
                 overrides={},
             )
+        # Sending a command asks for a look straight away, and the push that
+        # says it was taken tends to arrive while that look is on its way.
+        for message in meanwhile:
+            apply(message, {key: value.reported for key, value in appliances.items()})
         self._refresh_overrides(appliances)
         self._look_again_when_it_ends(appliances)
         self._notice_new(appliances)
@@ -530,6 +541,8 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
     def _pushed(self, message: dict[str, Any]) -> None:
         """Fold a pushed change into what we hold and tell the entities."""
+        if self._meanwhile is not None:
+            self._meanwhile.append(message)
         touched = apply(
             message, {key: value.reported for key, value in self.data.items()}
         )
