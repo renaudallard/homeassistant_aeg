@@ -38,7 +38,7 @@ import json
 import logging
 import time
 from base64 import urlsafe_b64decode
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import aiohttp
@@ -82,10 +82,14 @@ class IdentityProvider:
 
 @dataclass(frozen=True)
 class Tokens:
-    """An OCP access token with the refresh token that renews it."""
+    """An OCP access token with the refresh token that renews it.
 
-    access_token: str
-    refresh_token: str
+    Neither is written out when the pair is, so that nothing logging one by
+    mistake hands the account over with it.
+    """
+
+    access_token: str = field(repr=False)
+    refresh_token: str = field(repr=False)
     expires_at: float
 
     @property

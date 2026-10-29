@@ -41,7 +41,7 @@ import hmac
 import logging
 import time
 from base64 import b64decode, b64encode
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha1
 from random import SystemRandom
 from typing import Any
@@ -77,10 +77,14 @@ class GigyaIds:
 
 @dataclass(frozen=True)
 class GigyaSession:
-    """A logged in Gigya session, which carries the key to sign requests."""
+    """A logged in Gigya session, which carries the key to sign requests.
 
-    token: str
-    secret: str
+    Neither half is written out when the session is, for the same reason as
+    the token pair.
+    """
+
+    token: str = field(repr=False)
+    secret: str = field(repr=False)
 
 
 def _nonce() -> str:

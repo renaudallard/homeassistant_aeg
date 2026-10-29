@@ -35,8 +35,9 @@ from typing import Any
 
 import pytest
 
-from custom_components.aeg.auth import _tokens_from
+from custom_components.aeg.auth import Tokens, _tokens_from
 from custom_components.aeg.errors import AegAuthError
+from custom_components.aeg.gigya import GigyaSession
 
 
 def test_reads_the_v1_answer() -> None:
@@ -99,3 +100,18 @@ def test_a_missing_half_is_refused() -> None:
         _tokens_from({"refreshToken": "b", "expiresIn": 60})
     with pytest.raises(AegAuthError):
         _tokens_from({})
+
+
+def test_a_token_pair_written_out_gives_nothing_away() -> None:
+    """Nothing logs one today; this keeps it so if something ever does."""
+    pair = Tokens("an-access-token", "a-refresh-token", 4102444800.0)
+    session = GigyaSession("a-session-token", "a-session-secret")
+    written = repr(pair) + repr(session)
+    for secret in (
+        "an-access-token",
+        "a-refresh-token",
+        "a-session-token",
+        "a-session-secret",
+    ):
+        assert secret not in written
+    assert "4102444800.0" in written
