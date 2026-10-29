@@ -51,11 +51,11 @@ from homeassistant.helpers import device_registry as dr
 from . import AegConfigEntry
 from .capability import platform_for
 from .const import DOMAIN
-from .coordinator import Appliance
+from .coordinator import AegCoordinator, Appliance
 from .http import redact
 
 
-def _appliance(appliance: Appliance) -> dict[str, Any]:
+def _appliance(coordinator: AegCoordinator, appliance: Appliance) -> dict[str, Any]:
     """Everything worth knowing about one machine."""
     return {
         "model": appliance.model,
@@ -75,9 +75,16 @@ def _appliance(appliance: Appliance) -> dict[str, Any]:
                 "max": capability.maximum,
                 "step": capability.step,
                 "disabled": capability.disabled,
+                # The rules behind what it accepts now, so that working it
+                # out again from a report does not need the appliance.
+                "triggers": list(capability.triggers),
+                "offers": capability.offers,
             }
             for capability in appliance.capabilities
         ],
+        # Which fields it has ever been seen reporting, which is what decides
+        # whether a field it describes gets an entity.
+        "seen": sorted(coordinator.seen(appliance.id)),
         "accepts_now": {
             path: {
                 "access": override.access,
@@ -115,7 +122,8 @@ async def async_get_config_entry_diagnostics(
         "entry": redact(dict(entry.data)),
         "polling": _polling(entry),
         "appliances": [
-            _appliance(appliance) for appliance in coordinator.data.values()
+            _appliance(coordinator, appliance)
+            for appliance in coordinator.data.values()
         ],
     }
 
@@ -137,5 +145,5 @@ async def async_get_device_diagnostics(
     return {
         "entry": redact(dict(entry.data)),
         "polling": _polling(entry),
-        "appliances": [_appliance(appliance) for appliance in found],
+        "appliances": [_appliance(coordinator, appliance) for appliance in found],
     }

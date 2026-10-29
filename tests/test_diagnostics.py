@@ -73,6 +73,16 @@ async def test_it_says_what_the_appliance_can_do(
     temperature = machine["accepts_now"]["userSelections/analogTemperature"]
     assert set(temperature) == {"access", "values", "disabled", "min", "max", "step"}
 
+    # And the rules that came to, along with what has ever been reported, so
+    # that a report says why a field has no entity or will not take a value.
+    state = next(f for f in machine["describes"] if f["path"] == "applianceState")
+    assert state["triggers"]
+    programme = next(
+        f for f in machine["describes"] if f["path"] == "userSelections/programUID"
+    )
+    assert programme["offers"]
+    assert "doorState" in machine["seen"]
+
 
 async def test_it_says_whether_the_stream_is_carrying_it(
     hass: HomeAssistant,

@@ -295,8 +295,9 @@ off the order they came in would offer the hardest setting as one of seven.
 
 The device page offers to download diagnostics, and that is the one to send:
 it carries the whole of what that appliance said about itself, what model it
-says it is, what it is reporting, what it will accept right now, and whether
-the stream is carrying the updates or polling is. The integration entry offers
+says it is, what it is reporting, what it will accept right now and the rules
+that decide it, which fields it has ever been seen reporting, and whether the
+stream is carrying the updates or polling is. The integration entry offers
 the same thing for every appliance on the account at once, which is worth
 having only when the trouble is with the account rather than with a machine.
 
