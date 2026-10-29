@@ -144,7 +144,7 @@ since nothing has been listed to tell the two apart.
 | a number with a range | a number |
 | what firmware it is running | an update entity, and whether one is in hand |
 | the version its network unit is on | the firmware line on the device page |
-| a mode and a target temperature | a thermostat, as well as the parts |
+| a mode and a target temperature at the top of its tree | a thermostat, as well as the parts |
 | a length of time | a sensor in seconds, and one reading as a clock |
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
@@ -157,6 +157,10 @@ want them.
 
 An appliance added to the account turns up on the next look, which loads the
 entry again to read what the new one can do.
+
+The newer air conditioner keeps its mode and target temperature under a group
+of its own and names them differently, so it gets those as a select and a
+number but no thermostat.
 
 The newer air conditioner, the purifier and the robot vacuum are built on a
 newer data model, which they declare in their capability tree, and the app
