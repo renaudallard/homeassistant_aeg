@@ -29,11 +29,12 @@
 from __future__ import annotations
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import NUMBER, Capability, number, written
+from .capability import NUMBER, Capability, is_duration, number, written
 from .coordinator import AegCoordinator
 from .entity import AegEntity, as_set, degrees, fields
 
@@ -60,6 +61,11 @@ class AegNumber(AegEntity, NumberEntity):
             # it in Fahrenheit, as the thermostat beside it already is.
             self._attr_device_class = NumberDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = degrees(capability)
+        elif is_duration(capability):
+            # A delayed start or finish, in seconds, the same as the sensors
+            # reading the same kind of field.
+            self._attr_device_class = NumberDeviceClass.DURATION
+            self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
 
     @property
     def available(self) -> bool:

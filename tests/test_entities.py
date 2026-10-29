@@ -1962,6 +1962,17 @@ async def test_a_whole_number_is_sent_whole(
     assert isinstance(command["stopTime"], int)
 
 
+async def test_a_delayed_finish_says_it_is_in_seconds(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The sensors on the same kind of field said so and the control did not."""
+    await _setup(hass, entry, api)
+    finish = hass.states.get("number.lave_linge_finish_in")
+    assert finish is not None
+    assert finish.attributes["device_class"] == "duration"
+    assert finish.attributes["unit_of_measurement"] == "s"
+
+
 async def test_a_stop_time_that_is_not_set_reads_as_nothing(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
