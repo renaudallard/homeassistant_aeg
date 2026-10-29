@@ -162,7 +162,13 @@ def _forget_what_is_gone(
     keeps the name and sits there with nothing to say.
     """
     keep = provided(coordinator)
-    listed = tuple(coordinator.data)
+    # One the cloud would not describe is listed with nothing it can do,
+    # which says nothing about what it has.
+    listed = tuple(
+        appliance_id
+        for appliance_id, appliance in coordinator.data.items()
+        if appliance.capabilities
+    )
     registry = er.async_get(hass)
     for existing in er.async_entries_for_config_entry(registry, entry.entry_id):
         unique_id = existing.unique_id

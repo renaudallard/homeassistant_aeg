@@ -67,6 +67,7 @@ from custom_components.aeg.const import (
     CONF_WS_URL,
     DOMAIN,
 )
+from custom_components.aeg.coordinator import capability_store
 from custom_components.aeg.errors import AegConnectionError, AegRefused
 from custom_components.aeg.names import is_setting
 
@@ -247,6 +248,26 @@ async def test_an_appliance_described_before_goes_on_with_that(
     api.capabilities.side_effect = None
     await _again(hass, entry, api)
     assert api.capabilities.await_count == 3
+
+
+async def test_an_appliance_that_will_not_describe_itself_keeps_its_entities(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """With nothing held for it, it is listed with nothing it can do.
+
+    That read as an appliance with none of the fields it had entities for,
+    and every one of them was taken out of the register, names, areas and
+    automations along with it.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    before = er.async_entries_for_config_entry(registry, entry.entry_id)
+    await capability_store(hass, entry).async_remove()
+    api.capabilities.side_effect = AegRefused("the capabilities were refused (404)")
+    await _again(hass, entry, api)
+    assert entry.state is ConfigEntryState.LOADED
+    after = er.async_entries_for_config_entry(registry, entry.entry_id)
+    assert len(after) == len(before)
 
 
 async def test_an_appliance_never_described_waits_out_a_cloud_that_is_unwell(
