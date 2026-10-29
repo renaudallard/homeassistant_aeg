@@ -604,3 +604,22 @@ async def test_a_target_set_in_fahrenheit_lands_on_a_whole_degree(
     )
     _, command = api.send_command.await_args.args
     assert command == {"targetTemperatureC": 22}
+
+
+async def test_a_target_number_is_shown_in_fahrenheit_too(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The thermostat converted and the number for the same field did not."""
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    await _setup(hass, entry, api)
+    target = hass.states.get("number.clim_target_temperature")
+    assert target is not None
+    assert target.attributes["unit_of_measurement"] == UnitOfTemperature.FAHRENHEIT
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": "number.clim_target_temperature", "value": 72},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"targetTemperatureC": 22}

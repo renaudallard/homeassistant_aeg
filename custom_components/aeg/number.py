@@ -28,7 +28,7 @@
 
 from __future__ import annotations
 
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.number import NumberDeviceClass, NumberEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -56,6 +56,9 @@ class AegNumber(AegEntity, NumberEntity):
     ) -> None:
         super().__init__(coordinator, appliance_id, capability)
         if capability.kind == "temperature":
+            # Said to be one, so that somebody working in Fahrenheit is shown
+            # it in Fahrenheit, as the thermostat beside it already is.
+            self._attr_device_class = NumberDeviceClass.TEMPERATURE
             self._attr_native_unit_of_measurement = degrees(capability)
 
     @property
