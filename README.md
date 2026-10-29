@@ -90,7 +90,9 @@ model nobody has tried works the same way as the one this was written against.
   model does not have get no entity at all.
 - **Settings kept apart from controls** — water hardness, the panel lock and
   the end of cycle sound are things you set once, so they sit under
-  Configuration on the device page rather than among the spin speeds.
+  Configuration on the device page rather than among the spin speeds. One the
+  appliance gives nothing to set it with, as the robot vacuum does with its
+  language, is a plain reading instead.
 - **Two commands it will not hand you** — an appliance describes a command
   that takes it off the account and one that wipes its network unit exactly
   the way it describes start and pause. Those two get no entity, hidden or

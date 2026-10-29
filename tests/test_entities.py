@@ -2406,3 +2406,35 @@ async def test_a_figure_that_arrives_as_its_listed_word_reads_unknown(
     shortest = hass.states.get(seconds)
     assert shortest is not None
     assert shortest.state == "3600"
+
+
+async def test_a_setting_with_nothing_to_set_it_with_is_still_added(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    api: AsyncMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The robot vacuum takes a language and gives no list of them.
+
+    That makes it a reading, and a reading put under Configuration is one
+    Home Assistant refuses to add at all.
+    """
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+    tree["language"] = {"access": "readwrite", "type": "string"}
+    api.capabilities.return_value = tree
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["language"] = "fr"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    assert "Error adding entity" not in caplog.text
+    registry = er.async_get(hass)
+    language = next(
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.endswith("-language")
+    )
+    assert language.entity_category is None
+    state = hass.states.get(language.entity_id)
+    assert state is not None
+    assert state.state == "fr"

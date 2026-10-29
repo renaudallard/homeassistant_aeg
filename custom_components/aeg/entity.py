@@ -40,6 +40,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .capability import (
+    BINARY_SENSOR,
+    SENSOR,
     Capability,
     is_housekeeping,
     platform_for,
@@ -286,10 +288,16 @@ class AegEntity(AegApplianceEntity):
             # Worth having, not worth showing next to the wash.
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
             self._attr_entity_registry_enabled_default = False
-        elif capability.writable and is_setting(capability.name):
+        elif (
+            capability.writable
+            and is_setting(capability.name)
+            and platform not in (SENSOR, BINARY_SENSOR)
+        ):
             # Something about the machine rather than about the wash, so it
             # goes under Configuration and stays out of the way. Only where it
-            # can be set: the same name read only is a reading like any other.
+            # can be set: the same name read only is a reading like any other,
+            # and so is one the appliance takes but gives nothing to set it
+            # with, which Home Assistant will not put under Configuration.
             self._attr_entity_category = EntityCategory.CONFIG
 
     def _yields(self, key: str) -> bool:
