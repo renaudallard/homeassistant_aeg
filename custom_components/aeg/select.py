@@ -35,7 +35,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import SELECT, Capability
+from .capability import SELECT, Capability, written
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields
 
@@ -122,9 +122,19 @@ class AegSelect(AegEntity, SelectEntity):
     @property
     def current_option(self) -> str | None:
         value = self.reported
-        if value not in self.capability.values:
+        if isinstance(value, bool):
             return None
-        return self._shown.get(str(value), str(value))
+        listed = next(
+            (
+                each
+                for each in self.capability.values
+                if value in (each, written(self.capability, each))
+            ),
+            None,
+        )
+        if listed is None:
+            return None
+        return self._shown.get(listed, listed)
 
     async def async_select_option(self, option: str) -> None:
-        await self.send(self._values.get(option, option))
+        await self.send(written(self.capability, self._values.get(option, option)))

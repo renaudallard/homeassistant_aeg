@@ -330,6 +330,24 @@ def platform_for(capability: Capability) -> str | None:
     return SENSOR if capability.readable else None
 
 
+def written(capability: Capability, value: str) -> Any:
+    """One of a field's values, as the appliance writes it.
+
+    Values are the keys of an object, so they arrive as text whatever the
+    field holds. A field that holds a number reports one and takes one: a
+    memory slot listed as "20" reads 20, and the app clears a personalised
+    cycle by sending 0 rather than "0". A number field that lists words, as
+    an air conditioner's ON and OFF, keeps them.
+    """
+    if capability.kind not in NUMERIC:
+        return value
+    try:
+        figure = float(value)
+    except ValueError:
+        return value
+    return int(figure) if figure.is_integer() else figure
+
+
 def is_duration(capability: Capability) -> bool:
     """Whether a field holds a length of time rather than a plain number.
 

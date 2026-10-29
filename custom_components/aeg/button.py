@@ -37,7 +37,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import BUTTON, Capability
+from .capability import BUTTON, Capability, written
 from .coordinator import AegCoordinator
 from .entity import AegEntity, fields, pretty
 from .icons import icon_for_command
@@ -87,4 +87,4 @@ class AegButton(AegEntity, ButtonEntity):
         )
 
     async def async_press(self) -> None:
-        await self.send(self._command)
+        await self.send(written(self.capability, self._command))

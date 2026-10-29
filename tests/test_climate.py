@@ -468,3 +468,30 @@ async def test_a_mode_is_sent_back_in_the_letters_the_appliance_uses(
     )
     _, command = api.send_command.await_args.args
     assert command == {"executeCommand": "off"}
+
+
+async def test_a_number_offered_as_a_choice_is_read_and_sent_as_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The values are written as text, being keys, and the field holds a number.
+
+    Read as text, the select never matched what the appliance reported and
+    sent back text it does not report.
+    """
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["soundVolume"] = 1
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    volume = hass.states.get("select.clim_volume")
+    assert volume is not None
+    assert volume.state == "1"
+
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": "select.clim_volume", "option": "0"},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"soundVolume": 0}

@@ -2151,3 +2151,21 @@ async def test_a_worded_flag_is_drawn_by_the_state_it_shows(
     assert lock is not None
     assert lock.state == "off"
     assert lock.attributes["icon"] == "mdi:lock-open-variant"
+
+
+async def test_a_numbered_command_is_sent_as_a_number(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The app clears a personalised cycle by sending 0, not "0"."""
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    clear = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.endswith("-clearCyclePersonalizationCmd-0")
+    )
+    await hass.services.async_call(
+        "button", "press", {"entity_id": clear}, blocking=True
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"clearCyclePersonalizationCmd": 0}
