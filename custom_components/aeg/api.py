@@ -51,7 +51,12 @@ from .const import (
     TOKEN_EXPIRY_MARGIN,
     Brand,
 )
-from .errors import AegAuthError, AegConnectionError, AegTooManyRequests
+from .errors import (
+    AegAuthError,
+    AegConnectionError,
+    AegRefused,
+    AegTooManyRequests,
+)
 from .http import redact_url
 
 _LOGGER = logging.getLogger(__name__)
@@ -169,9 +174,10 @@ class AegApi:
                 f"{redact_url(url)} rejected the access token ({status})"
             )
         if status >= 400:
-            raise AegConnectionError(
-                f"{redact_url(url)} refused the request ({status})"
-            )
+            # Too many requests is a matter of when rather than of what, so
+            # it is not a refusal.
+            error = AegConnectionError if status == 429 else AegRefused
+            raise error(f"{redact_url(url)} refused the request ({status})")
         return payload
 
     async def appliances(self) -> list[dict[str, Any]]:

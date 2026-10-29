@@ -50,7 +50,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import AegApi
 from .capability import RUNNING, STATE, Capability, counts_down, number, parse, value_at
 from .const import BRANDS, DOMAIN
-from .errors import AegAuthError, AegError
+from .errors import AegAuthError, AegError, AegRefused
 from .triggers import Override, evaluate
 from .websocket import AegStream, apply
 
@@ -297,12 +297,14 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 reported = (entry.get("properties") or {}).get("reported") or {}
                 fingerprint = value_at(reported, "applianceInfo/capabilityHash")
                 known = held.get(appliance_id)
-                if fingerprint and known and known.get("hash") == fingerprint:
-                    tree = known["tree"]
-                    _LOGGER.debug("%s describes what it did last time", appliance_id)
-                else:
-                    tree = await self.api.capabilities(appliance_id)
-                    _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
+                described = await self._described(appliance_id, fingerprint, known)
+                if described is None:
+                    # Held as known, with nothing it can do, so that the first
+                    # update does not read it as just added and load the entry
+                    # again for it, and again after that.
+                    self._capabilities[appliance_id] = []
+                    continue
+                tree, fingerprint = described
                 capabilities = parse(tree)
                 seen = (
                     {str(path) for path in known.get("seen") or ()} if known else set()
@@ -337,6 +339,44 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
         if keeping != held:
             await self._store.async_save(keeping)
+
+    async def _described(
+        self, appliance_id: str, fingerprint: Any, known: dict[str, Any] | None
+    ) -> tuple[dict[str, Any], Any] | None:
+        """What an appliance can do, and the hash to keep that under.
+
+        One appliance the cloud will not describe is no reason to take the
+        rest of the account down with it. One described before goes on with
+        what it said then, kept under the hash it said it under so that the
+        next start asks again. One never described is left out until then
+        when the cloud has turned the request down, since asking again gets
+        the same answer; anything else is the cloud being unwell, and setting
+        the entry up again later is what will get the answer.
+        """
+        if fingerprint and known and known.get("hash") == fingerprint:
+            _LOGGER.debug("%s describes what it did last time", appliance_id)
+            return known["tree"], fingerprint
+        try:
+            tree = await self.api.capabilities(appliance_id)
+        except AegError as err:
+            if known and known.get("tree"):
+                _LOGGER.debug(
+                    "%s will not describe itself, going on with what it said "
+                    "before: %s",
+                    appliance_id,
+                    err,
+                )
+                return known["tree"], known.get("hash")
+            if not isinstance(err, (AegAuthError, AegRefused)):
+                raise
+            _LOGGER.warning(
+                "An appliance on the account will not say what it can do, so it "
+                "has no entities until the integration is loaded again: %s",
+                err,
+            )
+            return None
+        _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
+        return tree, fingerprint
 
     async def _what_it_is(self, appliance_id: str) -> dict[str, Any]:
         """What the appliance is, or nothing when the cloud will not say.

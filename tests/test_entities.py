@@ -66,7 +66,7 @@ from custom_components.aeg.const import (
     CONF_WS_URL,
     DOMAIN,
 )
-from custom_components.aeg.errors import AegConnectionError
+from custom_components.aeg.errors import AegConnectionError, AegRefused
 from custom_components.aeg.names import is_setting
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -191,6 +191,72 @@ async def test_a_tree_kept_by_another_version_is_asked_for_again(
     await _setup(hass, entry, api)
     assert entry.state is ConfigEntryState.LOADED
     api.capabilities.assert_awaited_once()
+
+
+def _two_appliances() -> list[dict[str, Any]]:
+    """The washing machine, and a second one beside it."""
+    listed = _fixture("wm-appliances")
+    second = copy.deepcopy(listed[0])
+    second["applianceId"] = "another-appliance"
+    return [listed[0], second]
+
+
+async def test_an_appliance_the_cloud_will_not_describe_is_left_out(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """One appliance turned down is no reason to take the account down."""
+    api.appliances.return_value = _two_appliances()
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+
+    async def described(appliance_id: str) -> dict[str, Any]:
+        if appliance_id == "another-appliance":
+            raise AegRefused("the capabilities were refused (404)")
+        return tree
+
+    api.capabilities.side_effect = described
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        await _setup(hass, entry, api)
+        await entry.runtime_data.coordinator.async_refresh()
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("select.lave_linge_water_hardness") is not None
+    # Left out is not newly added, so nothing loads the entry again for it.
+    reload.assert_not_called()
+
+
+async def test_an_appliance_described_before_goes_on_with_that(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A tree that has changed and cannot be read is still better than none.
+
+    It is kept under the hash it was read under, so the next start asks again.
+    """
+    await _setup(hass, entry, api)
+    changed = _fixture("wm-appliances")
+    changed[0]["properties"]["reported"]["applianceInfo"]["capabilityHash"] = (
+        "a-new-one"
+    )
+    api.appliances.return_value = changed
+    api.capabilities.side_effect = AegConnectionError("unreachable")
+    await _again(hass, entry, api)
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("select.lave_linge_water_hardness") is not None
+
+    api.capabilities.side_effect = None
+    await _again(hass, entry, api)
+    assert api.capabilities.await_count == 3
+
+
+async def test_an_appliance_never_described_waits_out_a_cloud_that_is_unwell(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Setting the entry up again later is what gets the answer."""
+    api.capabilities.side_effect = AegConnectionError("unreachable")
+    with _cloud(api):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.SETUP_RETRY
 
 
 async def test_the_appliance_loads(

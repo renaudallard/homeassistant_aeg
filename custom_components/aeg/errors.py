@@ -56,6 +56,14 @@ class AegConnectionError(AegError):
     """The service could not be reached, or answered with something unusable."""
 
 
+class AegRefused(AegConnectionError):
+    """The service understood the request and turned it down.
+
+    Asking again will get the same answer, which is what tells it apart from a
+    service that could not be reached or was busy.
+    """
+
+
 class AegBackendError(AegConnectionError):
     """The service answered with a server side failure."""
 

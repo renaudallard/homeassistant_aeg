@@ -149,6 +149,14 @@ want them.
 An appliance added to the account turns up on the next look, which loads the
 entry again to read what the new one can do.
 
+An appliance the cloud will not describe does not take the rest of the account
+down with it. One described before carries on with what it said then, and is
+asked again on the next start. One never described is left with only its
+connection sensor and firmware until the integration is loaded again, and a
+warning in the log says so. When the cloud is merely unreachable, the whole
+entry is set up again later instead, the way Home Assistant retries any
+integration.
+
 The device is named for the model it was sold as, with the product number from
 its rating plate beside it. The account listing does not carry either: it gives
 the kind of thing an appliance is, so a house of AEG washing machines is a
