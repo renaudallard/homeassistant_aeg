@@ -65,6 +65,9 @@ from .websocket import AegStream, apply
 
 _LOGGER = logging.getLogger(__name__)
 
+# What an appliance built on the newer data model declares itself with.
+DATA_MODEL = "dataModelVersion"
+
 # Bump when a capability tree read from the store would no longer be
 # understood. Anything written under another version is thrown away rather
 # than migrated, so the next start fetches instead of trusting it.
@@ -670,6 +673,13 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 if belongs_to is not None:
                     target[PROGRAMME] = belongs_to
         target[segments[-1]] = value
+        if appliance is not None and any(
+            capability.path == DATA_MODEL for capability in appliance.capabilities
+        ):
+            # The newer air conditioner, the purifier and the robot vacuum
+            # declare a data model version, and the app sends those their
+            # commands as a list under commands rather than on their own.
+            command = {"commands": [command]}
         try:
             await self.api.send_command(appliance_id, command)
         except AegError as err:

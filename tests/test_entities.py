@@ -2477,3 +2477,29 @@ async def test_a_number_read_from_a_range_of_its_own_gets_its_name(
     volume = hass.states.get("number.lave_linge_volume")
     assert volume is not None
     assert volume.attributes["friendly_name"] == "Lave-linge Volume"
+
+
+async def test_an_appliance_on_the_newer_data_model_is_sent_a_list(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The newer air conditioner, the purifier and the vacuum declare one.
+
+    The app sends those their commands as a list under commands, and they
+    were being sent on their own, the way the older appliances take them.
+    """
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+    tree["dataModelVersion"] = {
+        "access": "constant",
+        "type": "string",
+        "value": "DAM-1.0.0",
+    }
+    api.capabilities.return_value = tree
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": "number.lave_linge_finish_in", "value": 7200},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"commands": [{"stopTime": 7200}]}

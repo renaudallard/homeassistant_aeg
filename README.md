@@ -158,6 +158,12 @@ want them.
 An appliance added to the account turns up on the next look, which loads the
 entry again to read what the new one can do.
 
+The newer air conditioner, the purifier and the robot vacuum are built on a
+newer data model, which they declare in their capability tree, and the app
+sends them each command as a list under `commands`. They get theirs that way
+too. That shape is read from the app and from another integration that does
+the same; it has not been tried here against one of those appliances.
+
 An appliance the cloud will not describe does not take the rest of the account
 down with it. One described before carries on with what it said then, and is
 asked again on the next start. One never described is left with only its
