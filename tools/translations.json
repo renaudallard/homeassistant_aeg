@@ -1149,6 +1149,16 @@
     "pl": "Aplikacja, w której utworzono konto. Konto należy do jednej marki i nie można się zalogować jako druga.",
     "sv": "Appen som kontot skapades i. Ett konto tillhör ett märke och kan inte logga in som det andra."
   },
+  "The appliance did not take the command: {error}": {
+    "da": "Apparatet tog ikke imod kommandoen: {error}",
+    "de": "Das Gerät hat den Befehl nicht angenommen: {error}",
+    "es": "El electrodoméstico no aceptó la orden: {error}",
+    "fr": "L'appareil n'a pas accepté la commande : {error}",
+    "it": "L'elettrodomestico non ha accettato il comando: {error}",
+    "nl": "Het apparaat heeft de opdracht niet aangenomen: {error}",
+    "pl": "Urządzenie nie przyjęło polecenia: {error}",
+    "sv": "Apparaten tog inte emot kommandot: {error}"
+  },
   "The country the account was registered in, which decides which server holds your appliances.": {
     "da": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på.",
     "de": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen.",

@@ -42,7 +42,7 @@ from typing import Any
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -543,5 +543,16 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 if belongs_to is not None:
                     target[PROGRAMME] = belongs_to
         target[segments[-1]] = value
-        await self.api.send_command(appliance_id, command)
+        try:
+            await self.api.send_command(appliance_id, command)
+        except AegError as err:
+            # Turned down or never delivered, which is for whoever asked to
+            # hear rather than a fault in this. Nor is a refusal here taken as
+            # the account being signed out: the listing is read on the same
+            # token, and the next look says so if it is.
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="command_failed",
+                translation_placeholders={"error": str(err)},
+            ) from err
         await self.async_request_refresh()

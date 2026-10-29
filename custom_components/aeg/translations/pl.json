@@ -458,5 +458,10 @@
         "name": "Ponowne użycie wody"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "Urządzenie nie przyjęło polecenia: {error}"
+    }
   }
 }

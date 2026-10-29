@@ -458,5 +458,10 @@
         "name": "Réutilisation de l'eau"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "L'appareil n'a pas accepté la commande : {error}"
+    }
   }
 }

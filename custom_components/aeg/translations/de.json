@@ -458,5 +458,10 @@
         "name": "Wasserwiederverwendung"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "Das Gerät hat den Befehl nicht angenommen: {error}"
+    }
   }
 }

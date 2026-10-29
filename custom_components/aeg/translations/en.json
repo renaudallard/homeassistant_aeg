@@ -458,5 +458,10 @@
         "name": "Water reuse"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "The appliance did not take the command: {error}"
+    }
   }
 }

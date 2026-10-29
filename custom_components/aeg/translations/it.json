@@ -458,5 +458,10 @@
         "name": "Riutilizzo dell'acqua"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "L'elettrodomestico non ha accettato il comando: {error}"
+    }
   }
 }

@@ -458,5 +458,10 @@
         "name": "Genbrug af vand"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "Apparatet tog ikke imod kommandoen: {error}"
+    }
   }
 }

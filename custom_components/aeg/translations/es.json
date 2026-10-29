@@ -458,5 +458,10 @@
         "name": "Reutilización de agua"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "El electrodoméstico no aceptó la orden: {error}"
+    }
   }
 }

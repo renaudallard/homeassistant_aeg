@@ -458,5 +458,10 @@
         "name": "Återanvändning av vatten"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "Apparaten tog inte emot kommandot: {error}"
+    }
   }
 }

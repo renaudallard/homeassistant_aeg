@@ -278,6 +278,10 @@ every entity goes unavailable while the integration carries on talking to the
 cloud quite happily. Check the connection sensor first, and the appliance's own
 network settings after that.
 
+A command the cloud turns down, or never gets, comes back as an error saying
+so, with the status the cloud answered with, rather than as an unexpected
+exception in the log.
+
 ## How the login works
 
 Signing in takes two services, and the order matters. Every step below is the

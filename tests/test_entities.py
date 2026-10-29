@@ -46,6 +46,7 @@ from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, EntityCategory, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
@@ -1722,6 +1723,32 @@ async def test_a_level_is_sent_back_as_the_appliance_names_it(
     )
     _, command = api.send_command.await_args.args
     assert command == {"waterHardness": "STEP_6"}
+
+
+async def test_a_refused_command_is_said_to_whoever_asked(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An appliance turning a setting down is not a fault in the integration.
+
+    Home Assistant writes anything that is not one of its own errors out as
+    an unexpected exception with a traceback, and the user gets nothing they
+    can read.
+    """
+    await _setup(hass, entry, api)
+    api.send_command.side_effect = AegConnectionError("the cloud refused it (406)")
+    with pytest.raises(HomeAssistantError) as raised:
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": "select.lave_linge_water_hardness", "option": "STEP_6"},
+            blocking=True,
+        )
+    assert raised.value.translation_key == "command_failed"
+    assert raised.value.translation_placeholders == {
+        "error": "the cloud refused it (406)"
+    }
+    # Turned down is not signed out.
+    assert not list(entry.async_get_active_flows(hass, {"reauth"}))
 
 
 async def test_a_group_inside_a_group_takes_its_own_programme(

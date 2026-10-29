@@ -458,5 +458,10 @@
         "name": "Waterhergebruik"
       }
     }
+  },
+  "exceptions": {
+    "command_failed": {
+      "message": "Het apparaat heeft de opdracht niet aangenomen: {error}"
+    }
   }
 }
