@@ -2348,3 +2348,26 @@ async def test_a_look_under_way_at_unload_arranges_nothing_after_it(
     await look
     assert await unloading
     assert not coordinator._endings
+
+
+async def test_fields_first_reported_one_push_at_a_time_load_it_once(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A washing machine can report its settings a frame at a time.
+
+    Each new field loaded the entry again, and each of those was a new
+    listing, a new stream and every entity blinking out.
+    """
+    quiet = _fixture("wm-appliances")
+    settings = quiet[0]["properties"]["reported"]["userSelections"]
+    for name in ("analogTemperature", "analogSpinSpeed", "steamValue"):
+        del settings[name]
+    api.appliances.return_value = quiet
+    await _setup(hass, entry, api)
+
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        _push(entry, ("userSelections", {"analogTemperature": "40_CELSIUS"}))
+        _push(entry, ("userSelections", {"analogSpinSpeed": "1400_RPM"}))
+        _push(entry, ("userSelections", {"steamValue": "STEAM_OFF"}))
+        await hass.async_block_till_done()
+    reload.assert_called_once()

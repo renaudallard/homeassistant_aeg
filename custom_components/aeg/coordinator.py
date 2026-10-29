@@ -471,14 +471,13 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         of its own and no place in the stream. Reading them means setting the
         entry up again, which is not something an update can do for itself.
         """
-        entry = self.config_entry
         added = set(appliances) - set(self._capabilities)
-        if not added or entry is None or self._closing:
+        if not added or self._closing:
             return
         _LOGGER.debug(
             "%d appliance(s) added to the account, loading it again", len(added)
         )
-        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        self._load_again()
 
     def _notice_fields(self, appliances: dict[str, Appliance]) -> None:
         """Load the account again when an appliance first reports a field.
@@ -505,7 +504,23 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 wanted = wanted or platform_for(capability) is not None
         if wanted:
             _LOGGER.debug("a field was reported for the first time, loading again")
-            entry.async_create_task(self.hass, self._reload_seeing(), "AEG fields")
+            self._load_again()
+
+    @callback
+    def _load_again(self) -> None:
+        """Load the entry again, once.
+
+        Fields first reported in one push after another, or an appliance
+        added in the same look as one, would each load it again otherwise,
+        every one of them a new listing, a new stream and entities blinking
+        out. This coordinator is on its way out once it has asked, so it
+        arranges nothing else either.
+        """
+        entry = self.config_entry
+        if entry is None or self._closing:
+            return
+        self._closing = True
+        entry.async_create_task(self.hass, self._reload_seeing(), "AEG reload")
 
     async def _reload_seeing(self) -> None:
         """Keep what has been seen, then load the entry again to build on it."""
