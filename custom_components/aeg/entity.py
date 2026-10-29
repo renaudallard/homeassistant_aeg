@@ -112,15 +112,17 @@ def as_set(
     Sending 22.0 where it said 22 is the same reading written a way it never
     writes it, so a whole number goes back whole.
 
-    It lands on a step the appliance takes, counted from where its range
-    starts. Somebody working in Fahrenheit asks for 72 and Home Assistant
-    hands over 22.22 for a field that moves a degree at a time.
+    A fraction lands on a step the appliance takes, counted from where its
+    range starts. Somebody working in Fahrenheit asks for 72 and Home
+    Assistant hands over 22.22 for a field that moves a degree at a time. A
+    whole number is left as it was asked for: the purifier takes half hours
+    that the one step its timers are offered in leaves out, and a whole
+    number of degrees from Fahrenheit is already a multiple of five.
 
     Never past the top, which is not always a whole number of steps up: an
-    oven offers a delayed start of up to 86340 seconds in steps of 600, and
-    rounding the last of those up asks for a minute more than it takes.
+    oven offers a delayed start of up to 86340 seconds in steps of 600.
     """
-    if step:
+    if step and not value.is_integer():
         steps = round((value - base) / step)
         if top is not None and base + steps * step > top:
             steps = math.floor((top - base) / step)

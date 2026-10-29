@@ -2571,11 +2571,20 @@ def test_a_number_sent_stays_within_its_range() -> None:
 
     Rounding the last of those to a step asked for 86400, past its top.
     """
-    assert as_set(86340, 600, 0, 86340) == 85800
-    assert as_set(86000, 600, 0, 86340) == 85800
+    assert as_set(86339.5, 600, 0, 86340) == 85800
+    assert as_set(86000.5, 600, 0, 86340) == 85800
     assert as_set(22.22, 1, 16, 30) == 22
     assert as_set(21.4, 0.1, 16, 30) == 21.4
     assert as_set(7200.0) == 7200
+
+
+def test_a_whole_number_sent_is_left_as_asked() -> None:
+    """The purifier takes half hours its timers are not offered in.
+
+    Rounding every number to the one step offered turned 1800 into 0.
+    """
+    assert as_set(1800.0, 3600, 0, 86400) == 1800
+    assert as_set(86340.0, 600, 0, 86340) == 86340
 
 
 async def test_the_entities_that_are_not_fields_are_translated_too(

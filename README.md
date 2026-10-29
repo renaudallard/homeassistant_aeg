@@ -224,8 +224,9 @@ Eight details worth knowing, because they look like faults and are not:
   the same choices, and shows no target temperature in a mode that takes
   none, as two air conditioners do while only the fan runs. A target set
   together with a mode is checked against that mode and sent after it, and
-  any number sent is rounded to a step the appliance takes and kept within its
-  range, so 72 °F goes to an air conditioner as 22 °C rather than 22.22.
+  a fraction sent is rounded to a step the appliance takes and kept within its
+  range, so 72 °F goes to an air conditioner as 22 °C rather than 22.22. A
+  whole number goes as it was asked for.
 - **The programme decides what the rest of the wash will take.** A washing
   machine offers six spin speeds on one programme and three on another, and
   the eco programme fixes the temperature at forty and turns economy on, so
