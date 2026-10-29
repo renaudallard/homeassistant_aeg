@@ -462,6 +462,9 @@
   "exceptions": {
     "command_failed": {
       "message": "Apparaten tog inte emot kommandot: {error}"
+    },
+    "target_not_taken": {
+      "message": "Apparaten tar inte emot någon måltemperatur i det läge den är i."
     }
   }
 }

@@ -1159,6 +1159,16 @@
     "pl": "Urządzenie nie przyjęło polecenia: {error}",
     "sv": "Apparaten tog inte emot kommandot: {error}"
   },
+  "The appliance takes no target temperature in the mode it is in.": {
+    "da": "Apparatet tager ikke imod en måltemperatur i den tilstand, det er i.",
+    "de": "Das Gerät nimmt in seinem aktuellen Modus keine Zieltemperatur an.",
+    "es": "El electrodoméstico no admite una temperatura objetivo en el modo en que está.",
+    "fr": "L'appareil n'accepte pas de température cible dans le mode où il se trouve.",
+    "it": "L'elettrodomestico non accetta una temperatura target nella modalità in cui si trova.",
+    "nl": "Het apparaat neemt geen doeltemperatuur aan in de modus waarin het staat.",
+    "pl": "Urządzenie nie przyjmuje temperatury docelowej w obecnym trybie.",
+    "sv": "Apparaten tar inte emot någon måltemperatur i det läge den är i."
+  },
   "The country the account was registered in, which decides which server holds your appliances.": {
     "da": "Det land, kontoen blev oprettet i, som afgør hvilken server dine apparater ligger på.",
     "de": "Das Land, in dem das Konto registriert wurde, das bestimmt, auf welchem Server Ihre Geräte liegen.",

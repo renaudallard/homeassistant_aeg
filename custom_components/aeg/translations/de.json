@@ -462,6 +462,9 @@
   "exceptions": {
     "command_failed": {
       "message": "Das Gerät hat den Befehl nicht angenommen: {error}"
+    },
+    "target_not_taken": {
+      "message": "Das Gerät nimmt in seinem aktuellen Modus keine Zieltemperatur an."
     }
   }
 }

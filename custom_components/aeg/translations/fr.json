@@ -462,6 +462,9 @@
   "exceptions": {
     "command_failed": {
       "message": "L'appareil n'a pas accepté la commande : {error}"
+    },
+    "target_not_taken": {
+      "message": "L'appareil n'accepte pas de température cible dans le mode où il se trouve."
     }
   }
 }

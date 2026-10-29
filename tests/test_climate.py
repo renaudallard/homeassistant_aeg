@@ -495,3 +495,34 @@ async def test_a_number_offered_as_a_choice_is_read_and_sent_as_one(
     )
     _, command = api.send_command.await_args.args
     assert command == {"soundVolume": 0}
+
+
+async def test_a_mode_that_takes_no_target_is_not_sent_one(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Two air conditioners disable the target while only the fan runs.
+
+    The number entity on the field went unavailable and the thermostat went on
+    showing the figure and sending a new one.
+    """
+    tree = json.loads((FIXTURES / "ac-capabilities.json").read_text())
+    for trigger in tree["mode"]["triggers"]:
+        if trigger["condition"]["operand_2"] == "FANONLY":
+            trigger["action"]["targetTemperatureC"] = {"disabled": True}
+    api.capabilities.return_value = tree
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = "FANONLY"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    climate = hass.states.get(THERMOSTAT)
+    assert climate is not None
+    assert climate.attributes["temperature"] is None
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "climate",
+            "set_temperature",
+            {"entity_id": THERMOSTAT, "temperature": 25},
+            blocking=True,
+        )
+    api.send_command.assert_not_awaited()

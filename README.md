@@ -199,7 +199,8 @@ Six details worth knowing, because they look like faults and are not:
   conditioner drops TURBO from its fan speeds in its automatic and fan only
   modes, so the list shrinks with the mode. Whatever it is set to now stays
   on the list either way. The thermostat gathering the same fields up offers
-  the same choices.
+  the same choices, and shows no target temperature in a mode that takes
+  none, as two air conditioners do while only the fan runs.
 - **The programme decides what the rest of the wash will take.** A washing
   machine offers six spin speeds on one programme and three on another, and
   the eco programme fixes the temperature at forty and turns economy on, so

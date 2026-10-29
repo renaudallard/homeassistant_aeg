@@ -44,10 +44,12 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import ClimateEntityFeature, HVACMode
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
 from .capability import Capability
+from .const import DOMAIN
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity, as_set
 
@@ -223,6 +225,12 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
 
     @property
     def target_temperature(self) -> float | None:
+        if not self.override_for(TARGET).writable:
+            # An air conditioner running only its fan takes no target, and
+            # the figure it still reports is not one it is aiming for. The
+            # number entity on the same field goes unavailable for the same
+            # reason.
+            return None
         reading = self.at(TARGET)
         return float(reading) if isinstance(reading, (int, float)) else None
 
@@ -297,10 +305,14 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         wanted = kwargs.get(ATTR_TEMPERATURE)
-        if wanted is not None:
-            await self.coordinator.send(
-                self._appliance_id, TARGET, as_set(float(wanted))
+        if wanted is None:
+            return
+        if not self.override_for(TARGET).writable:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="target_not_taken",
             )
+        await self.coordinator.send(self._appliance_id, TARGET, as_set(float(wanted)))
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         await self.coordinator.send(self._appliance_id, FAN, fan_mode)
