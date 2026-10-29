@@ -193,7 +193,7 @@ afterwards; `binary_sensor.<appliance>_connection` is what says the machine has
 gone, rather than every other entity saying it at once. Controls do go unavailable,
 since there is nothing to set on an appliance that cannot be reached.
 
-Seven details worth knowing, because they look like faults and are not:
+Eight details worth knowing, because they look like faults and are not:
 
 - **The command buttons are unavailable until remote control is armed** at the
   machine. A washer reporting `NOT_SAFETY_RELEVANT_ENABLED` will not take a
@@ -225,6 +225,9 @@ Seven details worth knowing, because they look like faults and are not:
   hours.** They take half hours up to ten hours and whole hours from eleven,
   and Home Assistant offers one step for the whole range, so every whole hour
   is offered and the half hours are left to the app.
+- **A stop time that is not set reads unknown.** The appliance says -1 for
+  it, which is outside what the control takes, so clearing one that has been
+  set is left to the app.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter

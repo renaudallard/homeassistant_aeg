@@ -33,7 +33,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AegConfigEntry
-from .capability import NUMBER, Capability
+from .capability import NUMBER, Capability, number, written
 from .coordinator import AegCoordinator
 from .entity import AegEntity, as_set, degrees, fields
 
@@ -93,8 +93,16 @@ class AegNumber(AegEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        value = self.reported
-        return float(value) if isinstance(value, (int, float)) else None
+        value = number(self.reported)
+        # A number that lists values beside its range is listing what it says
+        # when it has none: a washing machine's stop time reads -1 until one
+        # is set, which is no time at all rather than a second before none.
+        if any(
+            number(written(self.capability, each)) == value
+            for each in self.capability.values
+        ):
+            return None
+        return value
 
     async def async_set_native_value(self, value: float) -> None:
         await self.send(as_set(value))

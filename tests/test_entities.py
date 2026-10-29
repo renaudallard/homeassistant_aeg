@@ -1938,6 +1938,26 @@ async def test_a_whole_number_is_sent_whole(
     assert isinstance(command["stopTime"], int)
 
 
+async def test_a_stop_time_that_is_not_set_reads_as_nothing(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The washer reports -1 until a stop time is set.
+
+    It read -1 under a minimum of 0, a figure the control itself would not
+    take back.
+    """
+    await _setup(hass, entry, api)
+    finish = hass.states.get("number.lave_linge_finish_in")
+    assert finish is not None
+    assert finish.state == "unknown"
+
+    _push(entry, ("stopTime", 7200))
+    await hass.async_block_till_done()
+    finish = hass.states.get("number.lave_linge_finish_in")
+    assert finish is not None
+    assert float(finish.state) == 7200
+
+
 async def test_a_flag_the_appliance_words_is_sent_in_its_words(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
