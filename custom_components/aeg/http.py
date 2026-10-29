@@ -229,8 +229,11 @@ async def request(
             body = await response.read()
             _LOGGER.debug("  <- %s %s", status, redact(dict(response.headers)))
     except (aiohttp.ClientError, TimeoutError) as err:
-        _LOGGER.debug("  <- did not answer: %s", err)
-        raise AegConnectionError(f"{redact_url(url)} is unreachable: {err}") from err
+        # Some of these write out the whole address they were asked for, the
+        # appliance id along with it.
+        why = redact_url(str(err))
+        _LOGGER.debug("  <- did not answer: %s", why)
+        raise AegConnectionError(f"{redact_url(url)} is unreachable: {why}") from err
 
     _LOGGER.debug("  <- body %s", _readable(body))
 

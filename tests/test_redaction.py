@@ -330,6 +330,24 @@ async def test_hides_a_secret_in_query_parameters(
     assert "a-secret-token" not in caplog.text
 
 
+async def test_an_answer_that_cannot_be_read_gives_no_id_away(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """aiohttp quotes the whole address when a header will not parse."""
+    url = f"{BASE}/{APPLIANCE}/command"
+    asked = aiohttp.RequestInfo(url, "PUT", {}, url)  # type: ignore[arg-type]
+    session = MagicMock()
+    session.request.side_effect = aiohttp.ClientResponseError(
+        asked, (), status=400, message="invalid header"
+    )
+    caplog.set_level(logging.DEBUG, logger="custom_components.aeg.http")
+    with pytest.raises(AegConnectionError) as raised:
+        await request(session, "PUT", url)
+    assert "invalid header" in str(raised.value)
+    assert APPLIANCE not in str(raised.value)
+    assert APPLIANCE not in caplog.text
+
+
 def test_a_refusal_quoted_in_an_error_gives_nothing_away() -> None:
     """The message is logged, so it gets the same treatment as the debug log."""
     text = _detail({"message": "Bad Request", "refreshToken": "a-secret-token"})
