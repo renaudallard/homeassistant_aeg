@@ -48,9 +48,11 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT, connect=CONNECT_TIMEOUT)
 
 # Anything under one of these names is a credential, a token, or says who the
-# account belongs to and which appliance is theirs. Debug logging is meant to be
-# pasted into a bug report, so none of it goes out in the clear, in a body or
-# in the headers either way along.
+# account belongs to and which appliance is theirs. The newer air conditioner
+# and the purifier report the network they are on and their own hardware
+# address, which say as much. Debug logging is meant to be pasted into a bug
+# report, so none of it goes out in the clear, in a body or in the headers
+# either way along.
 #
 # "state" is deliberately absent: it is a profile field, but it is also what an
 # appliance calls the thing we most want to read in a log.
@@ -78,6 +80,7 @@ SECRETS = frozenset(
         "idtoken",
         "lastname",
         "loginid",
+        "mac",
         "nickname",
         "oauth_token",
         "password",
@@ -90,6 +93,7 @@ SECRETS = frozenset(
         "sessiontoken",
         "set-cookie",
         "sig",
+        "ssid",
         "ucid",
         "uid",
         "uidsignature",

@@ -273,8 +273,9 @@ the same thing for every appliance on the account at once, which is worth
 having only when the trouble is with the account rather than with a machine.
 
 Both are redacted the same way the logs are, so tokens, keys, cookies, the
-address on the account and the appliance's own identifier are replaced by a
-note of their length, whether they arrived as text or as a number. What kind
+address on the account, the appliance's own identifier, and the name and
+hardware address of the network it is on are replaced by a note of their
+length, whether they arrived as text or as a number. What kind
 of appliance it is, what it is doing, and the codes for whatever it is
 complaining about all stay readable.
 

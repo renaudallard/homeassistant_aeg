@@ -275,6 +275,23 @@ def test_what_the_appliance_is_complaining_about_stays_readable() -> None:
     assert "hidden" not in text
 
 
+def test_hides_the_network_an_appliance_is_on() -> None:
+    """The newer air conditioner and the purifier report both."""
+    hidden = redact(
+        {
+            "networkInterface": {
+                "mac": "A4:CF:12:34:56:78",
+                "ssid": "Maison Dupont",
+                "wifiStrength": "good",
+            }
+        }
+    )
+    text = json.dumps(hidden)
+    assert "A4:CF" not in text
+    assert "Dupont" not in text
+    assert "good" in text
+
+
 def test_a_model_naming_its_alerts_in_the_singular_is_read_the_same() -> None:
     assert redact({"alert": [{"code": "E20"}]}) == {"alert": [{"code": "E20"}]}
 
