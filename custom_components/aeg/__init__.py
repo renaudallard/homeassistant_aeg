@@ -36,7 +36,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_COUNTRY, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -222,6 +222,10 @@ async def async_remove_config_entry_device(
     Taking an appliance off the account is done in the vendor app, and this is
     for tidying up after that has been done.
     """
+    if entry.state is not ConfigEntryState.LOADED:
+        # Nothing has been listed to tell an appliance still on the account
+        # from one that has gone, so it is kept until something has.
+        return False
     listed = set(entry.runtime_data.coordinator.data)
     return not any(
         domain == DOMAIN and appliance_id in listed

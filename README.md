@@ -126,7 +126,9 @@ fix that would cost every entity id and all the history with them.
 
 An appliance unpaired in the vendor app stops being listed, and its device can
 then be deleted from its own page. One that is still on the account cannot: it
-would come back on the next look as a new device with nothing behind it.
+would come back on the next look as a new device with nothing behind it. Nor
+can any while the entry is not loaded, waiting to be signed in again for one,
+since nothing has been listed to tell the two apart.
 
 ## What you get
 

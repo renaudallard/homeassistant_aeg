@@ -2006,6 +2006,20 @@ async def test_a_device_can_be_deleted_once_the_account_has_dropped_it(
     assert await async_remove_config_entry_device(hass, entry, device)
 
 
+async def test_a_device_is_kept_while_the_account_is_not_loaded(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Waiting to be signed in again, say, with nothing listed to go by.
+
+    Asking used to fail with an unknown error and a traceback in the log.
+    """
+    await _setup(hass, entry, api)
+    device = _the_device(hass, entry)
+    await hass.config_entries.async_unload(entry.entry_id)
+    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert not await async_remove_config_entry_device(hass, entry, device)
+
+
 async def test_the_manufacturer_is_what_the_appliance_says_it_is(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
