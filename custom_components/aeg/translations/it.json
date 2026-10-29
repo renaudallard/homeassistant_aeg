@@ -464,7 +464,7 @@
       "message": "L'elettrodomestico non ha accettato il comando: {error}"
     },
     "target_not_taken": {
-      "message": "L'elettrodomestico non accetta una temperatura target nella modalità in cui si trova."
+      "message": "L'elettrodomestico non accetta una temperatura target in quella modalità."
     }
   }
 }

@@ -464,7 +464,7 @@
       "message": "The appliance did not take the command: {error}"
     },
     "target_not_taken": {
-      "message": "The appliance takes no target temperature in the mode it is in."
+      "message": "The appliance takes no target temperature in that mode."
     }
   }
 }

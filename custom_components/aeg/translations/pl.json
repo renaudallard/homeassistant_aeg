@@ -464,7 +464,7 @@
       "message": "Urządzenie nie przyjęło polecenia: {error}"
     },
     "target_not_taken": {
-      "message": "Urządzenie nie przyjmuje temperatury docelowej w obecnym trybie."
+      "message": "Urządzenie nie przyjmuje temperatury docelowej w tym trybie."
     }
   }
 }

@@ -464,7 +464,7 @@
       "message": "Apparatet tog ikke imod kommandoen: {error}"
     },
     "target_not_taken": {
-      "message": "Apparatet tager ikke imod en måltemperatur i den tilstand, det er i."
+      "message": "Apparatet tager ikke imod en måltemperatur i den tilstand."
     }
   }
 }

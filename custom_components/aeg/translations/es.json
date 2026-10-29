@@ -464,7 +464,7 @@
       "message": "El electrodoméstico no aceptó la orden: {error}"
     },
     "target_not_taken": {
-      "message": "El electrodoméstico no admite una temperatura objetivo en el modo en que está."
+      "message": "El electrodoméstico no admite una temperatura objetivo en ese modo."
     }
   }
 }

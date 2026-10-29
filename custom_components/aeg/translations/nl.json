@@ -464,7 +464,7 @@
       "message": "Het apparaat heeft de opdracht niet aangenomen: {error}"
     },
     "target_not_taken": {
-      "message": "Het apparaat neemt geen doeltemperatuur aan in de modus waarin het staat."
+      "message": "Het apparaat neemt in die modus geen doeltemperatuur aan."
     }
   }
 }
