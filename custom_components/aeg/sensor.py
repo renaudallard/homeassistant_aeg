@@ -275,8 +275,10 @@ class AegFinishesAt(AegEntity, SensorEntity):
         self._attr_unique_id = f"{appliance_id}-{capability.path}-at"
         self._drawn = None
         # Named for what it is rather than for the field it comes from, since
-        # an appliance has one thing it is counting down to.
-        self._attr_name = "Finishes at"
+        # an appliance has one thing it is counting down to. A name the field
+        # was given would win over the translation, so it goes.
+        vars(self).pop("_attr_name", None)
+        self._attr_translation_key = "finishes_at"
         self._at: datetime | None = None
         # The seconds left and whether it was running, when the finish was
         # last worked out.

@@ -120,7 +120,7 @@ class AegConnection(AegApplianceEntity, BinarySensorEntity):
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_name = "Connection"
+    _attr_translation_key = "connection"
 
     def __init__(self, coordinator: AegCoordinator, appliance_id: str) -> None:
         super().__init__(coordinator, appliance_id)

@@ -249,6 +249,15 @@ def key_for(field: str) -> str:
     return CAMEL.sub(r"_\1", plain).lower()
 
 
+# Entities that are not a field of the appliance, by platform and key. Their
+# names are written beside the fields' so that they are translated too.
+OWN_NAMES: dict[str, dict[str, str]] = {
+    "binary_sensor": {"connection": "Connection"},
+    "sensor": {"finishes_at": "Finishes at"},
+    "update": {"firmware": "Firmware"},
+}
+
+
 # Everything below is written by tools/make_names.py. Do not edit it by hand.
 PLATFORMS_FOR: dict[str, frozenset[str]] = {
     "action_state": frozenset({"sensor"}),

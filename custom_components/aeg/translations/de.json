@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "Lädt"
       },
+      "connection": {
+        "name": "Verbindung"
+      },
       "mop_attach_state": {
         "name": "Wischmopp angebracht"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filter"
       },
+      "finishes_at": {
+        "name": "Fertig um"
+      },
       "food_probe_insertion_state": {
         "name": "Bratenthermometer"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Wasserwiederverwendung"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
       }
     }
   },

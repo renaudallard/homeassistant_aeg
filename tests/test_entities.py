@@ -2576,3 +2576,21 @@ def test_a_number_sent_stays_within_its_range() -> None:
     assert as_set(22.22, 1, 16, 30) == 22
     assert as_set(21.4, 0.1, 16, 30) == 21.4
     assert as_set(7200.0) == 7200
+
+
+async def test_the_entities_that_are_not_fields_are_translated_too(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The connection, the firmware and the finishing time were named in code.
+
+    A name set in code wins over any translation, so they stayed English.
+    """
+    hass.config.language = "fr"
+    await _setup(hass, entry, api)
+    names = {
+        state.entity_id: state.attributes.get("friendly_name")
+        for state in hass.states.async_all()
+    }
+    assert "Lave-linge Connexion" in names.values()
+    assert "Lave-linge Micrologiciel" in names.values()
+    assert "Lave-linge Se termine à" in names.values()

@@ -259,6 +259,16 @@
     "pl": "Powietrze komfortowe",
     "sv": "Komfortluft"
   },
+  "Connection": {
+    "da": "Forbindelse",
+    "de": "Verbindung",
+    "es": "Conexión",
+    "fr": "Connexion",
+    "it": "Connessione",
+    "nl": "Verbinding",
+    "pl": "Połączenie",
+    "sv": "Anslutning"
+  },
   "Connectivity": {
     "da": "Forbindelse",
     "de": "Verbindung",
@@ -598,6 +608,26 @@
     "nl": "Klaar over",
     "pl": "Koniec za",
     "sv": "Klar om"
+  },
+  "Finishes at": {
+    "da": "Færdig kl.",
+    "de": "Fertig um",
+    "es": "Termina a las",
+    "fr": "Se termine à",
+    "it": "Termina alle",
+    "nl": "Klaar om",
+    "pl": "Koniec o",
+    "sv": "Klar kl."
+  },
+  "Firmware": {
+    "da": "Firmware",
+    "de": "Firmware",
+    "es": "Firmware",
+    "fr": "Micrologiciel",
+    "it": "Firmware",
+    "nl": "Firmware",
+    "pl": "Oprogramowanie sprzętowe",
+    "sv": "Firmware"
   },
   "Food probe": {
     "da": "Stegetermometer",

@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "Oplader"
       },
+      "connection": {
+        "name": "Forbindelse"
+      },
       "mop_attach_state": {
         "name": "Moppe monteret"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filter"
       },
+      "finishes_at": {
+        "name": "Færdig kl."
+      },
       "food_probe_insertion_state": {
         "name": "Stegetermometer"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Genbrug af vand"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
       }
     }
   },

@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "Ładowanie"
       },
+      "connection": {
+        "name": "Połączenie"
+      },
       "mop_attach_state": {
         "name": "Mop zamocowany"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filtr"
       },
+      "finishes_at": {
+        "name": "Koniec o"
+      },
       "food_probe_insertion_state": {
         "name": "Sonda do mięsa"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Ponowne użycie wody"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Oprogramowanie sprzętowe"
       }
     }
   },

@@ -47,7 +47,13 @@ from pathlib import Path
 sys.path.insert(0, ".")
 
 from custom_components.aeg.capability import parse, platform_for
-from custom_components.aeg.names import NAMES, PLATFORMS_FOR, key_for, readable
+from custom_components.aeg.names import (
+    NAMES,
+    OWN_NAMES,
+    PLATFORMS_FOR,
+    key_for,
+    readable,
+)
 
 COMPONENT = Path("custom_components/aeg")
 TREES = ["tests/fixtures/*-capabilities.json", "tmp/base/assets/*capabilities*.json"]
@@ -101,6 +107,9 @@ def _write_strings(seen: dict[str, set[str]]) -> None:
     for field, name in NAMES.items():
         key = key_for(field)
         for platform in sorted(seen.get(key, ())):
+            by_platform[platform][key] = {"name": name}
+    for platform, own in OWN_NAMES.items():
+        for key, name in own.items():
             by_platform[platform][key] = {"name": name}
     for path in (COMPONENT / "strings.json", COMPONENT / "translations" / "en.json"):
         text = json.loads(path.read_text())

@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "In carica"
       },
+      "connection": {
+        "name": "Connessione"
+      },
       "mop_attach_state": {
         "name": "Mop attaccato"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filtro"
       },
+      "finishes_at": {
+        "name": "Termina alle"
+      },
       "food_probe_insertion_state": {
         "name": "Sonda alimenti"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Riutilizzo dell'acqua"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
       }
     }
   },

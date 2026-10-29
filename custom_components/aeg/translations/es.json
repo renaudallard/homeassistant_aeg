@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "Cargando"
       },
+      "connection": {
+        "name": "Conexión"
+      },
       "mop_attach_state": {
         "name": "Mopa colocada"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filtro"
       },
+      "finishes_at": {
+        "name": "Termina a las"
+      },
       "food_probe_insertion_state": {
         "name": "Sonda de cocción"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Reutilización de agua"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
       }
     }
   },

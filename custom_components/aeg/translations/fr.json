@@ -77,6 +77,9 @@
       "charge_state": {
         "name": "En charge"
       },
+      "connection": {
+        "name": "Connexion"
+      },
       "mop_attach_state": {
         "name": "Serpillière fixée"
       },
@@ -302,6 +305,9 @@
       "filter_state": {
         "name": "Filtre"
       },
+      "finishes_at": {
+        "name": "Se termine à"
+      },
       "food_probe_insertion_state": {
         "name": "Sonde de cuisson"
       },
@@ -450,6 +456,11 @@
       },
       "water_reuse": {
         "name": "Réutilisation de l'eau"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Micrologiciel"
       }
     }
   },

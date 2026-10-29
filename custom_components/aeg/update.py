@@ -116,7 +116,7 @@ class AegFirmware(AegApplianceEntity, UpdateEntity):
 
     _attr_device_class = None
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_name = "Firmware"
+    _attr_translation_key = "firmware"
     # Progress, but not install: the appliance updates itself and says how far
     # it has got, and Home Assistant only reads that when it is told to.
     _attr_supported_features = UpdateEntityFeature.PROGRESS

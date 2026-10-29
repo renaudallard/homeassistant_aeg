@@ -281,8 +281,10 @@ A value that is a name and a number is a step in a scale, and a field whose
 values all say their own number is shown as those numbers. The appliance still
 hears the name it uses.
 
-The entity names are translated into nine languages; the words an appliance
-answers with are not. A door reads OPEN and a wash that has finished reads
+The entity names are translated into nine languages, apart from the clocks
+written beside a length of time and the command buttons, which are named after
+the field and the command they come from. The words an appliance answers with
+are not translated. A door reads OPEN and a wash that has finished reads
 END_OF_CYCLE in every one of them, because a translated state has to be
 written in lower case and these appliances shout. Renaming them to fit would
 take every automation reading them along.
