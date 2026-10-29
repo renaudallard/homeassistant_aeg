@@ -105,4 +105,4 @@ class AegNumber(AegEntity, NumberEntity):
         return value
 
     async def async_set_native_value(self, value: float) -> None:
-        await self.send(as_set(value))
+        await self.send(as_set(value, self.native_step, self.native_min_value))

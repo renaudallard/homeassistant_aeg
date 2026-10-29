@@ -98,14 +98,21 @@ def degrees(capability: Capability) -> UnitOfTemperature:
     return UnitOfTemperature.CELSIUS
 
 
-def as_set(value: float) -> float | int:
+def as_set(value: float, step: float | None = None, base: float = 0.0) -> float | int:
     """A number in the shape the appliance sends it in.
 
     Home Assistant hands every number over as a fraction, and an appliance
     that counts its degrees and its seconds in whole ones reports them whole.
     Sending 22.0 where it said 22 is the same reading written a way it never
     writes it, so a whole number goes back whole.
+
+    It lands on a step the appliance takes, counted from where its range
+    starts. Somebody working in Fahrenheit asks for 72 and Home Assistant
+    hands over 22.22 for a field that moves a degree at a time.
     """
+    if step:
+        # Rounded again afterwards, or a step of 0.1 leaves 21.400000000000002.
+        value = round(base + round((value - base) / step) * step, 6)
     return int(value) if value.is_integer() else value
 
 

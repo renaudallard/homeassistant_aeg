@@ -49,6 +49,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.aeg.const import (
@@ -584,3 +585,22 @@ async def test_the_speed_the_fan_is_running_at_has_a_name_of_its_own(
     running = hass.states.get("sensor.clim_current_fan_speed")
     assert running is not None
     assert running.attributes["friendly_name"] == "Clim Current fan speed"
+
+
+async def test_a_target_set_in_fahrenheit_lands_on_a_whole_degree(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """72 °F is 22.22 °C, and the air conditioner moves a degree at a time.
+
+    The fraction went to the appliance as it was.
+    """
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "climate",
+        "set_temperature",
+        {"entity_id": THERMOSTAT, "temperature": 72},
+        blocking=True,
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"targetTemperatureC": 22}
