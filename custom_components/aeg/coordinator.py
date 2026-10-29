@@ -276,6 +276,9 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         # What was pushed while a listing was on its way. The listing was
         # asked for first, so it would put back what they changed.
         self._meanwhile: list[dict[str, Any]] | None = None
+        # Set once the entry is going. A look already under way still
+        # finishes, and must not arrange anything for an entry that has gone.
+        self._closing = False
 
     def seen(self, appliance_id: str) -> set[str]:
         """The fields this appliance has been known to report."""
@@ -470,7 +473,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         """
         entry = self.config_entry
         added = set(appliances) - set(self._capabilities)
-        if not added or entry is None:
+        if not added or entry is None or self._closing:
             return
         _LOGGER.debug(
             "%d appliance(s) added to the account, loading it again", len(added)
@@ -486,7 +489,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         its entity, so this happens once for each field for good.
         """
         entry = self.config_entry
-        if entry is None:
+        if entry is None or self._closing:
             return
         wanted = False
         for appliance in appliances.values():
@@ -538,7 +541,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         does not book sixty of them on its way to zero.
         """
         entry = self.config_entry
-        if entry is None:
+        if entry is None or self._closing:
             return
         for appliance in appliances.values():
             if appliance.id in self._endings or not _nearly_done(appliance):
@@ -558,7 +561,13 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
 
     @callback
     def stop_waiting(self) -> None:
-        """Give up on any look arranged for after a cycle ends."""
+        """Give up on any look arranged for after a cycle ends, and arrange no more.
+
+        A look asked for before the entry started going is let finish rather
+        than cut short, and what it reads would otherwise arrange another, or
+        load an entry that has been unloaded or deleted.
+        """
+        self._closing = True
         for cancel in self._endings.values():
             cancel()
         self._endings.clear()

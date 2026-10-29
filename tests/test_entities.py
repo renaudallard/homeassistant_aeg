@@ -2316,3 +2316,35 @@ async def test_a_field_first_reported_later_gets_its_entity(
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert temperature()
+
+
+async def test_a_look_under_way_at_unload_arranges_nothing_after_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A look is let finish while the entry goes, and reads what it reads.
+
+    One that found a wash about to end booked another look nothing would
+    ever cancel, against an entry that was no longer there.
+    """
+    await _setup(hass, entry, api)
+    coordinator = entry.runtime_data.coordinator
+    nearly: list[dict[str, Any]] = _fixture("wm-appliances")
+    nearly[0]["properties"]["reported"]["applianceState"] = "RUNNING"
+    nearly[0]["properties"]["reported"]["timeToEnd"] = 30
+    asked = asyncio.Event()
+    answer = asyncio.Event()
+
+    async def slow_listing() -> list[dict[str, Any]]:
+        asked.set()
+        await answer.wait()
+        return nearly
+
+    api.appliances.side_effect = slow_listing
+    look = entry.async_create_task(hass, coordinator.async_refresh(), "look")
+    await asked.wait()
+    unloading = hass.async_create_task(hass.config_entries.async_unload(entry.entry_id))
+    await asyncio.sleep(0)
+    answer.set()
+    await look
+    assert await unloading
+    assert not coordinator._endings

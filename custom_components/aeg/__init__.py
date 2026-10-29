@@ -250,7 +250,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool
     The stream goes first, and again afterwards through the callback above,
     which does nothing the second time. Stopping it here rather than leaving
     it to that keeps a pushed change from arriving while the entities it would
-    be about are being taken away.
+    be about are being taken away. Nothing more is arranged from here on
+    either, since a look already under way is let finish.
     """
-    await entry.runtime_data.coordinator.stop_stream()
+    coordinator = entry.runtime_data.coordinator
+    coordinator.stop_waiting()
+    await coordinator.stop_stream()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
