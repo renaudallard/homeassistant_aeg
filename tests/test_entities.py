@@ -35,6 +35,7 @@ that description holds up against a real one.
 import asyncio
 import copy
 import json
+import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import timedelta
@@ -70,6 +71,7 @@ from custom_components.aeg.const import (
 from custom_components.aeg.coordinator import capability_store
 from custom_components.aeg.entity import pretty
 from custom_components.aeg.errors import AegConnectionError, AegRefused
+from custom_components.aeg.http import tag
 from custom_components.aeg.names import is_setting
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -2522,3 +2524,32 @@ async def test_no_time_left_is_not_a_length_of_time(
     left = hass.states.get("sensor.lave_linge_time_to_end")
     assert left is not None
     assert left.state == "3600"
+
+
+async def test_the_log_names_no_appliance_by_its_id(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    api: AsyncMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The id is the product number, the serial and the network address.
+
+    Setting up wrote it out whole, a line for each appliance, in the very log
+    that is asked for in a bug report.
+    """
+    # Shaped as a real one is; the fixture's own has been hidden already.
+    appliance_id = "914505616_00:54600049-443E07743904"
+    listed = _fixture("wm-appliances")
+    listed[0]["applianceId"] = appliance_id
+    api.appliances.return_value = listed
+    api.appliance_info.side_effect = AegConnectionError("not today")
+    caplog.set_level(logging.DEBUG, logger="custom_components.aeg")
+    await _setup(hass, entry, api)
+    ours = "\n".join(
+        record.getMessage()
+        for record in caplog.records
+        if record.name.startswith("custom_components.aeg")
+    )
+    assert "describes" in ours
+    assert appliance_id not in ours
+    assert tag(appliance_id) in ours

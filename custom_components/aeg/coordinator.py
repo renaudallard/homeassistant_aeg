@@ -60,6 +60,7 @@ from .capability import (
 )
 from .const import BRANDS, DOMAIN
 from .errors import AegAuthError, AegError, AegRefused
+from .http import tag
 from .triggers import Override, evaluate
 from .websocket import AegStream, apply
 
@@ -372,7 +373,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         the entry up again later is what will get the answer.
         """
         if fingerprint and known and known.get("hash") == fingerprint:
-            _LOGGER.debug("%s describes what it did last time", appliance_id)
+            _LOGGER.debug("%s describes what it did last time", tag(appliance_id))
             return known["tree"], fingerprint
         try:
             tree = await self.api.capabilities(appliance_id)
@@ -381,7 +382,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 _LOGGER.debug(
                     "%s will not describe itself, going on with what it said "
                     "before: %s",
-                    appliance_id,
+                    tag(appliance_id),
                     err,
                 )
                 return known["tree"], known.get("hash")
@@ -393,7 +394,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 err,
             )
             return None
-        _LOGGER.debug("%s describes %d fields", appliance_id, len(tree))
+        _LOGGER.debug("%s describes %d fields", tag(appliance_id), len(tree))
         return tree, fingerprint
 
     async def _what_it_is(self, appliance_id: str) -> dict[str, Any]:
@@ -412,7 +413,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         try:
             return await self.api.appliance_info(appliance_id)
         except AegError as err:
-            _LOGGER.debug("%s will not say what it is: %s", appliance_id, err)
+            _LOGGER.debug("%s will not say what it is: %s", tag(appliance_id), err)
             return {}
 
     async def _async_update_data(self) -> dict[str, Appliance]:
@@ -568,7 +569,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             @callback
             def _look(_now: datetime, appliance_id: str = appliance.id) -> None:
                 self._endings.pop(appliance_id, None)
-                _LOGGER.debug("%s should have finished, looking", appliance_id)
+                _LOGGER.debug("%s should have finished, looking", tag(appliance_id))
                 entry.async_create_task(
                     self.hass, self.async_request_refresh(), "AEG look"
                 )

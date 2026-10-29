@@ -34,6 +34,7 @@ appliance endpoints.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from typing import Any
@@ -157,6 +158,16 @@ def redact(data: Any, under: str = "") -> Any:
         # whatever the list itself was under.
         return [redact(item, under) for item in data]
     return data
+
+
+def tag(appliance_id: str) -> str:
+    """What to call an appliance in the log, which is not its id.
+
+    The id runs the product number, the serial and the network address of the
+    machine together. A few characters of a hash of it keep two appliances
+    apart in a log without saying which two they are.
+    """
+    return "appliance " + hashlib.sha256(appliance_id.encode()).hexdigest()[:6]
 
 
 def redact_url(url: str) -> str:
