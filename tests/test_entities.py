@@ -1349,6 +1349,74 @@ async def test_the_clock_takes_a_pushed_time_as_the_new_truth(
     assert pushed.state == "00:15:00"
 
 
+def _push(entry: MockConfigEntry, *metrics: tuple[str, Any]) -> None:
+    """What the cloud would push about the one appliance on the account."""
+    coordinator = entry.runtime_data.coordinator
+    coordinator._pushed(
+        {
+            "Payload": {
+                "Appliances": [
+                    {
+                        "ApplianceId": next(iter(coordinator.data)),
+                        "Metrics": [
+                            {"Name": name, "Value": value} for name, value in metrics
+                        ],
+                    }
+                ]
+            }
+        }
+    )
+
+
+async def test_the_clock_counts_from_when_the_wash_starts(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """A programme says how long it takes from the moment it is picked.
+
+    The figure does not move until the wash starts, so the time it stood
+    waiting is not time taken off the wash.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "READY_TO_START"
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 1600.0
+        _push(entry, ("applianceState", "RUNNING"))
+        await hass.async_block_till_done()
+
+    started = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert started is not None
+    assert started.state == "01:00:00"
+
+
+async def test_the_clock_does_not_count_a_pause(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 1010.0
+        _push(entry, ("applianceState", "PAUSED"), ("timeToEnd", 3590))
+        await hass.async_block_till_done()
+        # Ten minutes paused, then on again with the same time left.
+        clock.monotonic.return_value = 1610.0
+        _push(entry, ("applianceState", "RUNNING"))
+        await hass.async_block_till_done()
+
+    resumed = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert resumed is not None
+    assert resumed.state == "00:59:50"
+
+
 async def test_the_clock_stops_at_nothing_left(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

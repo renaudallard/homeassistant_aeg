@@ -127,6 +127,7 @@ class AegDuration(AegEntity, SensorEntity):
         self._attr_name = f"{self.plain_name} formatted"
         self._ticks = counts_down(capability)
         self._seen: float | None = None
+        self._seen_running = False
         self._seen_at = time.monotonic()
         self._shown: str | None = None
 
@@ -153,13 +154,20 @@ class AegDuration(AegEntity, SensorEntity):
         ones it said something about. Counting afresh from a figure that has
         not moved would stand the clock still, and put it back where it was
         every time anything else changed.
+
+        Starting or resuming is a new figure too, even when the number is the
+        same. A machine set to a programme says how long it will take and goes
+        on saying it until it starts, so counting from when it first said it
+        would take the time it stood waiting off the wash.
         """
         value = self.reported
         usable = isinstance(value, (int, float)) and not isinstance(value, bool)
         fresh = float(value) if usable else None
-        if fresh == self._seen:
+        running = self._running
+        if fresh == self._seen and running == self._seen_running:
             return
         self._seen = fresh
+        self._seen_running = running
         self._seen_at = time.monotonic()
 
     @callback
