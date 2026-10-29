@@ -92,6 +92,7 @@ class AegApi:
         self._brand = brand
         self._on_tokens = on_tokens
         self._lock = asyncio.Lock()
+        self._renewal: asyncio.Task[None] | None = None
 
     @property
     def tokens(self) -> Tokens:
@@ -116,11 +117,34 @@ class AegApi:
         if self._on_tokens is not None:
             await self._on_tokens(tokens)
 
+    async def _refresh_and_store(self) -> None:
+        await self._store(await self._auth.refresh(self._tokens))
+
+    async def _renewed(self) -> None:
+        """Renew the token pair and keep what comes back, whoever is waiting.
+
+        The service retires a refresh token the moment it hands out the next
+        one, so a renewal cut short between the answer and the store loses the
+        only pair that still works. Stopping the stream or unloading the entry
+        cancels whoever asked, so the renewal runs on its own and is finished
+        whether they are still there or not. Whoever asks next while it is
+        under way waits on the same one rather than spending the old token a
+        second time.
+        """
+        if self._renewal is None or self._renewal.done():
+            self._renewal = asyncio.create_task(self._refresh_and_store())
+            # Read, so that a failure nobody stayed to hear about is not
+            # reported as one nobody retrieved.
+            self._renewal.add_done_callback(
+                lambda task: task.cancelled() or task.exception()
+            )
+        await asyncio.shield(self._renewal)
+
     async def _access_token(self) -> str:
         async with self._lock:
             if self._tokens.expired:
                 try:
-                    await self._store(await self._auth.refresh(self._tokens))
+                    await self._renewed()
                 except AegTooManyRequests:
                     # Renewing a token that was issued moments ago is refused.
                     # The one in hand is good until it actually expires, so use
@@ -135,7 +159,7 @@ class AegApi:
         async with self._lock:
             if self._tokens.access_token != rejected:
                 return
-            await self._store(await self._auth.refresh(self._tokens))
+            await self._renewed()
 
     async def _request(
         self,

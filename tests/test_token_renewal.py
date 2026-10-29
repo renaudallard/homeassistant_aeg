@@ -35,6 +35,7 @@ A refresh token it will not take at all is a different answer, and has to reach
 Home Assistant as a reason to sign in again rather than as a call to retry.
 """
 
+import asyncio
 import time
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
@@ -162,3 +163,48 @@ async def test_an_answer_that_worked_is_not_read_as_a_refusal(
 
     renewed = await auth.refresh(Tokens("an-access-token", "a-refresh-token", 0.0))
     assert renewed.access_token == "a-new-token"
+
+
+async def test_a_renewal_cut_short_still_keeps_the_new_pair() -> None:
+    """The old refresh token is spent once the service answers.
+
+    Stopping the stream or unloading the entry cancels whoever asked. Losing
+    the answer at that point leaves only a spent token, and the next start
+    has to sign in again.
+    """
+    renewed = Tokens("a-new-token", "a-new-refresh-token", time.time() + 43200)
+    answered = asyncio.Event()
+    stored: list[Tokens] = []
+
+    async def refresh(tokens: Tokens) -> Tokens:
+        await answered.wait()
+        return renewed
+
+    async def keep(tokens: Tokens) -> None:
+        stored.append(tokens)
+
+    auth = AsyncMock()
+    auth.refresh.side_effect = refresh
+    expired = Tokens("an-access-token", "a-refresh-token", time.time() - 10)
+    api = AegApi(
+        MagicMock(),
+        auth,
+        expired,
+        "https://api.eu.ocp.electrolux.one",
+        "BE",
+        on_tokens=keep,
+    )
+
+    asking = asyncio.create_task(api.authorization())
+    await asyncio.sleep(0)
+    asking.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await asking
+
+    # Asked again while the first is still under way: the same renewal.
+    again = asyncio.create_task(api.authorization())
+    await asyncio.sleep(0)
+    answered.set()
+    assert await again == "Bearer a-new-token"
+    assert stored == [renewed]
+    auth.refresh.assert_awaited_once()
