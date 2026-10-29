@@ -294,7 +294,7 @@
         "name": "Lüftergeschwindigkeit"
       },
       "fan_speed_state": {
-        "name": "Lüftergeschwindigkeit"
+        "name": "Aktuelle Lüftergeschwindigkeit"
       },
       "fc_optisense_load_weight": {
         "name": "Gemessene Beladung"

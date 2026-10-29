@@ -294,7 +294,7 @@
         "name": "Fan speed"
       },
       "fan_speed_state": {
-        "name": "Fan speed"
+        "name": "Current fan speed"
       },
       "fc_optisense_load_weight": {
         "name": "Measured load"

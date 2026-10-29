@@ -294,7 +294,7 @@
         "name": "Prędkość wentylatora"
       },
       "fan_speed_state": {
-        "name": "Prędkość wentylatora"
+        "name": "Bieżąca prędkość wentylatora"
       },
       "fc_optisense_load_weight": {
         "name": "Zmierzony wsad"

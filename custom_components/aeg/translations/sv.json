@@ -294,7 +294,7 @@
         "name": "Fläkthastighet"
       },
       "fan_speed_state": {
-        "name": "Fläkthastighet"
+        "name": "Aktuell fläkthastighet"
       },
       "fc_optisense_load_weight": {
         "name": "Uppmätt last"

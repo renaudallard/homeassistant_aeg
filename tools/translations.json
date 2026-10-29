@@ -309,6 +309,16 @@
     "pl": "Ochrona przed zagnieceniami z parą",
     "sv": "Skrynkelskydd med ånga"
   },
+  "Current fan speed": {
+    "da": "Aktuel blæserhastighed",
+    "de": "Aktuelle Lüftergeschwindigkeit",
+    "es": "Velocidad actual del ventilador",
+    "fr": "Vitesse actuelle du ventilateur",
+    "it": "Velocità attuale della ventola",
+    "nl": "Huidige ventilatorsnelheid",
+    "pl": "Bieżąca prędkość wentylatora",
+    "sv": "Aktuell fläkthastighet"
+  },
   "Cycle phase": {
     "da": "Programfase",
     "de": "Programmphase",

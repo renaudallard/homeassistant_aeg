@@ -294,7 +294,7 @@
         "name": "Ventilatorsnelheid"
       },
       "fan_speed_state": {
-        "name": "Ventilatorsnelheid"
+        "name": "Huidige ventilatorsnelheid"
       },
       "fc_optisense_load_weight": {
         "name": "Gemeten lading"

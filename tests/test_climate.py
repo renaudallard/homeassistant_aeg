@@ -568,3 +568,19 @@ async def test_a_target_the_mode_asked_for_will_not_take_sends_nothing(
             blocking=True,
         )
     api.send_command.assert_not_awaited()
+
+
+async def test_the_speed_the_fan_is_running_at_has_a_name_of_its_own(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The tree describes the speed set and the speed it is running at.
+
+    Both were called Fan speed, so one of them was a second Fan speed.
+    """
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["fanSpeedState"] = "LOW"
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+    running = hass.states.get("sensor.clim_current_fan_speed")
+    assert running is not None
+    assert running.attributes["friendly_name"] == "Clim Current fan speed"

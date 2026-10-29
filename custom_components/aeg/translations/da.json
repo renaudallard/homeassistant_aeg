@@ -294,7 +294,7 @@
         "name": "Blæserhastighed"
       },
       "fan_speed_state": {
-        "name": "Blæserhastighed"
+        "name": "Aktuel blæserhastighed"
       },
       "fc_optisense_load_weight": {
         "name": "Målt vægt"

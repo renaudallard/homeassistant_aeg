@@ -144,7 +144,7 @@ NAMES: dict[str, str] = {
     "fanMode": "Fan mode",
     "fanSpeed": "Fan speed",
     "fanSpeedSetting": "Fan speed",
-    "fanSpeedState": "Fan speed",
+    "fanSpeedState": "Current fan speed",
     "flapPosition": "Louvre position",
     "flapOscillate": "Louvre swing",
     "verticalSwing": "Vertical swing",

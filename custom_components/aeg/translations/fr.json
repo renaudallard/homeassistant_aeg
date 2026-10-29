@@ -294,7 +294,7 @@
         "name": "Vitesse du ventilateur"
       },
       "fan_speed_state": {
-        "name": "Vitesse du ventilateur"
+        "name": "Vitesse actuelle du ventilateur"
       },
       "fc_optisense_load_weight": {
         "name": "Charge mesurée"

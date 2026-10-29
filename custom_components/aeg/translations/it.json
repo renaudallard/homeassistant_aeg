@@ -294,7 +294,7 @@
         "name": "Velocità della ventola"
       },
       "fan_speed_state": {
-        "name": "Velocità della ventola"
+        "name": "Velocità attuale della ventola"
       },
       "fc_optisense_load_weight": {
         "name": "Carico misurato"
