@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Lamellenstellung"
       },
+      "sound_volume": {
+        "name": "Lautstärke"
+      },
       "start_time": {
         "name": "Start in"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Zieltemperatur Bratenthermometer"
+      },
+      "target_temperature": {
+        "name": "Zieltemperatur"
       },
       "target_temperature_c": {
         "name": "Zieltemperatur"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Laufzeit Seitenbürste"
       },
-      "sound_volume": {
-        "name": "Lautstärke"
-      },
-      "start_time": {
-        "name": "Start in"
-      },
-      "stop_time": {
-        "name": "Ende in"
-      },
       "sw_update_state": {
         "name": "Aktualisierungsstatus"
-      },
-      "target_temperature": {
-        "name": "Zieltemperatur"
       },
       "temperature": {
         "name": "Temperatur"

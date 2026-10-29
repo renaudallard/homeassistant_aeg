@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Louvre position"
       },
+      "sound_volume": {
+        "name": "Volume"
+      },
       "start_time": {
         "name": "Start in"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Food probe target"
+      },
+      "target_temperature": {
+        "name": "Target temperature"
       },
       "target_temperature_c": {
         "name": "Target temperature"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Side brush runtime"
       },
-      "sound_volume": {
-        "name": "Volume"
-      },
-      "start_time": {
-        "name": "Start in"
-      },
-      "stop_time": {
-        "name": "Finish in"
-      },
       "sw_update_state": {
         "name": "Update state"
-      },
-      "target_temperature": {
-        "name": "Target temperature"
       },
       "temperature": {
         "name": "Temperature"

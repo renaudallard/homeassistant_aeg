@@ -2453,3 +2453,27 @@ def test_an_acronym_run_into_the_next_word_reads_apart() -> None:
     assert pretty("analogTemperature") == "Analog temperature"
     assert pretty("tvocPPB") == "Tvoc PPB"
     assert pretty("xFan") == "X fan"
+
+
+async def test_a_number_read_from_a_range_of_its_own_gets_its_name(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The robot vacuum's volume became a number once its range was read.
+
+    The names had not been told, so it went by its field name instead.
+    """
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+    tree["soundVolume"] = {
+        "access": "readwrite",
+        "type": "number",
+        "range": {"min": 0, "max": 100, "step": 10},
+    }
+    api.capabilities.return_value = tree
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["soundVolume"] = 50
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    volume = hass.states.get("number.lave_linge_volume")
+    assert volume is not None
+    assert volume.attributes["friendly_name"] == "Lave-linge Volume"

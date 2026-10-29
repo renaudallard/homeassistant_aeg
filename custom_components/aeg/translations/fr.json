@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Position du volet"
       },
+      "sound_volume": {
+        "name": "Volume"
+      },
       "start_time": {
         "name": "Départ dans"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Cible de la sonde"
+      },
+      "target_temperature": {
+        "name": "Température cible"
       },
       "target_temperature_c": {
         "name": "Température cible"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Durée d'utilisation de la brosse latérale"
       },
-      "sound_volume": {
-        "name": "Volume"
-      },
-      "start_time": {
-        "name": "Départ dans"
-      },
-      "stop_time": {
-        "name": "Fin dans"
-      },
       "sw_update_state": {
         "name": "État de la mise à jour"
-      },
-      "target_temperature": {
-        "name": "Température cible"
       },
       "temperature": {
         "name": "Température"

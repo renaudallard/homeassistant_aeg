@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Lamelposition"
       },
+      "sound_volume": {
+        "name": "Lydstyrke"
+      },
       "start_time": {
         "name": "Start om"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Måltemperatur for stegetermometer"
+      },
+      "target_temperature": {
+        "name": "Måltemperatur"
       },
       "target_temperature_c": {
         "name": "Måltemperatur"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Sidebørstens driftstid"
       },
-      "sound_volume": {
-        "name": "Lydstyrke"
-      },
-      "start_time": {
-        "name": "Start om"
-      },
-      "stop_time": {
-        "name": "Færdig om"
-      },
       "sw_update_state": {
         "name": "Opdateringsstatus"
-      },
-      "target_temperature": {
-        "name": "Måltemperatur"
       },
       "temperature": {
         "name": "Temperatur"

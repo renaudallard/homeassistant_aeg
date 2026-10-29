@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Lamelstand"
       },
+      "sound_volume": {
+        "name": "Volume"
+      },
       "start_time": {
         "name": "Start over"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Doeltemperatuur kernthermometer"
+      },
+      "target_temperature": {
+        "name": "Doeltemperatuur"
       },
       "target_temperature_c": {
         "name": "Doeltemperatuur"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Gebruiksduur zijborstel"
       },
-      "sound_volume": {
-        "name": "Volume"
-      },
-      "start_time": {
-        "name": "Start over"
-      },
-      "stop_time": {
-        "name": "Klaar over"
-      },
       "sw_update_state": {
         "name": "Updatestatus"
-      },
-      "target_temperature": {
-        "name": "Doeltemperatuur"
       },
       "temperature": {
         "name": "Temperatuur"

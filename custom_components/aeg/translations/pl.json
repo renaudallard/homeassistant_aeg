@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Pozycja żaluzji"
       },
+      "sound_volume": {
+        "name": "Głośność"
+      },
       "start_time": {
         "name": "Start za"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Docelowa temperatura sondy"
+      },
+      "target_temperature": {
+        "name": "Temperatura docelowa"
       },
       "target_temperature_c": {
         "name": "Temperatura docelowa"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Czas pracy szczotki bocznej"
       },
-      "sound_volume": {
-        "name": "Głośność"
-      },
-      "start_time": {
-        "name": "Start za"
-      },
-      "stop_time": {
-        "name": "Koniec za"
-      },
       "sw_update_state": {
         "name": "Stan aktualizacji"
-      },
-      "target_temperature": {
-        "name": "Temperatura docelowa"
       },
       "temperature": {
         "name": "Temperatura"

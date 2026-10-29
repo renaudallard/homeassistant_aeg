@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Posición de la lama"
       },
+      "sound_volume": {
+        "name": "Volumen"
+      },
       "start_time": {
         "name": "Inicio en"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Objetivo de la sonda"
+      },
+      "target_temperature": {
+        "name": "Temperatura objetivo"
       },
       "target_temperature_c": {
         "name": "Temperatura objetivo"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Tiempo de uso del cepillo lateral"
       },
-      "sound_volume": {
-        "name": "Volumen"
-      },
-      "start_time": {
-        "name": "Inicio en"
-      },
-      "stop_time": {
-        "name": "Fin en"
-      },
       "sw_update_state": {
         "name": "Estado de la actualización"
-      },
-      "target_temperature": {
-        "name": "Temperatura objetivo"
       },
       "temperature": {
         "name": "Temperatura"

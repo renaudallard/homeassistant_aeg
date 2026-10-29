@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Posizione del deflettore"
       },
+      "sound_volume": {
+        "name": "Volume"
+      },
       "start_time": {
         "name": "Avvio tra"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Target sonda alimenti"
+      },
+      "target_temperature": {
+        "name": "Temperatura target"
       },
       "target_temperature_c": {
         "name": "Temperatura target"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Tempo di utilizzo della spazzola laterale"
       },
-      "sound_volume": {
-        "name": "Volume"
-      },
-      "start_time": {
-        "name": "Avvio tra"
-      },
-      "stop_time": {
-        "name": "Fine tra"
-      },
       "sw_update_state": {
         "name": "Stato dell'aggiornamento"
-      },
-      "target_temperature": {
-        "name": "Temperatura target"
       },
       "temperature": {
         "name": "Temperatura"

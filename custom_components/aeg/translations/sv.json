@@ -91,6 +91,9 @@
       "flap_position": {
         "name": "Spjällposition"
       },
+      "sound_volume": {
+        "name": "Volym"
+      },
       "start_time": {
         "name": "Start om"
       },
@@ -99,6 +102,9 @@
       },
       "target_food_probe_temperature_c": {
         "name": "Måltemperatur stektermometer"
+      },
+      "target_temperature": {
+        "name": "Måltemperatur"
       },
       "target_temperature_c": {
         "name": "Måltemperatur"
@@ -341,20 +347,8 @@
       "side_brush_runtime": {
         "name": "Sidoborstens drifttid"
       },
-      "sound_volume": {
-        "name": "Volym"
-      },
-      "start_time": {
-        "name": "Start om"
-      },
-      "stop_time": {
-        "name": "Klar om"
-      },
       "sw_update_state": {
         "name": "Uppdateringsstatus"
-      },
-      "target_temperature": {
-        "name": "Måltemperatur"
       },
       "temperature": {
         "name": "Temperatur"
