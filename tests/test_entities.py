@@ -42,6 +42,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_COUNTRY, CONF_EMAIL, EntityCategory, Platform
 from homeassistant.core import HomeAssistant
@@ -1512,6 +1513,38 @@ async def test_the_finish_is_fixed_to_a_moment(
         abs((at - (before + timedelta(seconds=3600))).total_seconds())
         <= (after - before).total_seconds() + 1
     )
+
+
+async def test_the_finish_stays_put_between_new_figures(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    api: AsyncMock,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A door, or a look that finds the same time left, is no reason to move it.
+
+    Adding the same seconds to a later now would push the finish back by
+    however long ago they were said.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
+    api.appliances.return_value = listed
+
+    await _setup(hass, entry, api)
+    first = hass.states.get("sensor.lave_linge_finishes_at")
+    assert first is not None
+
+    freezer.tick(timedelta(seconds=50))
+    _push(entry, ("doorState", "CLOSED"))
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(seconds=25))
+    await entry.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    later = hass.states.get("sensor.lave_linge_finishes_at")
+    assert later is not None
+    assert later.state == first.state
 
 
 async def test_the_finish_moves_when_the_machine_changes_its_mind(

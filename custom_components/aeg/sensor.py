@@ -44,7 +44,14 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import AegConfigEntry
-from .capability import NUMERIC, SENSOR, Capability, counts_down, is_duration
+from .capability import (
+    NUMERIC,
+    SENSOR,
+    Capability,
+    counts_down,
+    is_duration,
+    number,
+)
 from .coordinator import AegCoordinator
 from .entity import AegEntity, degrees, fields
 from .measures import counts_up, measure_for
@@ -239,6 +246,9 @@ class AegFinishesAt(AegEntity, SensorEntity):
         # an appliance has one thing it is counting down to.
         self._attr_name = "Finishes at"
         self._at: datetime | None = None
+        # The seconds left and whether it was running, when the finish was
+        # last worked out.
+        self._worked_from: tuple[float | None, bool] | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -255,10 +265,18 @@ class AegFinishesAt(AegEntity, SensorEntity):
         Only while the appliance is running: a machine that has finished puts
         the length of its next programme where the time left was, and a finish
         worked out from that is for a wash nobody has started.
+
+        Only when something it is worked out from has changed, too. Anything
+        the appliance says brings every entity round, and adding the same
+        seconds to a later now would push the finish back by however long ago
+        they were said.
         """
-        seconds = self.reported
-        usable = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
-        if not self.running or not usable or seconds < 0:
+        seconds = number(self.reported)
+        running = self.running
+        if (seconds, running) == self._worked_from:
+            return
+        self._worked_from = (seconds, running)
+        if not running or seconds is None or seconds < 0:
             self._at = None
             return
         # To the second: the appliance counts in seconds, and a finish that
