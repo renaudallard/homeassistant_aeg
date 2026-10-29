@@ -56,6 +56,9 @@ from .coordinator import AegCoordinator
 from .entity import AegEntity, degrees, fields
 from .measures import counts_up, measure_for
 
+# How long an appliance that counts in minutes goes without moving its figure.
+A_MINUTE = 60.0
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: AegConfigEntry, add: AddEntitiesCallback
@@ -198,11 +201,16 @@ class AegDuration(AegEntity, SensorEntity):
     def _stale_after(self) -> float:
         """How long a figure can be counted down from before it is guesswork.
 
-        Two turns of whatever the account is being looked at on. Anything
-        older than that has been overtaken by something not arriving.
+        Two turns of whatever the account is being looked at on, and a minute
+        more for an appliance that only moves its figure once a minute. Asked
+        every half minute, the next figure from one of those arrives a minute
+        and a bit after the last, and up to half a minute later than that when
+        the looks fall just before it moves. Anything older than that has been
+        overtaken by something not arriving.
         """
         interval = self.coordinator.update_interval
-        return 2 * interval.total_seconds() if interval else 120.0
+        turn = interval.total_seconds() if interval else 60.0
+        return 2 * turn + A_MINUTE
 
     def _clock(self) -> str | None:
         seconds = self._seen

@@ -1438,6 +1438,42 @@ async def test_the_clock_stops_at_nothing_left(
     assert finished.state == "00:00:00"
 
 
+async def test_the_clock_waits_out_a_figure_that_moves_once_a_minute(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Looked at every half minute, a minute without a new figure is normal.
+
+    The look that brings the next one lands a moment after the minute is up,
+    and the clock should not go blank waiting for it.
+    """
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["timeToEnd"] = 3600
+    listed[0]["properties"]["reported"]["applianceState"] = "RUNNING"
+    api.appliances.return_value = listed
+
+    with patch("custom_components.aeg.sensor.time") as clock:
+        clock.monotonic.return_value = 1000.0
+        await _setup(hass, entry, api)
+        clock.monotonic.return_value = 1030.4
+        await entry.runtime_data.coordinator.async_refresh()
+        await hass.async_block_till_done()
+        clock.monotonic.return_value = 1060.5
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=1))
+        await hass.async_block_till_done()
+        waiting = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+        assert waiting is not None
+        assert waiting.state == "00:58:59"
+
+        # Two looks and a minute without one is something not arriving.
+        clock.monotonic.return_value = 1121.0
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+        await hass.async_block_till_done()
+
+    lost = hass.states.get("sensor.lave_linge_time_to_end_formatted")
+    assert lost is not None
+    assert lost.state == "unknown"
+
+
 async def test_the_clock_gives_up_rather_than_counting_down_to_a_guess(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
