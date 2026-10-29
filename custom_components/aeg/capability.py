@@ -39,7 +39,7 @@ into the key as "userSelections/analogTemperature". Some are nested under a
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -207,15 +207,31 @@ def _on_offer(node: Mapping[str, Any]) -> tuple[str, ...]:
     )
 
 
+def bounds(node: Mapping[str, Any]) -> tuple[Any, Any, Any]:
+    """The lowest, highest and step a node gives a field, however it writes them.
+
+    A washing machine and an oven name the three beside everything else. An
+    air conditioner writes them as one list under range, in that order, and a
+    robot vacuum names them inside a range of their own.
+    """
+    given = node.get("range")
+    if isinstance(given, Mapping):
+        return given.get("min"), given.get("max"), given.get("step")
+    if isinstance(given, Sequence) and not isinstance(given, str) and len(given) == 3:
+        return given[0], given[1], given[2]
+    return node.get("min"), node.get("max"), node.get("step")
+
+
 def _capability(path: str, node: Mapping[str, Any]) -> Capability:
+    least, most, step = bounds(node)
     return Capability(
         path=path,
         access=str(node.get("access", "read")),
         kind=str(node.get("type", "")),
         values=_on_offer(node),
-        minimum=number(node.get("min")),
-        maximum=number(node.get("max")),
-        step=number(node.get("step")),
+        minimum=number(least),
+        maximum=number(most),
+        step=number(step),
         disabled=bool(node.get("disabled", False)),
         triggers=tuple(node.get("triggers") or ()),
         offers=_offers(node),

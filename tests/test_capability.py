@@ -231,6 +231,37 @@ def test_a_range_says_how_to_set_a_field_whatever_it_calls_its_type() -> None:
     assert (worded.minimum, worded.maximum, worded.step) == (0.0, 100.0, 1.0)
 
 
+def test_a_range_written_on_its_own_is_read_too() -> None:
+    """Two spellings of the same three, from an air conditioner and a vacuum.
+
+    Read as neither, a target temperature and a volume the appliance takes
+    settings on came out as readings nobody could set.
+    """
+    listed = _one(
+        {
+            "targetTemperature": {
+                "access": "readwrite",
+                "type": "number",
+                "range": [16, 32, 1],
+            }
+        }
+    )
+    assert platform_for(listed) == NUMBER
+    assert (listed.minimum, listed.maximum, listed.step) == (16.0, 32.0, 1.0)
+
+    named = _one(
+        {
+            "soundVolume": {
+                "access": "readwrite",
+                "type": "number",
+                "range": {"min": 0, "max": 100, "step": 10},
+            }
+        }
+    )
+    assert platform_for(named) == NUMBER
+    assert (named.minimum, named.maximum, named.step) == (0.0, 100.0, 10.0)
+
+
 def test_readings_stay_readings() -> None:
     assert platform_for(
         _one({"runningTime": {"access": "read", "type": "number"}})
