@@ -386,9 +386,11 @@ async def test_the_washing_machine_comes_out_as_the_readme_says(
     assert len(entities) == 69
     assert len([e for e in entities if not e.disabled]) == 54
 
-    programme = hass.states.get("select.lave_linge_programme_2")
+    # The control, not the record of the last one run kept out of sight.
+    programme = hass.states.get("select.lave_linge_programme")
     assert programme is not None
     assert len(programme.attributes["options"]) == 34
+    assert hass.states.get("select.lave_linge_programme_2") is None
 
     # Every appliance gets one, and it is a binary sensor rather than a sensor,
     # which is what somebody reads the README to find out.

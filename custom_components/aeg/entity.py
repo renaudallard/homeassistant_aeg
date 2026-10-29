@@ -262,7 +262,11 @@ class AegEntity(AegApplianceEntity):
         self.plain_name = readable(capability.name) or pretty(capability.path)
         key = key_for(capability.name)
         platform = platform_for(capability)
-        if platform and platform in PLATFORMS_FOR.get(key, frozenset()):
+        if (
+            platform
+            and platform in PLATFORMS_FOR.get(key, frozenset())
+            and not self._yields(key)
+        ):
             # Named where it can be translated, since a name set here would
             # win over the translation and there would be no point to it.
             self._attr_translation_key = key
@@ -287,6 +291,24 @@ class AegEntity(AegApplianceEntity):
             # goes under Configuration and stays out of the way. Only where it
             # can be set: the same name read only is a reading like any other.
             self._attr_entity_category = EntityCategory.CONFIG
+
+    def _yields(self, key: str) -> bool:
+        """Whether a field kept out of sight leaves its name to one in view.
+
+        A washing machine keeps a record of the programme it last ran beside
+        the one being picked, and both are called programUID. Named alike,
+        the record nobody sees took the plain entity id and the control
+        everybody uses got a _2 after it.
+        """
+        appliance = self.appliance
+        if appliance is None or not is_housekeeping(self.capability):
+            return False
+        return any(
+            key_for(other.name) == key
+            and not is_housekeeping(other)
+            and platform_for(other) in PLATFORMS_FOR.get(key, frozenset())
+            for other in appliance.capabilities
+        )
 
     @property
     def available(self) -> bool:
