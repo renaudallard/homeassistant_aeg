@@ -333,8 +333,7 @@ network settings after that.
 
 A command the cloud turns down, or never gets, comes back as an error saying
 so, with the status the cloud answered with, rather than as an unexpected
-exception in the log. Commands go one at a time, so a scene setting several
-things on one appliance has them arrive in turn.
+exception in the log.
 
 ## How the login works
 

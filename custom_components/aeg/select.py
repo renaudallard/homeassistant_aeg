@@ -68,9 +68,10 @@ def numbering(values: tuple[str, ...]) -> dict[str, str]:
     return {value: str(place) for place, value in enumerate(values, start=1)}
 
 
-# One command at a time, so that a scene setting several things on one
-# appliance has them arrive in turn rather than all at once.
-PARALLEL_UPDATES = 1
+# The cloud takes commands as they come. Holding them to one at a time would
+# hold every appliance on the account up behind the slowest of them, and
+# still not order one appliance's commands across platforms.
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(

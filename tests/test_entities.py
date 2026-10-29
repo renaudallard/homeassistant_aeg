@@ -2605,10 +2605,40 @@ async def test_the_entities_that_are_not_fields_are_translated_too(
     assert "Lave-linge Se termine à" in names.values()
 
 
-async def test_settings_changed_together_are_sent_in_turn(
+async def test_the_finishing_time_keeps_its_name_beside_an_unnamed_field(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:
-    """A scene setting two things on one washer sent both at once."""
+    """The purifier counts down a field that has no name of its own.
+
+    The name made up from the field stayed on the finishing time, so it read
+    the same as the reading beside it.
+    """
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+    tree["provRemainingTime"] = {"access": "read", "type": "number"}
+    api.capabilities.return_value = tree
+    listed = _fixture("wm-appliances")
+    listed[0]["properties"]["reported"]["provRemainingTime"] = 600
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    finish = next(
+        e
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.endswith("-provRemainingTime-at")
+    )
+    state = hass.states.get(finish.entity_id)
+    assert state is not None
+    assert state.attributes["friendly_name"] == "Lave-linge Finishes at"
+
+
+async def test_a_slow_command_does_not_hold_up_the_next(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Held to one at a time, a command waited on whichever went before it.
+
+    That was every command of its kind on the account, behind a cloud that
+    can take half a minute to answer one.
+    """
     await _setup(hass, entry, api)
     sending = 0
     most = 0
@@ -2636,30 +2666,4 @@ async def test_settings_changed_together_are_sent_in_turn(
     await asyncio.sleep(0.05)
     release.set()
     await asyncio.gather(*calls)
-    assert most == 1
-
-
-async def test_the_finishing_time_keeps_its_name_beside_an_unnamed_field(
-    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
-) -> None:
-    """The purifier counts down a field that has no name of its own.
-
-    The name made up from the field stayed on the finishing time, so it read
-    the same as the reading beside it.
-    """
-    tree: dict[str, Any] = _fixture("wm-capabilities")
-    tree["provRemainingTime"] = {"access": "read", "type": "number"}
-    api.capabilities.return_value = tree
-    listed = _fixture("wm-appliances")
-    listed[0]["properties"]["reported"]["provRemainingTime"] = 600
-    api.appliances.return_value = listed
-    await _setup(hass, entry, api)
-    registry = er.async_get(hass)
-    finish = next(
-        e
-        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-        if e.unique_id.endswith("-provRemainingTime-at")
-    )
-    state = hass.states.get(finish.entity_id)
-    assert state is not None
-    assert state.attributes["friendly_name"] == "Lave-linge Finishes at"
+    assert most == 2
