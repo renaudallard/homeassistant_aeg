@@ -2371,3 +2371,38 @@ async def test_fields_first_reported_one_push_at_a_time_load_it_once(
         _push(entry, ("userSelections", {"steamValue": "STEAM_OFF"}))
         await hass.async_block_till_done()
     reload.assert_called_once()
+
+
+async def test_a_figure_that_arrives_as_its_listed_word_reads_unknown(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    api: AsyncMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The washer's tree lets the shortest finishing time be a word.
+
+    A word on a sensor held to being a length of time was refused by Home
+    Assistant, and so was every update after it.
+    """
+    await _setup(hass, entry, api)
+    registry = er.async_get(hass)
+    seconds = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.unique_id.endswith("-minFinishInTime")
+    )
+    # In seconds it starts hidden, beside the clock that reads the same.
+    registry.async_update_entity(seconds, disabled_by=None)
+    await _again(hass, entry, api)
+    _push(entry, ("minFinishInTime", "INVALID_OR_NOT_SET_TIME"))
+    await hass.async_block_till_done()
+    shortest = hass.states.get(seconds)
+    assert shortest is not None
+    assert shortest.state == "unknown"
+    assert "non-numeric" not in caplog.text
+
+    _push(entry, ("minFinishInTime", 3600))
+    await hass.async_block_till_done()
+    shortest = hass.states.get(seconds)
+    assert shortest is not None
+    assert shortest.state == "3600"

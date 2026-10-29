@@ -112,7 +112,25 @@ class AegSensor(AegEntity, SensorEntity):
             # Nothing sensible to show for a structure, and a state has to fit
             # in 255 characters.
             return None
+        if self._numeric and number(value) is None:
+            # A figure can also be a word it lists, such as the shortest
+            # finishing time a washing machine reports as INVALID_OR_NOT_SET_TIME.
+            # Home Assistant refuses a word where it expects a figure, and
+            # goes on refusing every update after it.
+            return None
         return value
+
+    @property
+    def _numeric(self) -> bool:
+        """Whether Home Assistant holds this one to being a figure."""
+        return any(
+            attribute is not None
+            for attribute in (
+                self.device_class,
+                self.native_unit_of_measurement,
+                self.state_class,
+            )
+        )
 
 
 class AegDuration(AegEntity, SensorEntity):

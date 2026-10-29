@@ -228,7 +228,9 @@ Eight details worth knowing, because they look like faults and are not:
   is offered and the half hours are left to the app.
 - **A stop time that is not set reads unknown.** The appliance says -1 for
   it, which is outside what the control takes, so clearing one that has been
-  set is left to the app.
+  set is left to the app. A reading that is a figure reads unknown too while
+  the appliance gives a word for it instead, as the shortest finishing time
+  can say `INVALID_OR_NOT_SET_TIME`.
 
 The clock counting down cannot drift from what the appliance says, because
 every figure that arrives replaces the one being counted from: pick a shorter
