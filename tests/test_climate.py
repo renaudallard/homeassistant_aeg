@@ -505,14 +505,7 @@ async def test_a_mode_that_takes_no_target_is_not_sent_one(
     The number entity on the field went unavailable and the thermostat went on
     showing the figure and sending a new one.
     """
-    tree = json.loads((FIXTURES / "ac-capabilities.json").read_text())
-    for trigger in tree["mode"]["triggers"]:
-        if trigger["condition"]["operand_2"] == "FANONLY":
-            trigger["action"]["targetTemperatureC"] = {"disabled": True}
-    api.capabilities.return_value = tree
-    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
-    listed[0]["properties"]["reported"]["mode"] = "FANONLY"
-    api.appliances.return_value = listed
+    _fan_only_takes_no_target(api, "FANONLY")
     await _setup(hass, entry, api)
 
     climate = hass.states.get(THERMOSTAT)
@@ -523,6 +516,55 @@ async def test_a_mode_that_takes_no_target_is_not_sent_one(
             "climate",
             "set_temperature",
             {"entity_id": THERMOSTAT, "temperature": 25},
+            blocking=True,
+        )
+    api.send_command.assert_not_awaited()
+
+
+def _fan_only_takes_no_target(api: AsyncMock, mode: str) -> None:
+    """Disable the target while only the fan runs, as two trees do."""
+    tree = json.loads((FIXTURES / "ac-capabilities.json").read_text())
+    for trigger in tree["mode"]["triggers"]:
+        if trigger["condition"]["operand_2"] == "FANONLY":
+            trigger["action"]["targetTemperatureC"] = {"disabled": True}
+    api.capabilities.return_value = tree
+    listed = json.loads((FIXTURES / "ac-appliances.json").read_text())
+    listed[0]["properties"]["reported"]["mode"] = mode
+    api.appliances.return_value = listed
+
+
+async def test_a_target_set_with_a_mode_goes_in_after_the_mode(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """The mode given alongside a target used to be dropped without a word."""
+    _fan_only_takes_no_target(api, "FANONLY")
+    await _setup(hass, entry, api)
+    await hass.services.async_call(
+        "climate",
+        "set_temperature",
+        {"entity_id": THERMOSTAT, "temperature": 22, "hvac_mode": HVACMode.COOL},
+        blocking=True,
+    )
+    # Taken although the fan only mode it is in takes none, since cooling,
+    # which it is sent first, does.
+    sent = [call.args[1] for call in api.send_command.await_args_list]
+    assert sent == [{"mode": "COOL"}, {"targetTemperatureC": 22}]
+
+
+async def test_a_target_the_mode_asked_for_will_not_take_sends_nothing(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    _fan_only_takes_no_target(api, "COOL")
+    await _setup(hass, entry, api)
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            "climate",
+            "set_temperature",
+            {
+                "entity_id": THERMOSTAT,
+                "temperature": 22,
+                "hvac_mode": HVACMode.FAN_ONLY,
+            },
             blocking=True,
         )
     api.send_command.assert_not_awaited()

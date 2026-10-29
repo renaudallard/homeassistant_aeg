@@ -41,7 +41,11 @@ import logging
 from typing import Any
 
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import ClimateEntityFeature, HVACMode
+from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
+    ClimateEntityFeature,
+    HVACMode,
+)
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
@@ -52,6 +56,7 @@ from .capability import Capability
 from .const import DOMAIN
 from .coordinator import AegCoordinator
 from .entity import AegApplianceEntity, as_set
+from .triggers import Override, evaluate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -248,17 +253,13 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         if hvac_mode is HVACMode.OFF:
             await self._turn(False)
             return
-        for word, mapped in MODES.items():
-            if mapped is not hvac_mode:
-                continue
-            spelling = self._spelling(MODE, word)
-            if spelling is None:
-                continue
-            if self.hvac_mode is HVACMode.OFF:
-                # A mode is no use to something that is not running.
-                await self._turn(True)
-            await self.coordinator.send(self._appliance_id, MODE, spelling)
+        spelling = self._way(hvac_mode)
+        if spelling is None:
             return
+        if self.hvac_mode is HVACMode.OFF:
+            # A mode is no use to something that is not running.
+            await self._turn(True)
+        await self.coordinator.send(self._appliance_id, MODE, spelling)
 
     async def async_turn_on(self) -> None:
         await self._turn(True)
@@ -277,6 +278,30 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         if field is None:
             return None
         return next((value for value in field.values if value.upper() == word), None)
+
+    def _way(self, hvac_mode: HVACMode) -> str | None:
+        """How this appliance writes a way of running, if it has that one."""
+        word = next(
+            (word for word, mapped in MODES.items() if mapped is hvac_mode), None
+        )
+        return None if word is None else self._spelling(MODE, word)
+
+    def _takes_target(self, hvac_mode: HVACMode | None) -> bool:
+        """Whether the target will be taken once it runs the way asked for.
+
+        No mode, or one not written into the mode field such as an off that
+        is a command of its own, leaves the appliance as it stands. Otherwise
+        its rules are read again as though it were already running the new
+        way, since that is the way the target will arrive in.
+        """
+        appliance = self.appliance
+        spelling = None if hvac_mode is None else self._way(hvac_mode)
+        if appliance is None or spelling is None:
+            return self.override_for(TARGET).writable
+        reported = {**appliance.reported, MODE: spelling}
+        return (
+            evaluate(appliance.capabilities, reported).get(TARGET, Override()).writable
+        )
 
     def _turns(self, word: str) -> tuple[str, str] | None:
         """The field that takes ON or OFF, and how the appliance writes it.
@@ -304,15 +329,23 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         await self.coordinator.send(self._appliance_id, field, spelling)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
+        hvac_mode = kwargs.get(ATTR_HVAC_MODE)
         wanted = kwargs.get(ATTR_TEMPERATURE)
-        if wanted is None:
-            return
-        if not self.override_for(TARGET).writable:
+        # Both are checked before either is sent, so a target that would be
+        # refused does not leave the mode changed behind it.
+        if wanted is not None and not self._takes_target(hvac_mode):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="target_not_taken",
             )
-        await self.coordinator.send(self._appliance_id, TARGET, as_set(float(wanted)))
+        if hvac_mode is not None:
+            # The mode goes first, so the target lands in the way it is meant
+            # for. Home Assistant checks the mode is one on offer.
+            await self.async_handle_set_hvac_mode_service(hvac_mode)
+        if wanted is not None:
+            await self.coordinator.send(
+                self._appliance_id, TARGET, as_set(float(wanted))
+            )
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         await self.coordinator.send(self._appliance_id, FAN, fan_mode)
