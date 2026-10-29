@@ -765,6 +765,34 @@ async def test_a_group_of_settings_going_missing_takes_nothing_down(
     assert after == before
 
 
+async def test_settings_missing_at_the_start_come_back_when_they_are_said(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """Keeping the register entry is no use without an entity behind it.
+
+    Started while the machine said nothing of its wash settings, the controls
+    for them sat restored and unavailable until the next start, whatever the
+    machine said in between.
+    """
+    await _setup(hass, entry, api)
+
+    partial = _fixture("wm-appliances")
+    del partial[0]["properties"]["reported"]["userSelections"]
+    api.appliances.return_value = partial
+    await _again(hass, entry, api)
+    quiet = hass.states.get("select.lave_linge_spin_speed")
+    assert quiet is not None
+    assert quiet.state == "unavailable"
+
+    api.appliances.return_value = _fixture("wm-appliances")
+    await entry.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+    back = hass.states.get("select.lave_linge_spin_speed")
+    assert back is not None
+    assert back.state != "unavailable"
+    assert not back.attributes.get("restored")
+
+
 async def test_a_failed_setup_does_not_leave_the_stream_open(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

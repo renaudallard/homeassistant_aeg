@@ -109,12 +109,23 @@ def carried(appliance: Appliance, capability: Capability) -> bool:
 
 
 def fields(coordinator: AegCoordinator, platform: str) -> list[tuple[str, Capability]]:
-    """Every field on the account that belongs to one platform."""
+    """Every field on the account that belongs to one platform.
+
+    A field the appliance is quiet about right now still gets its entity if it
+    has been seen before, for the same reason its entry is kept in the
+    register. Starting while a washing machine said nothing of its wash
+    settings would otherwise leave every one of them without an entity until
+    the next start, however soon it spoke again.
+    """
     return [
         (appliance_id, capability)
         for appliance_id, appliance in coordinator.data.items()
         for capability in appliance.capabilities
-        if platform_for(capability) == platform and carried(appliance, capability)
+        if platform_for(capability) == platform
+        and (
+            carried(appliance, capability)
+            or capability.path in coordinator.seen(appliance_id)
+        )
     ]
 
 

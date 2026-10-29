@@ -104,8 +104,10 @@ async def async_setup_entry(
     add(
         AegFirmware(coordinator, appliance_id)
         for appliance_id, appliance in coordinator.data.items()
-        # Only an appliance that says what its network unit is doing.
+        # Only an appliance that says what its network unit is doing, or has
+        # said it before and is quiet about it for now.
         if appliance.first_of(STATE) is not None
+        or any(path in coordinator.seen(appliance_id) for path in STATE)
     )
 
 
