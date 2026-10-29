@@ -33,6 +33,7 @@ presented and, where it can be set, how it is sent back.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from homeassistant.const import EntityCategory, Platform, UnitOfTemperature
@@ -53,16 +54,27 @@ from .icons import as_read, drawn_for, icon_for
 from .names import CAMEL, MODEL_PREFIX, PLATFORMS_FOR, is_setting, key_for, readable
 from .triggers import Override
 
+# Where an acronym runs into the word after it, as in FCMiscellaneous.
+ACRONYM_END = re.compile(r"(?<=[A-Z])(?=[A-Z][a-z])")
+
+# A small letter that opens an acronym, as the f of fCMiscellaneousState.
+ACRONYM_START = re.compile(r"^[a-z](?=[A-Z])")
+
 
 def pretty(name: str) -> str:
     """Turn a field name into something worth reading.
 
     Words already in capitals are left alone, so an acronym stays an acronym
-    while analogTemperature becomes what you would expect.
+    while analogTemperature becomes what you would expect. A washing machine
+    writes the group of its fabric care readings as fCMiscellaneousState,
+    which is the acronym FC run into the words after it.
     """
-    segments = [MODEL_PREFIX.sub("", part) for part in name.split("/")]
+    segments = [
+        ACRONYM_START.sub(lambda letter: letter[0].upper(), MODEL_PREFIX.sub("", part))
+        for part in name.split("/")
+    ]
     words = " ".join(segments).replace("_", " ")
-    parts = CAMEL.sub(r" \1", words).split()
+    parts = ACRONYM_END.sub(" ", CAMEL.sub(r" \1", words)).split()
     if not parts:
         return name
     readable = [parts[0].capitalize() if parts[0].islower() else parts[0]]

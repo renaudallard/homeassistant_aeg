@@ -68,6 +68,7 @@ from custom_components.aeg.const import (
     DOMAIN,
 )
 from custom_components.aeg.coordinator import capability_store
+from custom_components.aeg.entity import pretty
 from custom_components.aeg.errors import AegConnectionError, AegRefused
 from custom_components.aeg.names import is_setting
 
@@ -2438,3 +2439,17 @@ async def test_a_setting_with_nothing_to_set_it_with_is_still_added(
     state = hass.states.get(language.entity_id)
     assert state is not None
     assert state.state == "fr"
+
+
+def test_an_acronym_run_into_the_next_word_reads_apart() -> None:
+    """The washer's fabric care readings sit under fCMiscellaneousState.
+
+    That came out as F CMiscellaneous state.
+    """
+    assert pretty("fCMiscellaneousState/waterUsage") == (
+        "FC miscellaneous state water usage"
+    )
+    # What already read well still does.
+    assert pretty("analogTemperature") == "Analog temperature"
+    assert pretty("tvocPPB") == "Tvoc PPB"
+    assert pretty("xFan") == "X fan"
