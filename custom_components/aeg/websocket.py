@@ -45,7 +45,7 @@ from typing import Any
 
 import aiohttp
 
-from .errors import AegAuthError
+from .errors import AegAuthError, AegConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,7 +127,9 @@ class AegStream:
                 # Being stopped is not the stream dropping, and whatever is
                 # stopping it does not want to hear that it has.
                 raise
-            except aiohttp.ClientError as err:
+            except (aiohttp.ClientError, AegConnectionError) as err:
+                # The second is the token being renewed on the way in, which
+                # goes through the same network the stream does.
                 _LOGGER.debug("the stream dropped: %s", err)
                 if not self._opened:
                     # Nothing dropped, because nothing opened. A token the

@@ -41,7 +41,7 @@ import aiohttp
 import pytest
 
 from custom_components.aeg import websocket
-from custom_components.aeg.errors import AegAuthError
+from custom_components.aeg.errors import AegAuthError, AegConnectionError
 from custom_components.aeg.websocket import AegStream
 
 
@@ -290,3 +290,42 @@ async def test_a_refused_login_stops_the_stream(
     # Said, so that polling picks up and the next look asks for a sign in.
     assert connected == [False]
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+async def test_no_network_at_renewal_is_a_drop_not_a_fault(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The token is renewed on the way in, over the same network.
+
+    An outage that landed there wrote a traceback as though the stream had
+    failed in some way nobody expected, rather than having dropped.
+    """
+    asked = 0
+
+    async def unreachable() -> str:
+        nonlocal asked
+        asked += 1
+        raise AegConnectionError("the token endpoint is unreachable")
+
+    session = _Session()
+    stream = AegStream(
+        session,  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        unreachable,
+        lambda: 43200.0,
+        ["an-appliance"],
+        lambda message: None,
+        lambda connected: None,
+    )
+    with (
+        caplog.at_level(logging.DEBUG, logger="custom_components.aeg.websocket"),
+        patch.object(websocket, "RECONNECT_DELAY_UNEXPECTED", 0.01),
+    ):
+        stream.start(asyncio.create_task)
+        await asyncio.sleep(0.2)
+        await stream.stop()
+
+    # Still trying, since the network comes back on its own.
+    assert asked > 1
+    assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert "the stream dropped" in caplog.text

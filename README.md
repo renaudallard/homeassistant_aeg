@@ -113,8 +113,11 @@ belongs to one of the two and the other's credentials will not reach it.
 
 Tokens are written into the config entry and renewed in the background. If they
 stop working, Home Assistant asks you to sign in again rather than failing
-quietly, and nothing tries the refused ones again in the meantime. It has to be the same account: signing in as somebody else is refused
-rather than quietly pointing the entry at another household's appliances.
+quietly, and nothing tries the refused ones again in the meantime. A renewal
+that cannot reach the cloud is only the network being down, and the stream
+tries again as it would after any dropped connection. It has to be the same
+account: signing in as somebody else is refused rather than quietly pointing
+the entry at another household's appliances.
 
 **Reconfigure** on the entry signs in again without waiting to be asked, which
 is how to correct the country. Picking the wrong one leaves the entry talking
