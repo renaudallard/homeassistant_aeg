@@ -41,6 +41,7 @@ import aiohttp
 import pytest
 
 from custom_components.aeg import websocket
+from custom_components.aeg.errors import AegAuthError
 from custom_components.aeg.websocket import AegStream
 
 
@@ -248,3 +249,44 @@ async def test_a_stream_that_never_works_says_so_once(
         record for record in caplog.records if record.levelno >= logging.ERROR
     ]
     assert len(complaints) == 1
+
+
+async def test_a_refused_login_stops_the_stream(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Once the account has to be signed in to again, asking again is no use.
+
+    Each try spends a renewal at the login service, and the account can sit
+    waiting for somebody to sign in for days.
+    """
+    asked = 0
+
+    async def refused() -> str:
+        nonlocal asked
+        asked += 1
+        raise AegAuthError("the refresh token was refused")
+
+    session = _Session()
+    connected: list[bool] = []
+    stream = AegStream(
+        session,  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        refused,
+        lambda: 43200.0,
+        ["an-appliance"],
+        lambda message: None,
+        connected.append,
+    )
+    with (
+        caplog.at_level(logging.ERROR, logger="custom_components.aeg.websocket"),
+        patch.object(websocket, "RECONNECT_DELAY_UNEXPECTED", 0.01),
+    ):
+        stream.start(asyncio.create_task)
+        await asyncio.sleep(0.2)
+        await stream.stop()
+
+    assert asked == 1
+    assert session.opened == []
+    # Said, so that polling picks up and the next look asks for a sign in.
+    assert connected == [False]
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]

@@ -45,6 +45,8 @@ from typing import Any
 
 import aiohttp
 
+from .errors import AegAuthError
+
 _LOGGER = logging.getLogger(__name__)
 
 # The cloud drops a connection that says nothing for ten minutes.
@@ -133,6 +135,14 @@ class AegStream:
                     # has moved, is refused again just as surely in thirty
                     # seconds as in five.
                     delay = RECONNECT_DELAY_UNEXPECTED
+            except AegAuthError as err:
+                # The account has to be signed in to again, and the look that
+                # saying so brings on asks for that. Offering the refused
+                # credentials every half minute until somebody does would only
+                # get the account throttled.
+                _LOGGER.debug("the stream stopped, the account is signed out: %s", err)
+                self._on_connected(False)
+                return
             except Exception:
                 # A stream that is never going to work, a URL kept from an
                 # account that has moved being the way that happens, would
