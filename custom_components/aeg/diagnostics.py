@@ -31,8 +31,10 @@ nothing that says who anyone is. The same redaction the logs use covers it:
 tokens, keys, the address on the account and the identifier of the appliance
 itself.
 
-What it does carry is the whole of what an appliance said about itself, which
-is the one thing a report about a model nobody has cannot do without.
+What it does carry is every field an appliance describes, as this read it,
+which is the one thing a report about a model nobody has cannot do without.
+Values the tree marks disabled, and keys of the tree nothing here uses, are
+not in it.
 
 There are two of these. The account is what the integration entry offers, and
 carries every appliance on it. One appliance is what its own device page
