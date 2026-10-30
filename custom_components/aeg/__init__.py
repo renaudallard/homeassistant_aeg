@@ -129,9 +129,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     coordinator.start_stream(await _stream_url(hass, entry, auth))
-    # A platform that fails to set up leaves the entry unloaded, and Home
-    # Assistant runs these before it gives up, so a connection to the cloud
-    # cannot outlive the entry that opened it.
+    # Should the rest of this setup raise, Home Assistant runs these before it
+    # gives up on the entry, so a connection to the cloud cannot outlive the
+    # entry that opened it.
     entry.async_on_unload(coordinator.stop_stream)
     entry.async_on_unload(coordinator.stop_waiting)
 
@@ -200,7 +200,8 @@ async def _stream_url(hass: HomeAssistant, entry: AegConfigEntry, auth: AegAuth)
     """Where the cloud pushes changes for this account.
 
     Entries made before there was a stream do not have it, so it is looked up
-    once and kept. Without it the integration polls, which is worse but works.
+    and kept. One the lookup names none for is asked again on the next start.
+    Without it the integration polls, which is worse but works.
     """
     stored = entry.data.get(CONF_WS_URL)
     if stored:
