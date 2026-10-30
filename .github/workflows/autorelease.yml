@@ -50,6 +50,9 @@ jobs:
       - uses: home-assistant/actions/hassfest@master
 
   release:
+    # Started by hand, it can be pointed at any branch, and a release is cut
+    # from main only.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [verify, hacs, hassfest]
     steps:
@@ -85,6 +88,13 @@ jobs:
           else
             echo "release=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Build from what was tagged, if it was
+        if: steps.found.outputs.tag == 'true'
+        run: |
+          # A run started by hand after the tag was pushed is on whatever main
+          # has become since, and the zip on a release has to be the tag's.
+          git checkout --quiet "refs/tags/${{ steps.version.outputs.tag }}"
 
       - name: Build the zip
         run: |

@@ -442,7 +442,9 @@ writes the release with the notes running from the tag before it, and puts a
 zip of `custom_components/aeg` on it. Releasing is therefore a matter of
 bumping the version and pushing. A release written by hand before the workflow
 gets there keeps its own notes and is only given the zip, which is how a
-release worth writing up properly still gets one.
+release worth writing up properly still gets one. Started by hand, it releases
+only from main, and a version that is tagged already gets its zip built from
+the tag rather than from whatever main has become since.
 
 ### The names, the icons and the translations
 
