@@ -485,10 +485,11 @@ It logs every request and every answer. Everything that says who you are or
 which machine is yours is replaced by a note of how long it was, in bodies, in
 headers and in paths alike: tokens, keys, codes, the session cookies the
 identity service sets, the address, the name and town on the account, and the
-appliance ids. What kind of appliance it is and what it is
-doing stay readable, because a log without those is not worth keeping. That
-makes the output safe to paste into a bug report. Pass `-q` to log only
-failures.
+appliance ids. Its own progress lines show the first four characters of the
+Gigya id and of each appliance id, enough to tell them apart and no more. What
+kind of appliance it is and what it is doing stay readable, because a log
+without those is not worth keeping. That makes the output safe to paste into a
+bug report. Pass `-q` to log only failures.
 
 `--dump` writes what each appliance is, its capability tree and its reported
 state out as JSON, redacted the same way. That is what the entity mapping is
