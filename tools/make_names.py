@@ -83,7 +83,7 @@ def _lost(seen: dict[str, set[str]]) -> list[str]:
     Most of the trees are the ones the app ships, and those live under tmp,
     which is not in the repository. A checkout on its own sees only the two
     the tests use, and writing what those alone say would quietly take the
-    text for two thirds of the named fields out of Home Assistant, and out of
+    text for over half of the named fields out of Home Assistant, and out of
     every translation of it.
     """
     named = {key_for(field) for field in NAMES}
