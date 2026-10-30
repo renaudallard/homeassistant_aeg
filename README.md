@@ -148,6 +148,7 @@ since nothing has been listed to tell the two apart.
 | the version its network unit is on | the firmware line on the device page |
 | a mode and a target temperature at the top of its tree | a thermostat, as well as the parts |
 | a length of time | a sensor in seconds, and one reading as a clock |
+| a length of time it will let you set | a number in seconds, without a clock |
 | how long is left | a clock counting down, and a timestamp of the finish |
 | anything else it reports | a sensor |
 

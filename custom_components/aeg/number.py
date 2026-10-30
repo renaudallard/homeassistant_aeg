@@ -68,8 +68,10 @@ class AegNumber(AegEntity, NumberEntity):
             self._attr_native_unit_of_measurement = degrees(capability)
         elif is_duration(capability):
             # A delayed start or finish, in seconds, the same as the sensors
-            # reading the same kind of field.
-            self._attr_device_class = NumberDeviceClass.DURATION
+            # reading the same kind of field. Not said to be a duration, since
+            # Home Assistant would then offer hours and convert the range into
+            # them but leave the step in seconds, and a slider from nought to
+            # twenty four that moves 3600 at a time can only be set to nought.
             self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
 
     @property
