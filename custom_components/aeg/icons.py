@@ -38,7 +38,7 @@ Home Assistant has a better answer for those than a guess.
 A few fields are worth more than a fixed picture, and those get one that moves
 with the reading. Home Assistant reads an entity's icon again on every state it
 writes, so that is a property on the entity rather than anything declared, and
-the guess below is what it falls back on for a reading nobody listed.
+a reading nobody listed falls back on the picture set beside the readings.
 """
 
 from __future__ import annotations
@@ -164,8 +164,8 @@ LOCK = Drawn("mdi:lock-open-variant", {"on": "mdi:lock"})
 # same field is not spelled the same way twice across the models: a washing
 # machine says END_OF_CYCLE, an air conditioner says running where the washer
 # says RUNNING, and a robot vacuum says readyToStart. One entry covers all
-# three. A reading nobody listed falls back to the guess from the name, so a
-# model that invents a ninth state still has a picture.
+# three. A reading nobody listed falls back to the default given beside the
+# readings, so a model that invents another state still has a picture.
 BY_READING: dict[tuple[str, str], Drawn] = {
     ("sensor", "appliance_state"): Drawn(
         "mdi:information-outline",
