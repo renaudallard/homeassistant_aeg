@@ -53,7 +53,7 @@ from custom_components.aeg.coordinator import (
     AegCoordinator,
     Appliance,
 )
-from custom_components.aeg.errors import AegConnectionError
+from custom_components.aeg.errors import AegAuthError, AegConnectionError
 
 
 def _coordinator(hass: HomeAssistant) -> AegCoordinator:
@@ -426,3 +426,22 @@ async def test_a_look_that_fails_is_tried_again_soon(hass: HomeAssistant) -> Non
 
     assert not coordinator.last_update_success
     assert coordinator.update_interval == SCAN_INTERVAL
+
+
+async def test_a_signed_out_account_closes_the_stream(hass: HomeAssistant) -> None:
+    """Otherwise it offers the refused token every half minute until it expires."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    api = AsyncMock()
+    api.authorization = AsyncMock(return_value="Bearer a-token")
+    api.seconds_until_renewal = MagicMock(return_value=43200.0)
+    api.appliances.side_effect = AegAuthError("signed out")
+    coordinator = AegCoordinator(hass, entry, api, _Cloud())  # type: ignore[arg-type]
+    coordinator.data = {"an-appliance": MagicMock()}
+    coordinator.start_stream("wss://ws.eu.ocp.electrolux.one")
+    await asyncio.sleep(0.05)
+    assert entry._background_tasks
+
+    await coordinator.async_refresh()
+
+    assert not entry._background_tasks

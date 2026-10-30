@@ -445,6 +445,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             try:
                 listed = await self.api.appliances()
             except AegAuthError as err:
+                # Polling stops here until the account is signed in to again,
+                # and the stream would go on offering the refused token every
+                # half minute until it ran out, which is up to half a day.
+                await self.stop_stream()
                 raise ConfigEntryAuthFailed(str(err)) from err
             except AegError as err:
                 # Every entity on the account is unavailable until a look
