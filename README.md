@@ -54,8 +54,9 @@ model nobody has tried works the same way as the one this was written against.
   it is running, freezes its settings mid-cycle, and offers nothing at all
   until remote control has been armed at the machine itself.
 - **Live, not polled** — the cloud pushes changes over a websocket, so a cycle
-  finishing shows up when it happens. Polling carries on in the background at a
-  slower rate to catch whatever a dropped connection missed, and a look is
+  finishing shows up when it happens. Polling carries on in the background
+  every ten minutes, however busy the stream is, to catch whatever a dropped
+  connection or a forgetful cloud missed, and a look is
   arranged for just after an appliance says it is about to finish, because the
   end of a cycle is the one thing the cloud regularly forgets to mention. A
   change pushed while a look is on its way is kept over the older answer that

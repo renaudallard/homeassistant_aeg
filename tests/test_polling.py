@@ -37,6 +37,7 @@ from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from freezegun.api import FrozenDateTimeFactory
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
@@ -388,3 +389,24 @@ async def test_a_machine_that_nests_its_state_is_still_waited_on(
         await _wait_out_the_end(hass)
 
     asked.assert_called_once()
+
+
+async def test_a_busy_stream_still_leaves_room_for_a_look(
+    hass: HomeAssistant, freezer: FrozenDateTimeFactory
+) -> None:
+    """Polling is what catches what the cloud never pushes."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 3600)}
+    looks = AsyncMock(return_value=coordinator.data)
+    unsubscribe = coordinator.async_add_listener(lambda: None)
+    try:
+        with patch.object(coordinator, "_async_update_data", looks):
+            for minutes in range(0, 120, 5):
+                freezer.tick(timedelta(minutes=5))
+                async_fire_time_changed(hass)
+                await hass.async_block_till_done()
+                coordinator._pushed(_said(3600 - minutes * 60))
+    finally:
+        unsubscribe()
+    # Two hours of a push every five minutes, and a look every ten.
+    assert looks.await_count >= 11

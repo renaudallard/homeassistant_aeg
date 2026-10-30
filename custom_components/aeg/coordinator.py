@@ -649,7 +649,11 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             self._refresh_overrides(self.data)
             self._look_again_when_it_ends(self.data)
             self._notice_fields(self.data)
-            self.async_set_updated_data(self.data)
+            # Telling the entities, rather than setting the data anew, which
+            # would put the next look back by the whole interval each time.
+            # An appliance that keeps pushing its door while saying nothing
+            # about the wash would then never be looked at.
+            self.async_update_listeners()
 
     def _streaming(self, connected: bool) -> None:
         """Back to asking regularly whenever the stream is not carrying us.
