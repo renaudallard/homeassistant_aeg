@@ -69,8 +69,9 @@ INVALID_GRANT = "invalid_grant"
 class IdentityProvider:
     """Where this user's account and appliances actually live.
 
-    The app treats an empty base URL, or one equal to the global entry point,
-    as a sign the account is not usable, so we do the same.
+    An empty base URL, or one equal to the global entry point, is something
+    the app logs a complaint about and carries on past with the global one,
+    and so does this.
     """
 
     domain: str
@@ -203,7 +204,8 @@ class AegAuth:
         self._brand = brand
         # Token calls go to the regional endpoint once it is known. The app
         # caches it the same way and falls back to the global one until the
-        # provider lookup has run, which is the only call that cannot use it.
+        # provider lookup has run. That lookup, and the token that stands for
+        # the app it is made with, are the two calls that cannot use it.
         self._base_url = base_url.rstrip("/")
 
     def _headers(self, authorization: str | None = None) -> dict[str, str]:
