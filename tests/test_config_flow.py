@@ -31,7 +31,7 @@ is the flow: which step follows which, what reaches the config entry, and which
 message the user gets when a step fails.
 """
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from contextlib import contextmanager
 from typing import cast
 from unittest.mock import AsyncMock, patch
@@ -106,6 +106,19 @@ def cloud(auth: AsyncMock, client: AsyncMock) -> Iterator[None]:
         patch("custom_components.aeg.async_setup_entry", return_value=True),
     ):
         yield
+
+
+@pytest.fixture(autouse=True)
+async def nothing_to_unload(hass: HomeAssistant) -> AsyncIterator[None]:
+    """Take down what the stand-in set up, the way it was set up.
+
+    The real unload looks for what the real setup leaves behind, and Home
+    Assistant would run it once the test is over.
+    """
+    yield
+    with patch("custom_components.aeg.async_unload_entry", return_value=True):
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def start(hass: HomeAssistant) -> str:
