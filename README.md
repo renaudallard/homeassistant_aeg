@@ -56,11 +56,12 @@ model nobody has tried works the same way as the one this was written against.
 - **Live, not polled** — the cloud pushes changes over a websocket, so a cycle
   finishing shows up when it happens. Polling carries on in the background
   every ten minutes, however busy the stream is, to catch whatever a dropped
-  connection or a forgetful cloud missed, and a look is
-  arranged for just after an appliance says it is about to finish, because the
-  end of a cycle is the one thing the cloud regularly forgets to mention. A
-  change pushed while a look is on its way is kept over the older answer that
-  look brings back.
+  connection or a forgetful cloud missed. A look that fails is tried again
+  half a minute later rather than ten, since everything on the account is
+  unavailable until one works. A look is also arranged for just after an
+  appliance says it is about to finish, because the end of a cycle is the one
+  thing the cloud regularly forgets to mention. A change pushed while a look
+  is on its way is kept over the older answer that look brings back.
 - **Kept as history** — a reading that is a number says so, which is what
   makes Home Assistant graph it and keep it. A cycle counter is added up
   rather than averaged. Nothing claims a unit an appliance has not made

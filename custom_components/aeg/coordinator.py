@@ -447,6 +447,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             except AegAuthError as err:
                 raise ConfigEntryAuthFailed(str(err)) from err
             except AegError as err:
+                # Every entity on the account is unavailable until a look
+                # works, so the next one cannot wait ten minutes because the
+                # stream happens to be up.
+                self.update_interval = SCAN_INTERVAL
                 raise UpdateFailed(str(err)) from err
             finally:
                 self._meanwhile = None

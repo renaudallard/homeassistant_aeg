@@ -53,6 +53,7 @@ from custom_components.aeg.coordinator import (
     AegCoordinator,
     Appliance,
 )
+from custom_components.aeg.errors import AegConnectionError
 
 
 def _coordinator(hass: HomeAssistant) -> AegCoordinator:
@@ -410,3 +411,18 @@ async def test_a_busy_stream_still_leaves_room_for_a_look(
         unsubscribe()
     # Two hours of a push every five minutes, and a look every ten.
     assert looks.await_count >= 11
+
+
+async def test_a_look_that_fails_is_tried_again_soon(hass: HomeAssistant) -> None:
+    """Every entity is unavailable until one works."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    api = AsyncMock()
+    api.appliances.side_effect = AegConnectionError("no answer")
+    coordinator = AegCoordinator(hass, entry, api, MagicMock())
+    coordinator.update_interval = SCAN_INTERVAL_STREAMING
+
+    await coordinator.async_refresh()
+
+    assert not coordinator.last_update_success
+    assert coordinator.update_interval == SCAN_INTERVAL
