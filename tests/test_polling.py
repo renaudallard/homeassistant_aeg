@@ -444,9 +444,13 @@ async def test_a_signed_out_account_closes_the_stream(hass: HomeAssistant) -> No
     await asyncio.sleep(0.05)
     assert entry._background_tasks
 
+    coordinator.update_interval = SCAN_INTERVAL_STREAMING
+
     await coordinator.async_refresh()
 
     assert not entry._background_tasks
+    # Nothing is pushed any more, so a look that works again has to be soon.
+    assert coordinator.update_interval == SCAN_INTERVAL
 
 
 @pytest.mark.parametrize(

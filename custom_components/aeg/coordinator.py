@@ -448,7 +448,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
                 # Polling stops here until the account is signed in to again,
                 # and the stream would go on offering the refused token every
                 # half minute until it ran out, which is up to half a day.
+                # Nothing is pushed once it has gone, so a look that works
+                # again without a reload has to come every half minute.
                 await self.stop_stream()
+                self.update_interval = SCAN_INTERVAL
                 raise ConfigEntryAuthFailed(str(err)) from err
             except AegError as err:
                 # Every entity on the account is unavailable until a look
