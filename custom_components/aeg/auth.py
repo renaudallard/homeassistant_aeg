@@ -314,7 +314,8 @@ class AegAuth:
     async def exchange(self, id_token: str) -> Tokens:
         """Trade a Gigya JWT for OCP tokens.
 
-        This call carries no client secret. Only the refresh does.
+        This call carries no client secret, and neither does the refresh. Only
+        the client credentials grant does.
         """
         headers = {
             "x-api-key": self._brand.api_key,
