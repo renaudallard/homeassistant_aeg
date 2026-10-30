@@ -327,8 +327,9 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         found = self._turns(word)
         if found is None:
             # Nothing to send it to. Turning on and off is only offered where
-            # one of the two fields has the word, so this is not reachable
-            # from a service call.
+            # one of the two fields has the word, but a mode set while the
+            # state reads OFF comes here too, and an appliance with no ON to
+            # send is told only the mode.
             _LOGGER.debug("this appliance has no way of being told %s", word)
             return
         field, spelling = found
