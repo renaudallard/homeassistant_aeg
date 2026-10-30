@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Home%20Assistant-2026.9%2B-41BDF5?logo=home-assistant&logoColor=white&style=flat-square" alt="Home Assistant"/>
   </a>
   <a href="https://hacs.xyz">
-    <img src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=flat-square" alt="HACS"/>
+    <img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=flat-square" alt="HACS"/>
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/github/license/renaudallard/homeassistant_aeg?style=flat-square" alt="License"/>
