@@ -230,7 +230,11 @@ class AegApi:
         return payload
 
     async def appliance(self, appliance_id: str) -> dict[str, Any]:
-        """Read one appliance, which is where the live state lives."""
+        """Read one appliance on its own.
+
+        The listing carries the same reported state, and is what is polled.
+        This is for check_login, which dumps each appliance as it answers alone.
+        """
         payload = await self._request(
             "GET",
             f"{APPLIANCES_PATH}/{appliance_id}",
