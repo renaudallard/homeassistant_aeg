@@ -103,9 +103,10 @@ class AegSensor(AegEntity, SensorEntity):
             self._attr_device_class = measure.device_class
             self._attr_native_unit_of_measurement = measure.unit
 
-        # A number is worth keeping the history of, and Home Assistant keeps
-        # none without being told which kind of number it is. A word is not
-        # one, whatever the field holding it is typed as.
+        # A number is worth keeping statistics of, and Home Assistant keeps
+        # none without being told which kind of number it is, only the plain
+        # history of its states. A word is not one, whatever the field holding
+        # it is typed as.
         if counts_up(capability):
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
         elif capability.kind in NUMERIC and not capability.values:
@@ -266,10 +267,10 @@ class AegDuration(AegEntity, SensorEntity):
 class AegFinishesAt(AegEntity, SensorEntity):
     """When the time left runs out.
 
-    A countdown written as a clock only moves when the cloud says something,
-    which is now and then rather than every second. The moment it finishes does
-    not move at all, and Home Assistant counts down to a timestamp on its own,
-    so this is the one that reads live without writing a state a second.
+    The clock beside the time left counts down by itself, and writes a state
+    every second to do it. The moment it finishes does not move at all, and
+    Home Assistant counts down to a timestamp on its own, so this is the one
+    that reads live without writing a state a second.
     """
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
