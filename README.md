@@ -72,9 +72,10 @@ model nobody has tried works the same way as the one this was written against.
   number the machine reports.
 - **Readable readings** — a duration gets a second reading written as a clock,
   and the time left to a cycle counts down by the second rather than waiting to
-  be told. There is a **finishes at** timestamp beside it. A scale whose steps
-  say their own numbers reads as those numbers, and whatever the machine is
-  complaining about arrives as one problem sensor with the codes.
+  be told. There is a **finishes at** timestamp beside it. A setting on a
+  scale whose steps say their own numbers offers those numbers, and whatever
+  the machine is complaining about arrives as one problem sensor with the
+  codes.
 - **Both ways in** — a password, or a one time code mailed to the account,
   which is the only way in for an account that has no password.
 - **Either brand** — AEG and Electrolux are two builds of the same app in
@@ -286,8 +287,8 @@ guessed from its name, which costs a wrong picture rather than a wrong reading
 when it guesses wrong, and a reading nobody anticipated falls back to that
 guess.
 
-A value that is a name and a number is a step in a scale, and a field whose
-values all say their own number is shown as those numbers. The appliance still
+A value that is a name and a number is a step in a scale, and a setting whose
+values all say their own number is offered as those numbers. The appliance still
 hears the name it uses.
 
 The entity names are translated into nine languages, apart from the clocks
