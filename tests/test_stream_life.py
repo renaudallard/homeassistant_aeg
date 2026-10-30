@@ -329,3 +329,38 @@ async def test_no_network_at_renewal_is_a_drop_not_a_fault(
     assert asked > 1
     assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
     assert "the stream dropped" in caplog.text
+
+
+async def test_stopping_can_itself_be_stopped() -> None:
+    """Whoever is waiting for the stream to go may be cancelled meanwhile."""
+
+    async def slow_to_let_go() -> str:
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            await asyncio.sleep(0.05)
+            raise
+        return "Bearer a-token"
+
+    stream = AegStream(
+        _Session(),  # type: ignore[arg-type]
+        "wss://ws.eu.ocp.electrolux.one",
+        slow_to_let_go,
+        lambda: 43200.0,
+        ["an-appliance"],
+        lambda message: None,
+        lambda connected: None,
+    )
+    stream.start(asyncio.create_task)
+    await asyncio.sleep(0.01)
+    watching = stream._task
+    assert watching is not None
+
+    stopping = asyncio.create_task(stream.stop())
+    await asyncio.sleep(0.01)
+    stopping.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await stopping
+    # The stream still goes, only without anybody waiting for it.
+    await asyncio.wait({watching})
+    assert watching.cancelled()

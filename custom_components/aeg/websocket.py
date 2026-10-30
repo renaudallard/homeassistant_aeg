@@ -37,7 +37,6 @@ user token, so it is opened again whenever it drops or the token turns over.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import logging
 from collections.abc import Callable, Coroutine, Iterator
@@ -99,8 +98,10 @@ class AegStream:
         if task is None:
             return
         task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
+        # Waited for rather than awaited: awaiting it raises its cancellation
+        # here, and putting that aside would put aside one meant for whoever
+        # is stopping it along with it.
+        await asyncio.wait({task})
 
     async def _headers(self) -> dict[str, str]:
         return {
