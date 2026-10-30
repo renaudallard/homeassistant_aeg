@@ -267,7 +267,7 @@ keeping. The finishes at timestamp says the same thing and writes nothing
 between updates.
 
 Whichever field is counting down is also what says when to look again. Once
-less than a minute is left, one look is arranged for seventy seconds later and
+a minute or less is left, one look is arranged for seventy seconds later and
 no more are until it has been taken, so a machine counting in seconds does not
 book sixty of them on its way to zero. That is there because the cloud goes on
 pushing the door and the connection while saying nothing about the wash, and
