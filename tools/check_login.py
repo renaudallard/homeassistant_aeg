@@ -248,8 +248,11 @@ def main() -> int:
         if index + 1 >= len(sys.argv):
             print(__doc__)
             return 2
-        dump = Path(sys.argv[index + 1])
-        arguments = [a for a in arguments if a != str(dump)]
+        # Compared as typed: a Path drops a trailing slash and a leading ./,
+        # and the directory would then be taken for the email or the country.
+        given = sys.argv[index + 1]
+        dump = Path(given)
+        arguments = [a for a in arguments if a != given]
     brand = DEFAULT_BRAND
     if "--brand" in sys.argv:
         index = sys.argv.index("--brand")

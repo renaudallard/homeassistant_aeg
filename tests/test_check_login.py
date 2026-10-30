@@ -27,10 +27,16 @@
 
 """Tests for the login checker, which is a tool rather than the integration.
 
-Only the part of it that decides where a file goes: the rest talks to a real
-account and cannot be run here.
+Only the parts that decide what it was asked and where a file goes: the rest
+talks to a real account and cannot be run here.
 """
 
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from tools import check_login
 from tools.check_login import _plain
 
 
@@ -47,3 +53,18 @@ def test_a_model_name_cannot_choose_the_directory() -> None:
 def test_a_name_with_nothing_left_of_it_still_names_something() -> None:
     assert _plain("..") == "appliance"
     assert _plain("") == "appliance"
+
+
+@pytest.mark.parametrize("where", ["tmp/x", "tmp/x/", "./tmp/x"])
+def test_a_dump_directory_is_taken_however_it_is_written(where: str) -> None:
+    """A trailing slash or a leading ./ is still the directory, not an argument."""
+    argv = ["check_login.py", "you@example.com", "BE", "--dump", where]
+    with (
+        patch("sys.argv", argv),
+        patch.object(check_login, "check", AsyncMock(return_value=0)) as checked,
+        patch("logging.basicConfig"),
+    ):
+        assert check_login.main() == 0
+    assert checked.await_args is not None
+    assert checked.await_args.args[0] == "you@example.com"
+    assert checked.await_args.args[3] == Path(where)
