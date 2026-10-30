@@ -236,10 +236,10 @@ Eight details worth knowing, because they look like faults and are not:
   whole number goes as it was asked for.
 - **The programme decides what the rest of the wash will take.** A washing
   machine offers six spin speeds on one programme and three on another, and
-  the eco programme fixes the temperature at forty and turns economy on, so
-  those two controls go unavailable while it is selected. That is the
-  appliance's own rule, written into the programme rather than into the
-  field, and picking another programme hands the controls back.
+  the eco programme fixes the temperature at forty, so the temperature control
+  goes unavailable while it is selected. That is the appliance's own rule,
+  written into the programme rather than into the field, and picking another
+  programme hands the control back.
 - **An appliance can report a temperature twice**, once in each scale, and it
   writes the scale into the field name. Both are read on the scale they are
   on, so two readings that look like the same room temperature under different
