@@ -73,6 +73,9 @@ class AegNumber(AegEntity, NumberEntity):
             # them but leave the step in seconds, and a slider from nought to
             # twenty four that moves 3600 at a time can only be set to nought.
             self._attr_native_unit_of_measurement = UnitOfTime.SECONDS
+            # The picture Home Assistant gave it as a duration, which nothing
+            # else draws now that it is not one.
+            self._attr_icon = "mdi:progress-clock"
 
     @property
     def available(self) -> bool:

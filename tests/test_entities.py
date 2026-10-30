@@ -1972,6 +1972,8 @@ async def test_a_delayed_finish_says_it_is_in_seconds(
     assert finish.attributes["unit_of_measurement"] == "s"
     # A duration would be offered in hours, with the step left in seconds.
     assert "device_class" not in finish.attributes
+    # The picture it had as one stays.
+    assert finish.attributes["icon"] == "mdi:progress-clock"
 
 
 async def test_a_stop_time_that_is_not_set_reads_as_nothing(
