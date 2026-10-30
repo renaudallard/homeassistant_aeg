@@ -204,7 +204,9 @@ machine going quiet shows up. When the cloud stops calling an appliance
 reachable, what it last said stays readable, so a wash can be looked at
 afterwards; `binary_sensor.<appliance>_connection` is what says the machine has
 gone, rather than every other entity saying it at once. Controls do go unavailable,
-since there is nothing to set on an appliance that cannot be reached.
+since there is nothing to set on an appliance that cannot be reached. The
+stream says when an appliance goes and when it comes back, and both are taken
+as they arrive rather than at the next look.
 
 Eight details worth knowing, because they look like faults and are not:
 

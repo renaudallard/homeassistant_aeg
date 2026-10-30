@@ -151,6 +151,43 @@ async def test_being_told_something_is(hass: HomeAssistant) -> None:
     assert coordinator.update_interval == SCAN_INTERVAL_STREAMING
 
 
+def _connectivity(value: str) -> dict[str, Any]:
+    return {
+        "Payload": {
+            "Appliances": [
+                {
+                    "ApplianceId": "an-appliance",
+                    "Metrics": [{"Name": "connectivityState", "Value": value}],
+                }
+            ]
+        }
+    }
+
+
+async def test_a_pushed_connection_is_taken_at_its_word(hass: HomeAssistant) -> None:
+    """The listing that would say so is ten minutes off while streaming."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 1800)}
+
+    coordinator._pushed(_connectivity("disconnected"))
+    assert coordinator.data["an-appliance"].connected is False
+
+    coordinator._pushed(_connectivity("CONNECTED"))
+    assert coordinator.data["an-appliance"].connected is True
+
+
+async def test_a_push_about_something_else_leaves_the_connection_alone(
+    hass: HomeAssistant,
+) -> None:
+    coordinator = _coordinator(hass)
+    appliance = _washing("RUNNING", 1800)
+    appliance.connected = False
+    coordinator.data = {"an-appliance": appliance}
+
+    coordinator._pushed(_said(1700))
+    assert appliance.connected is False
+
+
 async def test_a_stream_that_drops_puts_it_back(hass: HomeAssistant) -> None:
     coordinator = _coordinator(hass)
     coordinator.update_interval = SCAN_INTERVAL_STREAMING

@@ -40,7 +40,7 @@ import asyncio
 import contextlib
 import json
 import logging
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Iterator
 from typing import Any
 
 import aiohttp
@@ -235,22 +235,20 @@ def merge(reported: dict[str, Any], name: str, value: Any) -> None:
     reported[name] = value
 
 
-def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]:
-    """Apply a pushed message, and say whose state it touched."""
-    touched: set[str] = set()
+def metrics(message: dict[str, Any]) -> Iterator[tuple[str, str, Any]]:
+    """Each field a pushed message carries, with the appliance it is about."""
     payload = message.get("Payload")
     appliances = payload.get("Appliances") if isinstance(payload, dict) else None
     if not isinstance(appliances, list):
-        return touched
+        return
     for entry in appliances:
         if not isinstance(entry, dict):
             continue
         appliance_id = str(entry.get("ApplianceId") or "")
-        reported = state.get(appliance_id)
-        metrics = entry.get("Metrics")
-        if reported is None or not isinstance(metrics, list):
+        carried = entry.get("Metrics")
+        if not appliance_id or not isinstance(carried, list):
             continue
-        for metric in metrics:
+        for metric in carried:
             if not isinstance(metric, dict):
                 continue
             name = metric.get("Name")
@@ -264,6 +262,16 @@ def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]
                 # carrying us.
                 _LOGGER.debug("%s arrived with no value, keeping what we hold", name)
                 continue
-            merge(reported, name, metric["Value"])
-            touched.add(appliance_id)
+            yield appliance_id, name, metric["Value"]
+
+
+def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]:
+    """Apply a pushed message, and say whose state it touched."""
+    touched: set[str] = set()
+    for appliance_id, name, value in metrics(message):
+        reported = state.get(appliance_id)
+        if reported is None:
+            continue
+        merge(reported, name, value)
+        touched.add(appliance_id)
     return touched

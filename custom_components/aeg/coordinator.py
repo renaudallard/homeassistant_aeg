@@ -62,7 +62,7 @@ from .const import BRANDS, DOMAIN
 from .errors import AegAuthError, AegError, AegRefused
 from .http import tag
 from .triggers import Override, evaluate
-from .websocket import AegStream, apply
+from .websocket import AegStream, apply, metrics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +76,10 @@ STORE_VERSION = 1
 
 # What a group of settings says it is a setting of.
 PROGRAMME = "programUID"
+
+# What the stream calls whether the cloud can hear an appliance, which the
+# listing calls connectionState.
+CONNECTIVITY = "connectivityState"
 
 SCAN_INTERVAL = timedelta(seconds=30)
 # Once the cloud is really pushing, polling is only there to catch what a
@@ -240,6 +244,23 @@ def _nearly_done(appliance: Appliance) -> bool:
             if counts_down(capability)
         )
     )
+
+
+def _fold(message: dict[str, Any], appliances: dict[str, Appliance]) -> set[str]:
+    """Apply a pushed message, the appliance's connection along with it.
+
+    The listing is the only other place that says whether the cloud can hear
+    an appliance, and it is ten minutes off while the stream is carrying us.
+    The controls on a machine that has just come back would stay unavailable
+    until then, and the ones on a machine that has just gone would stay up.
+    """
+    touched = apply(message, {key: value.reported for key, value in appliances.items()})
+    for appliance_id, name, value in metrics(message):
+        appliance = appliances.get(appliance_id)
+        if name == CONNECTIVITY and appliance is not None and isinstance(value, str):
+            # The app reads it without regard to case, and so does this.
+            appliance.connected = value.lower() == "connected"
+    return touched
 
 
 class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
@@ -450,7 +471,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         # Sending a command asks for a look straight away, and the push that
         # says it was taken tends to arrive while that look is on its way.
         for message in meanwhile:
-            apply(message, {key: value.reported for key, value in appliances.items()})
+            _fold(message, appliances)
         self._refresh_overrides(appliances)
         self._look_again_when_it_ends(appliances)
         self._notice_new(appliances)
@@ -620,10 +641,7 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
         """Fold a pushed change into what we hold and tell the entities."""
         if self._meanwhile is not None:
             self._meanwhile.append(message)
-        touched = apply(
-            message, {key: value.reported for key, value in self.data.items()}
-        )
-        if touched:
+        if _fold(message, self.data):
             # Something arrived, so the stream is not merely open, it is
             # working, and polling can ease off behind it.
             self.update_interval = SCAN_INTERVAL_STREAMING
