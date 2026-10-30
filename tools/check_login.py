@@ -42,9 +42,10 @@ reported state into that directory, with the identifiers taken out, which is
 what the entity mapping is built against.
 
 Nothing secret is printed. The password is read from the terminal and never
-echoed, and the log replaces tokens, keys, codes and the address itself with a
-note of how long they were, so the output can be pasted into a bug report. Pass
--q to log only failures.
+echoed, and the log hides tokens, keys, codes and the address itself, text
+behind a note of how long it was, so the output can be pasted into a bug
+report. The progress lines name the account and each appliance by the first
+four characters of its id. Pass -q to log only failures.
 
     python tools/check_login.py you@example.com BE
     python tools/check_login.py you@example.com BE --brand electrolux
@@ -149,8 +150,8 @@ def _dump(where: Path, name: str, data: Any) -> None:
     """Write a payload out with the identifiers taken out of it."""
     where.mkdir(parents=True, exist_ok=True)
     path = where / f"{name}.json"
-    # Not sorted: the order an appliance lists a field's values in is what
-    # says thirty degrees is less than forty, and sorting throws that away.
+    # Not sorted: a dump is what the fixtures are made from, and they should
+    # read the way the cloud wrote them rather than the way we tidied them.
     path.write_text(json.dumps(redact(data), indent=1))
     _note(f"wrote {path}")
 
