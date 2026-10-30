@@ -116,9 +116,10 @@ def _scale(order: Sequence[str]) -> tuple[str, ...]:
 
     A value that spells out a number is ordered by that number. One that does
     not keeps the order it came in and sits below the rest, which is where the
-    words on these fields belong: COLD is under every temperature and DISABLED
-    under every spin speed. A field whose values are all words is left as it
-    came, there being nothing to order it by.
+    words on these fields belong: COLD is under every temperature. A value the
+    tree sets aside, as a spin speed sets aside DISABLED, never reaches here,
+    so no comparison of order holds against it. A field whose values are all
+    words is left as it came, there being nothing to order it by.
     """
     measured = [(value, _measure(value)) for value in order]
     numbered = sorted(
