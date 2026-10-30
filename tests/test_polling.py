@@ -446,7 +446,10 @@ async def test_a_signed_out_account_closes_the_stream(hass: HomeAssistant) -> No
 
     coordinator.update_interval = SCAN_INTERVAL_STREAMING
 
-    await coordinator.async_refresh()
+    # The flow that would follow needs a real account to sign in to again.
+    with patch.object(entry, "async_start_reauth_if_available") as reauth:
+        await coordinator.async_refresh()
+    reauth.assert_called_once()
 
     assert not entry._background_tasks
     # Nothing is pushed any more, so a look that works again has to be soon.
