@@ -291,7 +291,8 @@ hears the name it uses.
 
 The entity names are translated into nine languages, apart from the clocks
 written beside a length of time and the command buttons, which are named after
-the field and the command they come from. The words an appliance answers with
+the field and the command they come from, and the fields nobody has named yet,
+which are named after where they sit in the tree. The words an appliance answers with
 are not translated. A door reads OPEN and a wash that has finished reads
 END_OF_CYCLE in every one of them, because a translated state has to be
 written in lower case and these appliances shout. Renaming them to fit would
