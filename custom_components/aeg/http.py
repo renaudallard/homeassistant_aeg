@@ -141,7 +141,7 @@ def _hidden(value: Any) -> Any:
 
 
 def redact(data: Any, under: str = "") -> Any:
-    """Copy a structure with every secret replaced by a note of its length.
+    """Copy a structure with every secret hidden, text behind a note of its length.
 
     What a field sits under travels with it, since a couple of names mean one
     thing in an appliance's report and another in a login.
