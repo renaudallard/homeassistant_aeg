@@ -116,10 +116,10 @@ class AegAlerts(AegEntity, BinarySensorEntity):
 class AegConnection(AegApplianceEntity, BinarySensorEntity):
     """Whether the cloud can still hear the appliance.
 
-    Everything else goes unavailable when an appliance drops off the network,
-    which is right but says nothing about why. This one stays put and answers
-    that, so a machine that cannot reach the cloud looks like a machine that
-    cannot reach the cloud rather than like a broken integration.
+    The controls go unavailable when an appliance drops off the network, and
+    the readings hold what it last said, neither of which says why. This one
+    answers that, so a machine that cannot reach the cloud looks like a
+    machine that cannot reach the cloud rather than like a broken integration.
     """
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY

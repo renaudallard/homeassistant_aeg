@@ -334,7 +334,7 @@ last said. The **connection** binary sensor says which it is.
 An appliance talks to the cloud itself, over MQTT on **port 8883**, not through
 Home Assistant. A firewall that blocks outbound 8883 takes the appliance off
 the network without anything on the Home Assistant side looking wrong, and
-every entity goes unavailable while the integration carries on talking to the
+every control goes unavailable while the integration carries on talking to the
 cloud quite happily. Check the connection sensor first, and the appliance's own
 network settings after that.
 
