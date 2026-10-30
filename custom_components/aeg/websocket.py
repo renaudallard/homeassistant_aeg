@@ -265,6 +265,17 @@ def metrics(message: dict[str, Any]) -> Iterator[tuple[str, str, Any]]:
             yield appliance_id, name, metric["Value"]
 
 
+def elsewhere(message: dict[str, Any]) -> bool:
+    """Whether a message says where a change is rather than carrying it.
+
+    The app fetches whatever such a message points to. The same change is in
+    the next listing, so a look reads it without a second way in to keep up.
+    """
+    payload = message.get("Payload")
+    url = payload.get("url") if isinstance(payload, dict) else None
+    return isinstance(url, str) and bool(url.strip())
+
+
 def apply(message: dict[str, Any], state: dict[str, dict[str, Any]]) -> set[str]:
     """Apply a pushed message, and say whose state it touched."""
     touched: set[str] = set()

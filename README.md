@@ -61,7 +61,9 @@ model nobody has tried works the same way as the one this was written against.
   unavailable until one works. A look is also arranged for just after an
   appliance says it is about to finish, because the end of a cycle is the one
   thing the cloud regularly forgets to mention. A change pushed while a look
-  is on its way is kept over the older answer that look brings back.
+  is on its way is kept over the older answer that look brings back, and one
+  that only points to where the change can be read, which the app is written
+  to follow and which has not been seen here, brings on a look.
 - **Kept as history** — a reading that is a number says so, which is what
   makes Home Assistant graph it and keep it. A cycle counter is added up
   rather than averaged. Nothing claims a unit an appliance has not made

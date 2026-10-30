@@ -62,7 +62,7 @@ from .const import BRANDS, DOMAIN
 from .errors import AegAuthError, AegError, AegRefused
 from .http import tag
 from .triggers import Override, evaluate
-from .websocket import AegStream, apply, metrics
+from .websocket import AegStream, apply, elsewhere, metrics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -665,6 +665,11 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             # An appliance that keeps pushing its door while saying nothing
             # about the wash would then never be looked at.
             self.async_update_listeners()
+        elif elsewhere(message) and self.config_entry is not None and not self._closing:
+            _LOGGER.debug("a change was pushed as a link to it, looking")
+            self.config_entry.async_create_task(
+                self.hass, self.async_request_refresh(), "AEG look"
+            )
 
     def _streaming(self, connected: bool) -> None:
         """Back to asking regularly whenever the stream is not carrying us.

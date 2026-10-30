@@ -470,3 +470,18 @@ async def test_a_new_field_reloads_only_an_entry_still_there(
         await coordinator._reload_seeing()
 
     assert reload.called is reloaded
+
+
+async def test_a_change_pushed_as_a_link_is_looked_for(hass: HomeAssistant) -> None:
+    """The app fetches what the link points to, and a look finds the same."""
+    coordinator = _coordinator(hass)
+    coordinator.data = {"an-appliance": _washing("RUNNING", 1800)}
+
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()) as asked:
+        coordinator._pushed({"Payload": {"Appliances": [], "url": "/an-event"}})
+        await hass.async_block_till_done()
+        asked.assert_called_once()
+
+        coordinator._pushed({"Payload": {"Appliances": [], "url": " "}})
+        await hass.async_block_till_done()
+        asked.assert_called_once()
