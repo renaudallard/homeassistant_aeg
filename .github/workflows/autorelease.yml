@@ -24,9 +24,17 @@ jobs:
   # keep in step with it.
   verify:
     uses: ./.github/workflows/test.yml
+    # A reusable workflow gets the caller's token, and the suite installs and
+    # runs other people's packages, so it gets one that cannot write.
+    permissions:
+      contents: read
 
+  # These two track a branch, and an action that can change under us gets no
+  # write token from the workflow-level grant.
   hacs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
       - uses: hacs/action@main
@@ -35,6 +43,8 @@ jobs:
 
   hassfest:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
       - uses: home-assistant/actions/hassfest@master
