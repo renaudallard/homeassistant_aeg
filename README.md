@@ -51,8 +51,8 @@ model nobody has tried works the same way as the one this was written against.
   per-model tables, and no list of appliance types to keep up to date.
 - **Only what it will accept** — an appliance also says what it will take right
   now. A washing machine offers START when it is ready to start and PAUSE once
-  it is running, freezes its settings mid-cycle, and offers nothing at all
-  until remote control has been armed at the machine itself.
+  it is running, freezes its settings mid-cycle, and takes no command until
+  remote control has been armed at the machine itself.
 - **Live, not polled** — the cloud pushes changes over a websocket, so a cycle
   finishing shows up when it happens. Polling carries on in the background
   every ten minutes, however busy the stream is, to catch whatever a dropped
