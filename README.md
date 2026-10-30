@@ -315,10 +315,11 @@ having only when the trouble is with the account rather than with a machine.
 
 Both are redacted the same way the logs are, so tokens, keys, cookies, the
 address on the account, the appliance's own identifier, and the name and
-hardware address of the network it is on are replaced by a note of their
-length, whether they arrived as text or as a number. Where the log has to say
-which appliance it means, it gives a few characters of a hash of the id rather
-than the id, which runs the serial and network address together. What kind of
+hardware address of the network it is on are replaced: text by a note of its
+length, and a number or anything else by a plain mark that it was hidden.
+Where the log has to say which appliance it means, it gives a few characters
+of a hash of the id rather than the id, which runs the serial and network
+address together. What kind of
 appliance it is, what it is doing, and the codes for whatever it is
 complaining about all stay readable.
 
