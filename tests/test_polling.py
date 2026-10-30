@@ -37,7 +37,9 @@ from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from freezegun.api import FrozenDateTimeFactory
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
@@ -445,3 +447,26 @@ async def test_a_signed_out_account_closes_the_stream(hass: HomeAssistant) -> No
     await coordinator.async_refresh()
 
     assert not entry._background_tasks
+
+
+@pytest.mark.parametrize(
+    ("state", "reloaded"),
+    [
+        (ConfigEntryState.LOADED, True),
+        (ConfigEntryState.UNLOAD_IN_PROGRESS, False),
+        (ConfigEntryState.NOT_LOADED, False),
+    ],
+)
+async def test_a_new_field_reloads_only_an_entry_still_there(
+    hass: HomeAssistant, state: ConfigEntryState, reloaded: bool
+) -> None:
+    """Unloading waits for the store, and the reload would follow it."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.mock_state(hass, state)
+    coordinator = AegCoordinator(hass, entry, AsyncMock(), MagicMock())
+
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        await coordinator._reload_seeing()
+
+    assert reload.called is reloaded

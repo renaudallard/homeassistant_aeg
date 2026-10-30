@@ -40,7 +40,7 @@ from functools import cached_property
 from typing import Any
 
 import aiohttp
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.event import async_call_later
@@ -565,7 +565,10 @@ class AegCoordinator(DataUpdateCoordinator[dict[str, Appliance]]):
             if isinstance(held.get(appliance_id), dict):
                 held[appliance_id]["seen"] = sorted(seen)
         await self._store.async_save(held)
-        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        # Unloading waits for this, so an entry unloaded or deleted while the
+        # store was busy would be loaded again straight after, or not found.
+        if entry.state in (ConfigEntryState.LOADED, ConfigEntryState.SETUP_IN_PROGRESS):
+            self.hass.config_entries.async_schedule_reload(entry.entry_id)
 
     def _refresh_overrides(self, appliances: dict[str, Appliance]) -> None:
         """Work out what each appliance will accept in the state it is in."""
