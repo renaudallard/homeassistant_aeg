@@ -220,8 +220,9 @@ Eight details worth knowing, because they look like faults and are not:
   remote start, and the app greys the same buttons out. They also go
   unavailable wherever the appliance says it will take no command at all, as an
   oven does while it is waiting out a delayed start.
-- **Water hardness and the softener mode go read-only** while a cycle is
-  running, delayed, paused or has just ended. That is the appliance's own rule.
+- **Water hardness, the softener mode and the end of cycle sound go
+  read-only** while a cycle is running, delayed, paused or has just ended.
+  That is the appliance's own rule.
 - **Steam and stain go read-only below forty degrees**, on a cold wash
   included. That is the appliance's own rule as well.
 - **A select offers fewer choices in some states than in others.** An air
