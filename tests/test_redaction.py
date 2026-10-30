@@ -348,6 +348,15 @@ async def test_an_answer_that_cannot_be_read_gives_no_id_away(
     assert APPLIANCE not in caplog.text
 
 
+async def test_a_timeout_still_says_why() -> None:
+    """A timeout has no text of its own, and the reason shown is made of it."""
+    session = MagicMock()
+    session.request.side_effect = TimeoutError()
+    with pytest.raises(AegConnectionError) as raised:
+        await request(session, "GET", BASE)
+    assert str(raised.value).endswith("is unreachable: TimeoutError")
+
+
 def test_a_refusal_quoted_in_an_error_gives_nothing_away() -> None:
     """The message is logged, so it gets the same treatment as the debug log."""
     text = _detail({"message": "Bad Request", "refreshToken": "a-secret-token"})
