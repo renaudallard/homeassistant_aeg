@@ -131,6 +131,20 @@ def _plain(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]", "_", name).strip("._") or "appliance"
 
 
+def _apart(name: str, taken: set[str]) -> str:
+    """A name no earlier appliance's files went under.
+
+    Two machines of one model would otherwise write the second one's files
+    over the first's.
+    """
+    chosen, count = name, 1
+    while chosen in taken:
+        count += 1
+        chosen = f"{name}-{count}"
+    taken.add(chosen)
+    return chosen
+
+
 def _dump(where: Path, name: str, data: Any) -> None:
     """Write a payload out with the identifiers taken out of it."""
     where.mkdir(parents=True, exist_ok=True)
@@ -209,6 +223,7 @@ async def check(email: str, country: str, brand: Brand, dump: Path | None) -> in
                 f"({entry.get('status', 'unknown status')})"
             )
 
+        taken: set[str] = set()
         for entry in appliances:
             appliance_id = str(entry.get("applianceId", ""))
             if not appliance_id:
@@ -233,9 +248,10 @@ async def check(email: str, country: str, brand: Brand, dump: Path | None) -> in
             _ok(f"{len(capabilities)} top level nodes")
             _note(", ".join(sorted(capabilities)[:12]))
             if dump is not None:
-                _dump(dump, f"{_plain(model)}-info", what)
-                _dump(dump, f"{_plain(model)}-capabilities", capabilities)
-                _dump(dump, f"{_plain(model)}-state", await api.appliance(appliance_id))
+                named = _apart(_plain(model), taken)
+                _dump(dump, f"{named}-info", what)
+                _dump(dump, f"{named}-capabilities", capabilities)
+                _dump(dump, f"{named}-state", await api.appliance(appliance_id))
 
     return 0
 

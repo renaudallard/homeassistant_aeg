@@ -496,5 +496,6 @@ without those is not worth keeping. That makes the output safe to paste into a
 bug report. Pass `-q` to log only failures.
 
 `--dump` writes what each appliance is, its capability tree and its reported
-state out as JSON, redacted the same way. That is what the entity mapping is
-built against.
+state out as JSON, redacted the same way, in files named after the model, with
+a number after it for a second machine of the same one. That is what the entity
+mapping is built against.

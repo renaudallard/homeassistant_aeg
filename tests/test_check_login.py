@@ -37,7 +37,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from tools import check_login
-from tools.check_login import _plain
+from tools.check_login import _apart, _plain
 
 
 def test_a_model_name_is_kept_as_it_is() -> None:
@@ -68,3 +68,11 @@ def test_a_dump_directory_is_taken_however_it_is_written(where: str) -> None:
     assert checked.await_args is not None
     assert checked.await_args.args[0] == "you@example.com"
     assert checked.await_args.args[3] == Path(where)
+
+
+def test_two_of_one_model_do_not_share_their_files() -> None:
+    taken: set[str] = set()
+    assert _apart("WM", taken) == "WM"
+    assert _apart("WM", taken) == "WM-2"
+    assert _apart("AC", taken) == "AC"
+    assert _apart("WM", taken) == "WM-3"
