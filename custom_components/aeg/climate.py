@@ -115,7 +115,10 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
     """An appliance that heats or cools a room."""
 
     _attr_name = None
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    # Home Assistant 2026.11 reads the native_ names and warns about the old
+    # ones unless a class gives both. Older releases read only the old ones.
+    _attr_temperature_unit = _attr_native_temperature_unit
 
     def __init__(
         self,
@@ -230,12 +233,12 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
         return MODES.get(str(running).upper()) if running is not None else None
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         reading = self.at(AMBIENT)
         return float(reading) if isinstance(reading, (int, float)) else None
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         if not self.override_for(TARGET).writable:
             # An air conditioner running only its fan takes no target, and
             # the figure it still reports is not one it is aiming for. The
@@ -244,6 +247,9 @@ class AegClimate(AegApplianceEntity, ClimateEntity):
             return None
         reading = self.at(TARGET)
         return float(reading) if isinstance(reading, (int, float)) else None
+
+    current_temperature = native_current_temperature
+    target_temperature = native_target_temperature
 
     @property
     def fan_mode(self) -> str | None:

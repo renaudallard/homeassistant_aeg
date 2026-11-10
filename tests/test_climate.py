@@ -52,6 +52,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.aeg.climate import AegClimate
 from custom_components.aeg.const import (
     CONF_ACCESS_TOKEN,
     CONF_BASE_URL,
@@ -623,3 +624,19 @@ async def test_a_target_number_is_shown_in_fahrenheit_too(
     )
     _, command = api.send_command.await_args.args
     assert command == {"targetTemperatureC": 22}
+
+
+def test_the_temperatures_are_given_under_both_names() -> None:
+    """2026.11 warns about the old names unless the class also gives native ones.
+
+    Releases before it read only the old names, so both have to stay, and
+    both have to be given by the class itself for 2026.11 to stay quiet.
+    """
+    names = vars(AegClimate)
+    for old, native in (
+        ("_attr_temperature_unit", "_attr_native_temperature_unit"),
+        ("current_temperature", "native_current_temperature"),
+        ("target_temperature", "native_target_temperature"),
+    ):
+        assert old in names
+        assert native in names
