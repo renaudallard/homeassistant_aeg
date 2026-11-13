@@ -306,6 +306,52 @@ and the cloud hands values over in alphabetical order, so they arrive as HARD,
 MEDIUM, SOFT and nothing in them says which is the first step. Numbering them
 off the order they came in would offer the hardest setting as one of seven.
 
+## The dashboard card
+
+A washing machine is easier to work from one card than from a list of
+entities, so the integration ships a dashboard card for it, laid out the way
+the AEG app lays one out. It comes with the integration and is added to the
+dashboard's own list of resources for you, so there is nothing to host or
+register by hand. A card added while a dashboard is open turns up in the card
+picker once the page is reloaded, so reload the browser once after installing
+or upgrading.
+
+    type: custom:aeg-washer-card
+
+Across the top it says what the machine is doing, the phase of the wash, the
+time left and when it will finish. Under that sits the programme on a card of
+its own, then the wash settings: a picker for each choice, such as temperature
+and spin speed, a chip for each option, such as prewash or stain, and a slider
+for a time it lets you set, such as finish in. The power and the panel lock
+come next, then one button that starts, pauses or resumes, and a stop.
+
+The appliance decides what it will take, and the card follows it. A setting
+the current programme does not take is greyed out, as the temperature is on
+the eco programme, and so is a button for a command the machine will not
+accept right now. A warning across the top says so when the door is open,
+when remote start has not been armed at the machine, which is why the buttons
+are greyed out, and when the appliance reports an alert.
+
+The values are shown in a readable form: 1400_RPM reads as 1400 rpm and
+COTTON_PR_ECO40-60 as Eco40-60, and a list of speeds is put in order rather
+than left alphabetical, which puts 1000 before 400. The machine is still sent
+its own words. What configures the machine rather than the wash, like water
+hardness or the end of cycle sound, stays off the card, on the device page.
+
+Add it from the dashboard's card picker, where a small form lets you choose
+the washing machine and give the card a heading. With only one on the system it
+is chosen for you and even that is not needed. Where there is more than one,
+set which:
+
+    type: custom:aeg-washer-card
+    device: <the washing machine's device id>
+    name: Cellar washer
+
+The card finds each control by its translation key, which is the same in
+every language, and the command buttons by the end of their entity id, since
+those are not translated. Renaming the entity id of a command button takes
+that button off the card.
+
 ## Reporting a problem
 
 The device page offers to download diagnostics, and that is the one to send:
@@ -415,6 +461,11 @@ checks need `homeassistant` and `pytest-homeassistant-custom-component`, and
 `tools/make_icons.py` needs Pillow. None of those are needed to run the
 integration. The decompiled app and the scratch work live in `tmp/`, which is
 not tracked, as is the app package itself.
+
+The dashboard card is a single JavaScript file under
+`custom_components/aeg/www`, with no build step. The suite checks that it is
+served and registered, not what it draws, so a change to it wants a look on a
+real dashboard.
 
 The tests load a real washing machine, dumped from an account with the
 identifiers removed, and check what comes out of it. The config flow tests

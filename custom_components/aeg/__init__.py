@@ -42,7 +42,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.loader import async_get_integration
 
+from . import cards
 from .api import AegApi
 from .auth import AegAuth, Tokens
 from .const import (
@@ -86,6 +88,8 @@ type AegConfigEntry = ConfigEntry[AegData]
 
 async def async_setup_entry(hass: HomeAssistant, entry: AegConfigEntry) -> bool:
     """Set up an AEG account."""
+    version = (await async_get_integration(hass, DOMAIN)).version or "0"
+    await cards.register(hass, version)
     session = async_get_clientsession(hass)
     country = entry.data[CONF_COUNTRY]
     # Entries made before there were two of them hold no brand and are AEG.

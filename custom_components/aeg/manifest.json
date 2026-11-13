@@ -1,6 +1,7 @@
 {
   "domain": "aeg",
   "name": "AEG",
+  "after_dependencies": ["frontend", "http"],
   "codeowners": ["@renaudallard"],
   "config_flow": true,
   "documentation": "https://github.com/renaudallard/homeassistant_aeg",
