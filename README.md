@@ -306,51 +306,82 @@ and the cloud hands values over in alphabetical order, so they arrive as HARD,
 MEDIUM, SOFT and nothing in them says which is the first step. Numbering them
 off the order they came in would offer the hardest setting as one of seven.
 
-## The dashboard card
+## The dashboard cards
 
-A washing machine is easier to work from one card than from a list of
-entities, so the integration ships a dashboard card for it, laid out the way
-the AEG app lays one out. It comes with the integration and is added to the
-dashboard's own list of resources for you, so there is nothing to host or
-register by hand. A card added while a dashboard is open turns up in the card
-picker once the page is reloaded, so reload the browser once after installing
-or upgrading.
+An appliance is easier to work from one card than from a list of entities, so
+the integration ships a dashboard card for each kind it knows, laid out the
+way the AEG app lays that appliance out. They come with the integration and
+are added to the dashboard's own list of resources for you, so there is
+nothing to host or register by hand. A card added while a dashboard is open
+turns up in the card picker once the page is reloaded, so reload the browser
+once after installing or upgrading.
 
     type: custom:aeg-washer-card
+    type: custom:aeg-oven-card
+    type: custom:aeg-air-conditioner-card
+    type: custom:aeg-air-purifier-card
 
-Across the top it says what the machine is doing, the phase of the wash, the
-time left and when it will finish. Under that sits the programme on a card of
-its own, then the wash settings: a picker for each choice, such as temperature
-and spin speed, a chip for each option, such as prewash or stain, and a slider
-for a time it lets you set, such as finish in. The power and the panel lock
-come next, then one button that starts, pauses or resumes, and a stop.
+Each one has what the appliance is doing across the top, the controls that
+matter most to that kind of appliance under it, and the rest of its settings
+after them: a picker for each choice, a chip for each option and for each
+setting that is only on or off, and a slider for a number it lets you set,
+such as a timer.
+
+- **The washing machine card** shows the state, the phase of the wash, the
+  time left and when it will finish, then the programme on a card of its own,
+  the wash settings, the power and the panel lock, one button that starts,
+  pauses or resumes, and a stop.
+- **The oven card** shows the state, how long it has been running and whether
+  the food probe is in, then the programme, the temperature and the food probe
+  target on steppers, and the same start and stop.
+- **The air conditioner card** shows the state and the room temperature, then
+  the target temperature on a stepper, the modes and the fan speeds as rows of
+  chips, and a button that turns it on and off. It works the same for the
+  older models and for the one that writes its fields in a group of its own.
+- **The air purifier card** shows the state, PM2.5 and what is left of the
+  filter, then the modes and the fan speeds as rows of chips, and the same on
+  and off button.
+
+A stepper shows each press at once and sends only once the presses stop, so
+three presses are one command and the appliance gets the temperature asked
+for. It goes back to what the appliance reports if that has not caught up
+within ten seconds.
 
 The appliance decides what it will take, and the card follows it. A setting
-the current programme does not take is greyed out, as the temperature is on
-the eco programme, and so is a button for a command the machine will not
-accept right now. A warning across the top says so when the door is open,
-when remote start has not been armed at the machine, which is why the buttons
-are greyed out, and when the appliance reports an alert.
+it will not take right now is greyed out, as a washer's temperature is on the
+eco programme, and so is a button for a command it will not accept. A warning
+across the top says so when the door is open, when remote control has not
+been armed at the appliance, which is why the buttons are greyed out, when it
+reports an alert, when an air conditioner wants its filter seen to, and when
+an oven's steam tank is empty.
 
-The values are shown in a readable form: 1400_RPM reads as 1400 rpm and
-COTTON_PR_ECO40-60 as Eco40-60, and a list of speeds is put in order rather
-than left alphabetical, which puts 1000 before 400. The machine is still sent
-its own words. What configures the machine rather than the wash, like water
-hardness or the end of cycle sound, stays off the card, on the device page.
+The values are shown in a readable form: 1400_RPM reads as 1400 rpm,
+COTTON_PR_ECO40-60 as Eco40-60 and fanOnly as Fan only, and a list of speeds
+is put in the order they run at rather than left alphabetical, which puts 1000
+before 400 and a high fan before a low one. The appliance is still sent its
+own words. What configures the appliance rather than works it, like water
+hardness or the display brightness, stays off the card, on the device page.
 
-Add it from the dashboard's card picker, where a small form lets you choose
-the washing machine and give the card a heading. With only one on the system it
-is chosen for you and even that is not needed. Where there is more than one,
-set which:
+Add one from the dashboard's card picker, where a small form lets you choose
+the appliance and give the card a heading. With only one of that kind on the
+system it is chosen for you and even that is not needed. Where there is more
+than one, set which:
 
     type: custom:aeg-washer-card
     device: <the washing machine's device id>
     name: Cellar washer
 
-The card finds each control by its translation key, which is the same in
-every language, and the command buttons by the end of their entity id, since
-those are not translated. Renaming the entity id of a command button takes
-that button off the card.
+Each card finds its controls by their translation key, which is the same in
+every language. The few entities whose names are not translated are found by
+the end of their entity id instead: the command buttons, and the mode of an
+air conditioner or a purifier. Renaming the entity id of one of those takes it
+off the card.
+
+The washing machine card was drawn against the washing machine the tests
+load. The other three were drawn against the capability trees the AEG app
+carries for those appliances and have not been tried on a real one. There is
+no card for the robot vacuum: its capability tree has no command to start,
+pause or dock it with, so a card would have nothing to drive it by.
 
 ## Reporting a problem
 
@@ -462,10 +493,10 @@ checks need `homeassistant` and `pytest-homeassistant-custom-component`, and
 integration. The decompiled app and the scratch work live in `tmp/`, which is
 not tracked, as is the app package itself.
 
-The dashboard card is a single JavaScript file under
-`custom_components/aeg/www`, with no build step. The suite checks that it is
-served and registered, not what it draws, so a change to it wants a look on a
-real dashboard.
+The dashboard cards are one JavaScript file under
+`custom_components/aeg/www`, with no build step, so that what they have in
+common is written once. The suite checks that it is served and registered,
+not what it draws, so a change to it wants a look on a real dashboard.
 
 The tests load a real washing machine, dumped from an account with the
 identifiers removed, and check what comes out of it. The config flow tests

@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-"""The dashboard card this ships, served and made available to add.
+"""The dashboard cards this ships, served and made available to add.
 
 A card is put in front of the user as a Lovelace resource, which is what
 lists it in the card picker and loads it onto a dashboard, the same way an
@@ -52,9 +52,14 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# Each card is one file under www/, served at /aeg/<file> and offered in the
-# picker by the name it gives itself.
-CARDS = ("aeg-washer-card.js",)
+# Each file under www/ is served at /aeg/<file>, and every card in it is
+# offered in the picker by the name it gives itself.
+CARDS = ("aeg-cards.js",)
+
+# What a file was called before, which is still served so a dashboard that
+# names it by hand keeps working, and whose entry in the resource list is
+# moved onto the new name rather than left beside it to load it twice.
+FORMERLY = {"aeg-cards.js": ("aeg-washer-card.js",)}
 
 # Set once the files are being served, so several accounts do not each serve
 # them again.
@@ -85,8 +90,9 @@ async def register(hass: HomeAssistant, version: str) -> None:
             # one can hand a module over as something a browser will not load.
             await hass.http.async_register_static_paths(
                 [
-                    StaticPathConfig(url_of(card), str(here / card), cache_headers=True)
+                    StaticPathConfig(url_of(name), str(here / card), cache_headers=True)
                     for card in CARDS
+                    for name in (card, *FORMERLY.get(card, ()))
                 ]
             )
         except Exception as err:
@@ -123,25 +129,28 @@ async def _add_resources(hass: HomeAssistant, version: str) -> None:
             await resources.async_load()
             resources.loaded = True
         for card in CARDS:
-            await _one(resources, url_of(card), version)
+            former = tuple(url_of(name) for name in FORMERLY.get(card, ()))
+            await _one(resources, url_of(card), version, former)
     except AttributeError:
         _LOGGER.debug("dashboard resources are kept in YAML; add the cards by hand")
     except Exception as err:
         _LOGGER.warning("could not register the card resources: %s", err)
 
 
-async def _one(resources: Any, base: str, version: str) -> None:
+async def _one(
+    resources: Any, base: str, version: str, former: tuple[str, ...] = ()
+) -> None:
     """Add one card as a module resource, or move it to this version.
 
     The version rides on the url so a new release is fetched rather than read
-    from an old cache. An entry from a former version is updated where it
-    stands rather than left beside a new one, so the list does not fill with
-    a card's every past self.
+    from an old cache. An entry from a former version, or for the file under
+    a former name, is updated where it stands rather than left beside a new
+    one, so the list does not fill with a card's every past self.
     """
     wanted = f"{base}?v={version}"
     for item in resources.async_items():
         url = item.get("url")
-        if not isinstance(url, str) or not url.startswith(base):
+        if not isinstance(url, str) or not url.startswith((base, *former)):
             continue
         if url != wanted:
             await resources.async_update_item(item["id"], {"url": wanted})

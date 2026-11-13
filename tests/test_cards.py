@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""The dashboard card, served from the integration and added to the dashboard."""
+"""The dashboard cards, served from the integration and added to the dashboard."""
 
 from __future__ import annotations
 
@@ -46,9 +46,11 @@ def test_every_card_listed_ships() -> None:
         assert (WWW / card).is_file(), card
 
 
-async def test_the_card_is_served_once(hass: HomeAssistant) -> None:
-    """The card ships with the integration and is served from it, so there is
-    no file to host by hand, and only once however many accounts are set up."""
+async def test_the_cards_are_served_once(hass: HomeAssistant) -> None:
+    """The cards ship with the integration and are served from it, so there
+    is no file to host by hand, and only once however many accounts are set
+    up. The file's former name is served too, for a dashboard naming it by
+    hand."""
     hass.data.pop("lovelace", None)
     hass.http = AsyncMock()
     await cards.register(hass, "1.2.3")
@@ -60,7 +62,8 @@ async def test_the_card_is_served_once(hass: HomeAssistant) -> None:
     # rather than a type the browser will not load.
     served = {path.url_path: (path.path, path.cache_headers) for path in paths}
     assert served == {
-        "/aeg/aeg-washer-card.js": (str(WWW / "aeg-washer-card.js"), True),
+        "/aeg/aeg-cards.js": (str(WWW / "aeg-cards.js"), True),
+        "/aeg/aeg-washer-card.js": (str(WWW / "aeg-cards.js"), True),
     }
 
 
@@ -96,7 +99,7 @@ async def test_a_card_is_added_then_freshened_in_place() -> None:
     """A card missing from the dashboard is added as a module; one already
     there is moved to the running version rather than added a second time, so
     the list does not fill with a card's every past self."""
-    url = "/aeg/aeg-washer-card.js"
+    url = "/aeg/aeg-cards.js"
     resources = _Resources()
 
     await cards._one(resources, url, "1.0.0")
@@ -111,6 +114,20 @@ async def test_a_card_is_added_then_freshened_in_place() -> None:
     await cards._one(resources, url, "1.1.0")
     assert len(resources.created) == 1
     assert resources.updated == [("id0", {"url": f"{url}?v=1.1.0"})]
+
+
+async def test_the_entry_under_the_former_name_is_moved_onto_the_new_one(
+    hass: HomeAssistant,
+) -> None:
+    """2026.11.1 added the washer card as aeg-washer-card.js. Its entry is
+    pointed at the file that holds every card now, in place, so the dashboard
+    neither loses the washer card nor loads it twice."""
+    resources = _Resources()
+    resources.items.append({"id": "old", "url": "/aeg/aeg-washer-card.js?v=2026.11.1"})
+    hass.data["lovelace"] = SimpleNamespace(resources=resources)
+    await cards._add_resources(hass, "2026.11.2")
+    assert resources.created == []
+    assert resources.updated == [("old", {"url": "/aeg/aeg-cards.js?v=2026.11.2"})]
 
 
 async def test_registering_the_card_without_a_dashboard_is_harmless(
@@ -154,7 +171,7 @@ async def test_the_card_is_registered_with_a_storage_dashboard(
     hass.data["lovelace"] = SimpleNamespace(resources=resources)
     await cards._add_resources(hass, "1.0.0")
     urls = {item["url"] for item in resources.items}
-    assert urls == {"/local/unrelated.js", "/aeg/aeg-washer-card.js?v=1.0.0"}
+    assert urls == {"/local/unrelated.js", "/aeg/aeg-cards.js?v=1.0.0"}
     assert resources.updated == []
 
 
