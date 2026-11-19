@@ -2495,6 +2495,63 @@ async def test_a_number_read_from_a_range_of_its_own_gets_its_name(
     assert volume.attributes["friendly_name"] == "Lave-linge Volume"
 
 
+async def test_a_temperature_ranged_by_the_programme_follows_it(
+    hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
+) -> None:
+    """An oven gives its target temperature a range under each programme only.
+
+    It was a reading, so the oven started at whatever it was last set to.
+    Like the app, a programme that gives no temperature offers none.
+    """
+    tree: dict[str, Any] = _fixture("wm-capabilities")
+    tree["program"] = {
+        "access": "readwrite",
+        "type": "string",
+        "values": {
+            "CONVENTIONAL_COOKING": {
+                "targetTemperatureC": {"min": 30.0, "max": 300.0, "step": 5.0}
+            },
+            "PIZZA_EXPERT_MAIN": {
+                "targetTemperatureC": {"min": 320.0, "max": 340.0, "step": 5.0}
+            },
+            "CLEANING": {},
+        },
+    }
+    tree["targetTemperatureC"] = {"access": "readwrite", "type": "temperature"}
+    api.capabilities.return_value = tree
+    listed = _fixture("wm-appliances")
+    reported = listed[0]["properties"]["reported"]
+    reported["program"] = "CONVENTIONAL_COOKING"
+    reported["targetTemperatureC"] = 180.0
+    api.appliances.return_value = listed
+    await _setup(hass, entry, api)
+
+    entity_id = "number.lave_linge_target_temperature"
+    target = hass.states.get(entity_id)
+    assert target is not None
+    assert target.state == "180.0"
+    assert (target.attributes["min"], target.attributes["max"]) == (30.0, 300.0)
+    assert target.attributes["step"] == 5.0
+
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": entity_id, "value": 200}, blocking=True
+    )
+    _, command = api.send_command.await_args.args
+    assert command == {"targetTemperatureC": 200}
+
+    _push(entry, ("program", "PIZZA_EXPERT_MAIN"))
+    await hass.async_block_till_done()
+    target = hass.states.get(entity_id)
+    assert target is not None
+    assert (target.attributes["min"], target.attributes["max"]) == (320.0, 340.0)
+
+    _push(entry, ("program", "CLEANING"))
+    await hass.async_block_till_done()
+    target = hass.states.get(entity_id)
+    assert target is not None
+    assert target.state == "unavailable"
+
+
 async def test_an_appliance_on_the_newer_data_model_is_sent_a_list(
     hass: HomeAssistant, entry: MockConfigEntry, api: AsyncMock
 ) -> None:

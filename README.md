@@ -147,6 +147,7 @@ since nothing has been listed to tell the two apart.
 | what it is complaining about | a problem binary sensor, with the codes |
 | a choice, and the values it takes | a select |
 | a number with a range | a number |
+| a number its programmes give a range to | a number, offered while the programme gives one |
 | what firmware it is running | an update entity, and whether one is in hand |
 | the version its network unit is on | the firmware line on the device page |
 | a mode and a target temperature at the top of its tree | a thermostat, as well as the parts |
@@ -242,6 +243,10 @@ Eight details worth knowing, because they look like faults and are not:
   goes unavailable while it is selected. That is the appliance's own rule,
   written into the programme rather than into the field, and picking another
   programme hands the control back.
+- **An oven can give its target temperature a range only under each
+  programme.** The app reads it from the selected programme alone, so the
+  number takes that programme's range, and goes unavailable on a programme
+  that gives none, where the app shows no temperature either.
 - **An appliance can report a temperature twice**, once in each scale, and it
   writes the scale into the field name. Both are read on the scale they are
   on, so two readings that look like the same room temperature under different

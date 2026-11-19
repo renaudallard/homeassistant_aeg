@@ -81,7 +81,11 @@ class AegNumber(AegEntity, NumberEntity):
     def available(self) -> bool:
         # Nothing to set on an appliance that cannot be reached, and nothing
         # to set on a field it will not take right now.
-        return super().available and self.reachable and self.override.writable
+        if not (super().available and self.reachable and self.override.writable):
+            return False
+        # A range that only the programmes give is the selected programme's
+        # to give, and the app offers no temperature on one that gives none.
+        return not self.capability.borrowed or self.override.minimum is not None
 
     @property
     def native_min_value(self) -> float:

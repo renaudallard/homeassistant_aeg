@@ -76,6 +76,8 @@ def _appliance(coordinator: AegCoordinator, appliance: Appliance) -> dict[str, A
                 "min": capability.minimum,
                 "max": capability.maximum,
                 "step": capability.step,
+                # The range above is what its programmes give, not its own.
+                "borrowed": capability.borrowed,
                 "disabled": capability.disabled,
                 # The rules behind what it accepts now, so that working it
                 # out again from a report does not need the appliance.

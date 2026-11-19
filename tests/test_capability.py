@@ -209,6 +209,62 @@ def test_a_number_needs_a_range_to_be_settable() -> None:
     assert platform_for(without) == SENSOR
 
 
+def test_a_range_given_by_the_programmes_alone_is_still_a_range() -> None:
+    """An oven gives its target temperature a range under each programme only.
+
+    It became a reading, so the temperature could not be set at all.
+    """
+    found = parse(
+        {
+            "program": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {
+                    "CONVENTIONAL_COOKING": {
+                        "targetTemperatureC": {"min": 30.0, "max": 300.0, "step": 5.0}
+                    },
+                    "PIZZA_EXPERT_MAIN": {
+                        "targetTemperatureC": {"min": 320.0, "max": 340.0, "step": 1.0}
+                    },
+                    "CLEANING": {},
+                },
+            },
+            "targetTemperatureC": {"access": "readwrite", "type": "temperature"},
+            "targetDuration": {"access": "readwrite", "type": "number"},
+        }
+    )
+    by_path = {capability.path: capability for capability in found}
+    target = by_path["targetTemperatureC"]
+    assert platform_for(target) == NUMBER
+    assert (target.minimum, target.maximum, target.step) == (30.0, 340.0, 1.0)
+    assert target.borrowed
+    # Nothing gives this one a range, so it stays what it was.
+    assert platform_for(by_path["targetDuration"]) == SENSOR
+    assert not by_path["targetDuration"].borrowed
+
+
+def test_a_range_of_its_own_is_kept_beside_the_programmes() -> None:
+    found = parse(
+        {
+            "program": {
+                "access": "readwrite",
+                "type": "string",
+                "values": {"DEFROST": {"targetTemperatureC": {"min": 30, "max": 30}}},
+            },
+            "targetTemperatureC": {
+                "access": "readwrite",
+                "type": "temperature",
+                "min": 30.0,
+                "max": 230.0,
+                "step": 5.0,
+            },
+        }
+    )
+    target = next(c for c in found if c.path == "targetTemperatureC")
+    assert (target.minimum, target.maximum, target.step) == (30.0, 230.0, 5.0)
+    assert not target.borrowed
+
+
 def test_a_range_says_how_to_set_a_field_whatever_it_calls_its_type() -> None:
     """An air conditioner sets its display brightness from 0 to 100 in ones.
 

@@ -40,7 +40,7 @@ into the key as "userSelections/analogTemperature". Some are nested under a
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 # What a node becomes. These are Home Assistant platform names, kept as plain
@@ -114,6 +114,9 @@ class Capability:
     # What each value of this field says the rest of the appliance will
     # accept, by the path of the field each change is about.
     offers: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Whether the range is only what the values of other fields give it,
+    # which leaves the field with no range while none of them is selected.
+    borrowed: bool = False
 
     @property
     def readable(self) -> bool:
@@ -282,7 +285,7 @@ def _numbered(node: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     }
 
 
-def parse(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
+def _walk(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
     """Flatten a capability tree into the fields it describes."""
     found: list[Capability] = []
     for key, node in payload.items():
@@ -292,12 +295,12 @@ def parse(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
         properties = node.get("properties")
         if isinstance(properties, dict):
             # A grouping node holds nothing itself, only the fields under it.
-            found.extend(parse(properties, path))
+            found.extend(_walk(properties, path))
             continue
         numbered = _numbered(node)
         if numbered:
             for member, fields in numbered.items():
-                found.extend(parse(fields, f"{path}/{member}"))
+                found.extend(_walk(fields, f"{path}/{member}"))
             continue
         if "access" in node or "type" in node:
             found.append(_capability(path, node))
@@ -305,8 +308,50 @@ def parse(payload: Mapping[str, Any], prefix: str = "") -> list[Capability]:
         # A bare object that says nothing about itself is a grouping too. The
         # oven writes networkInterface that way, with its fields directly
         # inside and no properties around them.
-        found.extend(parse(node, path))
+        found.extend(_walk(node, path))
     return found
+
+
+def _lent(capabilities: list[Capability]) -> list[Capability]:
+    """Give a field with no range of its own the widest its programmes give it.
+
+    An oven can leave its target temperature without a range and give one
+    under each programme instead, 30 to 300 on one and 320 to 340 on another.
+    The app reads an oven's temperature from the selected programme alone, so
+    the field is still a number to set, and what the programmes give between
+    them is the most it can be set to.
+    """
+    spans: dict[str, list[tuple[float, float, float | None]]] = {}
+    for capability in capabilities:
+        for offer in capability.offers.values():
+            for path, change in offer.items():
+                if not isinstance(change, Mapping):
+                    continue
+                least, most, step = (number(each) for each in bounds(change))
+                if least is not None and most is not None:
+                    spans.setdefault(path, []).append((least, most, step))
+    lent = []
+    for capability in capabilities:
+        given = spans.get(capability.path)
+        if capability.minimum is not None or not given:
+            lent.append(capability)
+            continue
+        lent.append(
+            replace(
+                capability,
+                minimum=min(least for least, _, _ in given),
+                maximum=max(most for _, most, _ in given),
+                # The finest of them, so that none of their values is missed.
+                step=min((step for _, _, step in given if step), default=None),
+                borrowed=True,
+            )
+        )
+    return lent
+
+
+def parse(payload: Mapping[str, Any]) -> list[Capability]:
+    """Flatten a capability tree into the fields it describes."""
+    return _lent(_walk(payload))
 
 
 def platform_for(capability: Capability) -> str | None:
